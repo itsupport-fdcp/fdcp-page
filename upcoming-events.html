@@ -1069,12 +1069,17 @@
       descEl.parentNode.insertBefore(note, descEl.nextSibling);
     }
 
-    // Time + location: when the sheet has no value, show "TBA" rather than
-    // hiding the row — so the layout stays consistent and editors can tell
-    // at a glance that a field still needs filling in.
+    // Time: hide the row entirely when the sheet has no value, so cards
+    // don't show a placeholder. Location still falls back to "Location TBA".
     var timeStr = fmtTime(start);
     if (end && fmtTime(end)) timeStr += (timeStr ? " - " : "") + fmtTime(end);
-    setText(node, "time", timeStr || "Time TBA");
+    var timeRow = node.querySelector('[data-field="time-row"]');
+    if (timeStr) {
+      setText(node, "time", timeStr);
+      if (timeRow) timeRow.style.display = "";
+    } else if (timeRow) {
+      timeRow.style.display = "none";
+    }
 
     setText(node, "location", row["Location"] ? row["Location"] : "Location TBA");
 
