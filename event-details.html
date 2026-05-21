@@ -1,0 +1,559 @@
+
+<main id="main-content" class="flex-grow h-auto lg:min-h-screen" style="padding-top:0;margin-top:0;">
+  <div class="h-full">
+    <article id="fdcp-event-article" class="contextual-region min-h-screen bg-[#F8F8F8] text-black">
+
+      <div class="relative">
+        <div id="fdcp-event-hero"
+             class="relative w-full h-[360px] md:h-[600px] aspect-video"
+             style="background-image:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url('/themes/custom/fdcp_theme/assets/images/home/calendar-bg.jpg');background-position:center;background-size:cover;background-repeat:no-repeat;">
+          <div class="absolute top-[25%] left-[4.5rem]">
+            <a id="fdcp-back-link" href="/fdcp-events">
+              <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+                <path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 sm:px-6 lg:px-[140px] py-10 space-y-10">
+
+        <nav class="text-sm text-gray-600 flex items-center gap-1" aria-label="Breadcrumb">
+          <a href="/" class="hover:text-blue-600">Home</a>
+          <span class="mx-2">&gt;</span>
+          <a id="fdcp-crumb-list" href="/fdcp=events" class="hover:text-blue-600">Calendar of Events</a>
+          <span class="mx-2">&gt;</span>
+          <span id="fdcp-crumb-title" class="text-gray-900 font-medium">—</span>
+        </nav>
+
+        <header class="space-y-4">
+          <h1 id="fdcp-event-title" class="text-[40px] md:text-[56px] font-bold leading-tight">Loading…</h1>
+          <p id="fdcp-event-date" class="text-sm text-gray-600"></p>
+          <p id="fdcp-event-time" class="text-xs"></p>
+          <p id="fdcp-event-location" class="text-sm text-gray-600" style="display:none">
+            <!-- The inner span needs a placeholder character so Drupal's HTML filter
+                 doesn't strip it as an "empty" inline element. The parent <p> is
+                 display:none initially, so the placeholder is never seen by users. -->
+            <span class="font-semibold">Location:</span> <span id="fdcp-event-location-text">—</span>
+          </p>
+        </header>
+
+        <div id="fdcp-event-description" class="text-sm text-gray-700 space-y-3"></div>
+
+        <div id="fdcp-event-remarks" class="text-sm" style="display:none"></div>
+
+      </div>
+    </article>
+  </div>
+</main>
+
+<script>
+(function () {
+  // === CONFIG ===========================================================
+  // Pull from the aggregated "ALL" tab so we can resolve slugs from every
+  // division, not just the default first tab (COMMS) — otherwise pills for
+  // FESTIVALS/AFD/etc. events resolve to "Event not found".
+  // Fetch as HTML (not CSV) so cell formatting — bold, italic, underline,
+  // hyperlinks — is preserved in the response. The detail page then renders
+  // the Descriptions cell as rich HTML, while plain-text consumers (listing
+  // titles, calendar pills, dates, locations) read a parallel text-only
+  // value extracted from the same cell.
+  var SHEET_SRC =
+    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=ALL";
+  var LIST_URL  = "/fdcp-events"; // your listing-page URL alias
+
+  // Stale-while-revalidate cache, shared with /upcoming-events. localStorage
+  // so the cache survives tab closes; a background fetch silently swaps in
+  // sheet edits. v4 bumps the schema for the CSV→HTML migration.
+  var CACHE_KEY = "fdcp.events.v4";
+  var REVALIDATE_MIN_GAP = 60 * 1000;
+  // ======================================================================
+
+  var MONTH_LONG = ["January","February","March","April","May","June",
+                    "July","August","September","October","November","December"];
+
+  function slugify(s) {
+    return String(s || "")
+      .toLowerCase()
+      // Strip the Unicode combining-marks block (U+0300 – U+036F) that
+      // .normalize("NFKD") splits accented characters into. Using the \\uXXXX
+      // escape form keeps the regex parseable even if the file is served
+      // without an explicit UTF-8 charset (e.g. local dev servers).
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  // Extract plain text from a gviz HTML cell, converting <br> back to \n
+  // so multi-line cells (Alt+Enter in the sheet) keep their line breaks
+  // when used as text. textContent alone would collapse <br> to nothing.
+  function cellToText(cell) {
+    if (!cell) return "";
+    var clone = cell.cloneNode(true);
+    var brs = clone.querySelectorAll("br");
+    for (var i = 0; i < brs.length; i++) {
+      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+    }
+    return (clone.textContent || "").trim();
+  }
+
+  // Whitelist-sanitize a gviz cell's innerHTML so it's safe to render via
+  // .innerHTML. gviz only emits a small set of formatting tags (<b>, <i>,
+  // <u>, <s>, <font>, <a>, <br>, etc.), but we still scrub aggressively
+  // to defend against any future format change or sheet content surprise.
+  var SAN_ALLOWED = {B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,BR:1,SPAN:1,FONT:1,A:1};
+  function sanitizeRichHTML(html) {
+    if (!html) return "";
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    (function walk(node) {
+      var kids = Array.prototype.slice.call(node.childNodes);
+      kids.forEach(function (c) {
+        if (c.nodeType === 1) { // element
+          if (!SAN_ALLOWED[c.tagName]) {
+            // unwrap unknown tag: lift its children into its place
+            while (c.firstChild) c.parentNode.insertBefore(c.firstChild, c);
+            c.parentNode.removeChild(c);
+            return;
+          }
+          // strip all attributes except a tiny allowlist
+          var attrs = Array.prototype.slice.call(c.attributes);
+          attrs.forEach(function (a) {
+            var nm = a.name.toLowerCase(), keep = false;
+            if (c.tagName === "A" && nm === "href" && /^(https?:|mailto:)/i.test(a.value)) keep = true;
+            if (c.tagName === "FONT" && nm === "color" && /^#?[\w(),. ]+$/.test(a.value)) keep = true;
+            if (!keep) c.removeAttribute(a.name);
+          });
+          if (c.tagName === "A") {
+            c.target = "_blank";
+            c.rel = "noopener noreferrer";
+          }
+          walk(c);
+        } else if (c.nodeType !== 3) {
+          // strip comments / CDATA / anything not text
+          c.parentNode.removeChild(c);
+        }
+      });
+    })(tmp);
+    return tmp.innerHTML;
+  }
+
+  // Parse the response from gviz's tqx=out:html endpoint. Returns the
+  // same row-of-objects shape parseCSV used to produce, so downstream
+  // code is unaffected — PLUS, for the Descriptions column, a parallel
+  // "Descriptions_html" field carrying the sanitized rich HTML, used by
+  // the detail page to render bold/italic/underline/links.
+  function parseGvizHTML(text) {
+    var doc;
+    try { doc = new DOMParser().parseFromString(text, "text/html"); }
+    catch (e) { return []; }
+    var table = doc.querySelector("table");
+    if (!table || !table.rows.length) return [];
+    var trs = table.rows;
+    var headers = [];
+    for (var h = 0; h < trs[0].cells.length; h++) {
+      headers.push((trs[0].cells[h].textContent || "").trim());
+    }
+    var out = [];
+    for (var i = 1; i < trs.length; i++) {
+      var cells = trs[i].cells, obj = {}, hasContent = false;
+      for (var j = 0; j < headers.length; j++) {
+        var name = headers[j], cell = cells[j];
+        if (!cell) { obj[name] = ""; continue; }
+        var plain = cellToText(cell);
+        obj[name] = plain;
+        if (name === "Descriptions" || name === "Description") {
+          obj[name + "_html"] = sanitizeRichHTML(cell.innerHTML);
+        }
+        if (plain) hasContent = true;
+      }
+      if (hasContent) out.push(obj);
+    }
+    return out;
+  }
+
+  function parseSheetDate(s) {
+    if (!s) return null;
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (!m) {
+      var d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    var yr = parseInt(m[3], 10); if (yr < 100) yr += 2000;
+    return new Date(yr, parseInt(m[1],10)-1, parseInt(m[2],10),
+                    parseInt(m[4]||"0",10), parseInt(m[5]||"0",10), parseInt(m[6]||"0",10));
+  }
+
+  function fmtDate(d) {
+    if (!d) return "";
+    return MONTH_LONG[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+  }
+
+  function fmtTime(d) {
+    if (!d) return "";
+    var h = d.getHours(), mn = d.getMinutes();
+    if (h === 0 && mn === 0) return "";
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12 || 12;
+    return h12 + ":" + (mn < 10 ? "0" + mn : mn) + " " + ampm;
+  }
+
+  // Tiny markdown subset for event descriptions. The gviz endpoint (CSV
+  // or HTML) strips all cell formatting before it reaches the browser, so
+  // we give editors a typed convention: **bold**, *italic*, _underline_,
+  // ~~strike~~. HTML-escapes everything first to keep this XSS-safe, then
+  // re-inserts the four formatting tags. Single newlines become <br>;
+  // paragraph splits happen one level up on blank lines.
+  // Working version (uses visible <<FDCPMD_B…>> sentinels which are
+  // collision-proof because all "<" in user text were &lt;-escaped above).
+  function mdToHTML(text) {
+    if (!text) return "";
+    var html = String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+    var bolds = [];
+    html = html.replace(/\*\*([^\n*]+?)\*\*/g, function (_, inner) {
+      bolds.push(inner);
+      return "<<FDCPMD_B" + (bolds.length - 1) + ">>";
+    });
+    html = html.replace(/\*([^\n*]+?)\*/g, "<i>$1</i>");
+    html = html.replace(/(^|[^A-Za-z0-9_])_([^\n_]+?)_(?![A-Za-z0-9_])/g, "$1<u>$2</u>");
+    html = html.replace(/~~([^\n]+?)~~/g, "<s>$1</s>");
+    html = html.replace(/<<FDCPMD_B(\d+)>>/g, function (_, idx) {
+      return "<b>" + bolds[parseInt(idx, 10)] + "</b>";
+    });
+    html = html.replace(/\n/g, "<br>");
+    return html;
+  }
+
+  // Turn URLs inside a plain text string into clickable <a> elements while
+  // keeping everything else as text nodes — so editors can just paste
+  // "Register here: sites.google.com/fdcp.gov.ph/..." into the sheet and
+  // it renders as a blue hyperlink without any HTML. Returns a DocumentFragment.
+  //
+  // Matches three URL shapes:
+  //   1. http(s)://...                    e.g. https://fdcp.ph
+  //   2. www.example.com[/path]            e.g. www.fdcp.gov.ph
+  //   3. bare domain WITH a path           e.g. sites.google.com/foo/bar
+  //
+  // (Bare domains without a path are NOT linkified — they're often just
+  //  prose like "fdcp.ph" mid-sentence and would create unwanted links.)
+  function linkifyText(text) {
+    var frag = document.createDocumentFragment();
+    var re = /(https?:\/\/[^\s<>"']+|\bwww\.[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s<>"']*)?|\b[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]+)+\/[^\s<>"']*)/gi;
+    var last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) {
+        frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      }
+      var raw = m[0];
+      // Strip trailing punctuation that's almost certainly sentence punctuation,
+      // not part of the URL: "Visit foo.com/bar." → URL is "foo.com/bar".
+      var trail = "";
+      while (raw && /[.,;:!?)\]}>'"]$/.test(raw)) {
+        trail = raw.slice(-1) + trail;
+        raw = raw.slice(0, -1);
+      }
+      var href = /^https?:\/\//i.test(raw) ? raw : "https://" + raw.replace(/^\/+/, "");
+      var a = document.createElement("a");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = raw;
+      a.style.color = "#1d4ed8";          // tailwind blue-700, matches the "Back to upcoming events" link
+      a.style.textDecoration = "underline";
+      a.style.wordBreak = "break-word";   // long URLs shouldn't blow out the column on mobile
+      frag.appendChild(a);
+      if (trail) frag.appendChild(document.createTextNode(trail));
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) {
+      frag.appendChild(document.createTextNode(text.slice(last)));
+    }
+    return frag;
+  }
+
+  // Walk a DOM tree and replace plain-text URLs in text nodes with <a>
+  // links, leaving existing tags (<b>, <i>, real <a>) untouched. Used
+  // after we set innerHTML from the sheet's rich-text description so
+  // bare URLs still become clickable without disturbing the formatting.
+  function linkifyTextNodes(rootEl) {
+    var nodes = [];
+    (function collect(n) {
+      if (n.nodeType === 3) {
+        // skip text already inside an <a>
+        var p = n.parentNode;
+        while (p && p !== rootEl) {
+          if (p.tagName === "A") return;
+          p = p.parentNode;
+        }
+        nodes.push(n);
+      } else if (n.nodeType === 1) {
+        var kids = Array.prototype.slice.call(n.childNodes);
+        kids.forEach(collect);
+      }
+    })(rootEl);
+    nodes.forEach(function (n) {
+      var text = n.nodeValue || "";
+      // quick reject before running the heavy regex
+      if (!/(?:https?:|www\.|[a-z][\w-]*(?:\.[a-z][\w-]+)+\/)/i.test(text)) return;
+      var frag = linkifyText(text);
+      if (frag.childNodes.length) n.parentNode.replaceChild(frag, n);
+    });
+  }
+
+  // Convert various poster URL formats into something the browser can display as an <img>.
+  // Specifically converts Google Drive share links into a direct-viewable thumbnail URL.
+  // Returns "" for anything that isn't a real http(s) URL — editors sometimes type
+  // plain text like "TBA" into the Event Poster column, and we don't want that to
+  // become `background-image:url('TBA')` and override the default hero image, which
+  // would leave the hero blank.
+  function normalizePoster(url) {
+    if (!url) return "";
+    var u = String(url).trim();
+    var drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);
+    if (drive) return "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w1600";
+    if (/^https?:\/\//i.test(u)) return u;
+    return "";
+  }
+
+  function getParam(name) {
+    var m = location.search.match(new RegExp("[?&]" + name + "=([^&]*)"));
+    return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : "";
+  }
+
+  // FNV-1a 32-bit, hex — fast change-detector for raw CSV text. We only
+  // re-render after a live fetch when this hash differs from the cached
+  // one, which keeps the page from repainting on every revalidation when
+  // the sheet hasn't actually changed.
+  function hashCSV(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  var lastFetchAt = 0;
+
+  function readCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      return (obj && obj.v === 4 && Array.isArray(obj.rows)) ? obj : null;
+    } catch (e) { return null; }
+  }
+
+  function writeCache(rows, hash) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        v: 4, t: Date.now(), hash: hash, rows: rows
+      }));
+    } catch (e) { /* quota or private-mode — silent */ }
+  }
+
+  // gviz's edge cache can serve stale data for several minutes after a
+  // fresh sheet edit; the timestamp query param bypasses it.
+  function fetchLive() {
+    var url = SHEET_SRC + "&_=" + Date.now();
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        lastFetchAt = Date.now();
+        return { txt: txt, hash: hashCSV(txt), rows: parseGvizHTML(txt) };
+      });
+  }
+
+  // Stale-while-revalidate. onData is invoked for the synchronous cache
+  // paint, and again only if the live fetch returns different data. The
+  // returned promise resolves with the latest rows once live has settled
+  // — the detail page uses that to defer the not-found verdict until the
+  // server has been consulted, so first-time visitors don't see a flash.
+  function loadEventsSWR(onData) {
+    var cached = readCache();
+    if (cached) onData(cached.rows, "cache");
+
+    return fetchLive().then(function (fresh) {
+      if (!cached || cached.hash !== fresh.hash) {
+        onData(fresh.rows, "live");
+        writeCache(fresh.rows, fresh.hash);
+      }
+      return fresh.rows;
+    }).catch(function (err) {
+      console.warn("[FDCP] live refresh failed:", err);
+      if (!cached) throw err;
+      return cached.rows;
+    });
+  }
+
+  function attachFocusRevalidate(onData) {
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastFetchAt < REVALIDATE_MIN_GAP) return;
+      fetchLive().then(function (fresh) {
+        var cached = readCache();
+        if (!cached || cached.hash !== fresh.hash) {
+          onData(fresh.rows, "live");
+          writeCache(fresh.rows, fresh.hash);
+        }
+      }).catch(function () {});
+    });
+  }
+
+  function renderNotFound() {
+    document.getElementById("fdcp-event-title").textContent = "Event not found";
+    document.getElementById("fdcp-crumb-title").textContent = "Not found";
+    document.getElementById("fdcp-event-description").innerHTML =
+      '<p>Sorry, we couldn\'t find that event. ' +
+      '<a class="underline text-blue-700" href="' + LIST_URL + '">Back to upcoming events</a>.</p>';
+  }
+
+  function render(row) {
+    var title = row["Event"] || "(untitled event)";
+    document.title = title + " – FDCP";
+    document.getElementById("fdcp-event-title").textContent = title;
+    document.getElementById("fdcp-crumb-title").textContent = title;
+
+    var start = parseSheetDate(row["Start time/Date"]);
+    var end   = parseSheetDate(row["End time/Date"]);
+
+    var dateStr = fmtDate(start);
+    if (end && (!start || end.toDateString() !== start.toDateString())) {
+      dateStr = (dateStr ? dateStr + " – " : "") + fmtDate(end);
+    }
+    document.getElementById("fdcp-event-date").textContent = dateStr;
+
+    var tStart = fmtTime(start), tEnd = fmtTime(end);
+    var timeStr = "";
+    if (tStart && tEnd) timeStr = tStart + " – " + tEnd;
+    else if (tStart)    timeStr = tStart;
+    document.getElementById("fdcp-event-time").textContent = timeStr;
+
+    // Idempotent reset — render() may be called twice (cache then live)
+    // if the sheet changed between the cached and fresh fetch.
+    var locEl = document.getElementById("fdcp-event-location");
+    if (row["Location"]) {
+      locEl.style.display = "";
+      document.getElementById("fdcp-event-location-text").textContent = row["Location"];
+    } else {
+      locEl.style.display = "none";
+    }
+
+    var poster = normalizePoster(row["Event Poster"]);
+    if (poster) {
+      document.getElementById("fdcp-event-hero").style.backgroundImage =
+        "url('" + poster.replace(/'/g, "\\'") + "')";
+    }
+
+    var desc = row["Descriptions"] || "";
+    var descEl = document.getElementById("fdcp-event-description");
+    descEl.innerHTML = ""; // idempotent: clear before re-appending
+
+    if (desc) {
+      // Editors mark formatting with markdown conventions in the sheet cell:
+      // **bold**, *italic*, _underline_, ~~strike~~. mdToHTML escapes the
+      // text first (XSS-safe), then re-inserts those four tags. Paragraphs
+      // are split on blank lines; single newlines become <br> inside mdToHTML.
+      desc.split(/\n\s*\n|\r\n\s*\r\n/).forEach(function (para) {
+        para = para.trim();
+        if (!para) return;
+        var p = document.createElement("p");
+        p.innerHTML = mdToHTML(para);
+        descEl.appendChild(p);
+        // Linkify bare URLs that aren't already inside an <a> tag — keeps
+        // "Register here: sites.google.com/..." clickable even when the
+        // surrounding paragraph also has **bold** text.
+        linkifyTextNodes(p);
+      });
+    } else {
+      var empty = document.createElement("p");
+      empty.textContent = "No description available for now.";
+      empty.style.color = "#9ca3af";
+      empty.style.fontStyle = "italic";
+      descEl.appendChild(empty);
+    }
+
+    // Remarks: only render a "Visit the FDCPchannel" button if it contains
+    // a YouTube link to FDCPChannel. Any other content (plain text, other
+    // links) is ignored on purpose.
+    var remarks = row["Remarks"] || "";
+    var ytMatch = remarks.match(/((?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s]*)/i);
+    var remarksBox = document.getElementById("fdcp-event-remarks");
+    remarksBox.style.display = "none"; // idempotent reset for re-renders
+    remarksBox.innerHTML = "";
+    if (ytMatch && /fdcpchannel/i.test(ytMatch[1])) {
+      var ytHref = ytMatch[1];
+      if (!/^https?:\/\//i.test(ytHref)) ytHref = "https://" + ytHref.replace(/^\/+/, "");
+      remarksBox.style.display = "";
+      remarksBox.innerHTML =
+        '<a href="' + ytHref + '" target="_blank" rel="noopener" ' +
+        'style="display:inline-flex;align-items:center;gap:8px;' +
+        'background:linear-gradient(90deg,#580076 0%,#E200A9 100%);' +
+        'color:#fff;padding:10px 24px;border-radius:9999px;' +
+        'font-size:14px;font-weight:700;text-decoration:none;">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">' +
+        '<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>' +
+        '</svg>' +
+        'Visit the FDCPchannel</a>';
+    }
+  }
+
+  // Walk up the DOM from a known element and zero out top padding/margin
+  // on each ancestor, so Drupal's basic-page wrappers can't introduce a gap
+  // between the site header and our content.
+  function killTopSpacing(startEl) {
+    var el = startEl, hops = 0;
+    while (el && el !== document.body && el !== document.documentElement && hops < 8) {
+      el.style.marginTop = "0";
+      el.style.paddingTop = "0";
+      el = el.parentElement;
+      hops++;
+    }
+  }
+
+  function init() {
+    killTopSpacing(document.getElementById("main-content"));
+    document.getElementById("fdcp-back-link").href = LIST_URL;
+    document.getElementById("fdcp-crumb-list").href = LIST_URL;
+
+    var id = getParam("id");
+    if (!id) { renderNotFound(); return; }
+
+    var rendered = false;
+    function applyRows(rows) {
+      var match = rows.find(function (r) { return slugify(r["Event"]) === id; });
+      if (match) { render(match); rendered = true; }
+    }
+
+    // On the cache pass, only render if we already have the row; otherwise
+    // leave the "Loading…" placeholder so a brand-new-slug visit doesn't
+    // flash "Event not found" before the live fetch completes.
+    loadEventsSWR(applyRows).then(function (rows) {
+      if (!rendered) {
+        // Live fetch settled and the slug still isn't present.
+        var match = rows.find(function (r) { return slugify(r["Event"]) === id; });
+        if (match) render(match);
+        else renderNotFound();
+      }
+    }).catch(function (err) {
+      console.error("[FDCP]", err);
+      document.getElementById("fdcp-event-title").textContent = "Could not load event";
+      document.getElementById("fdcp-event-description").innerHTML =
+        '<p class="text-red-600">Please refresh the page.</p>';
+    });
+
+    attachFocusRevalidate(applyRows);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>

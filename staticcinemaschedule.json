@@ -1,0 +1,1392 @@
+[
+ {
+  "date": "May 13, 2026",
+  "dateISO": "2026-05-13",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "RAGING",
+  "program": "Pelikula ng Bayan",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 13, 2026",
+  "dateISO": "2026-05-13",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "3:30 PM",
+  "film": "BIYAYA NG LUPA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 13, 2026",
+  "dateISO": "2026-05-13",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Pagdating sa Dulo",
+  "program": "Reel to Real: Pelikula at Panayam",
+  "admission": "Free"
+ },
+ {
+  "date": "May 13, 2026",
+  "dateISO": "2026-05-13",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "PINIKAS",
+  "program": "Pelikula ng Bayan",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Davao",
+  "time": "1:00 PM",
+  "film": "MALVAROSA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "PADAMLAGAN",
+  "program": "Pelikula ng Bayan",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Biyaya ng Lupa",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "BIYAYA NG LUPA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "MALVAROSA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Negros",
+  "time": "3:00 PM",
+  "film": "MALVAROSA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Malvarosa",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "5:30 PM",
+  "film": "KONO BASHO",
+  "program": "Pelikula ng Bayan",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 14, 2026",
+  "dateISO": "2026-05-14",
+  "day": "Thursday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "BIYAYA NG LUPA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Davao",
+  "time": "1:00 PM",
+  "film": "ANAK DALITA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "ANAK DALITA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Anak Dalita",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "SUMPAAN",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "3:00 PM",
+  "film": "SUMPAAN",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "3:30 PM",
+  "film": "REPUBLIKA NG PIPOLIPINAS",
+  "program": "Pelikula ng Bayan",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Sumpaan",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "SUMPAAN",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 15, 2026",
+  "dateISO": "2026-05-15",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "ANAK DALITA",
+  "program": "Pamanang Pelikula: A Tribute to LVN Pictures",
+  "admission": "Free"
+ },
+ {
+  "date": "May 16, 2026",
+  "dateISO": "2026-05-16",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "1:00 PM",
+  "film": "Aishite Imasu 1941: Mahal Kita",
+  "program": "Cinematheque Director Series: Joel Lamangan",
+  "admission": "Free"
+ },
+ {
+  "date": "May 16, 2026",
+  "dateISO": "2026-05-16",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "3:45 PM",
+  "film": "Bakit May Kahapon Pa? + Talkback Session",
+  "program": "Cinematheque Director Series: Joel Lamangan",
+  "admission": "Free"
+ },
+ {
+  "date": "May 20, 2026",
+  "dateISO": "2026-05-20",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Banaue: Stairway to the Sky",
+  "program": "Pamanang Pelikula: A Tribute to Nora Aunor",
+  "admission": "Free"
+ },
+ {
+  "date": "May 20, 2026",
+  "dateISO": "2026-05-20",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "BANAUE",
+  "program": "Pamanang Pelikula: A Tribute to Nora Aunor",
+  "admission": "Free"
+ },
+ {
+  "date": "May 20, 2026",
+  "dateISO": "2026-05-20",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "4:00 PM",
+  "film": "BANAUE ",
+  "program": "Pamanang Pelikula: A Tribute to Nora Aunor",
+  "admission": "Free"
+ },
+ {
+  "date": "May 20, 2026",
+  "dateISO": "2026-05-20",
+  "day": "Wednesday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "BANAUE ",
+  "program": "Pamanang Pelikula: A Tribute to Nora Aunor",
+  "admission": "Free"
+ },
+ {
+  "date": "May 22, 2026",
+  "dateISO": "2026-05-22",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 22, 2026",
+  "dateISO": "2026-05-22",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 22, 2026",
+  "dateISO": "2026-05-22",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "DON'T TELL ME MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 23, 2026",
+  "dateISO": "2026-05-23",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "DON'T TELL ME MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 23, 2026",
+  "dateISO": "2026-05-23",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "The Worst Person in the World",
+  "program": "Norwegian Film Matinee",
+  "admission": "Free"
+ },
+ {
+  "date": "May 23, 2026",
+  "dateISO": "2026-05-23",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 23, 2026",
+  "dateISO": "2026-05-23",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "6:00 PM",
+  "film": "Sentimental Value",
+  "program": "Norwegian Film Matinee",
+  "admission": "Free"
+ },
+ {
+  "date": "May 23, 2026",
+  "dateISO": "2026-05-23",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "1:00 PM",
+  "film": "DON'T TELL MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Resurrection",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "2:00 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "5:00 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "5:00 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "5:30 PM",
+  "film": "The Blue Trail",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 27, 2026",
+  "dateISO": "2026-05-27",
+  "day": "Wednesday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Davao",
+  "time": "12:00 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Case 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "2:00 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "4:45 PM",
+  "film": "It Was Just an Accident",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "5:00 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 28, 2026",
+  "dateISO": "2026-05-28",
+  "day": "Sunday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "DON'T TELL MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "The Secret Agent",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Davao",
+  "time": "5:00 PM",
+  "film": "HIMALA",
+  "program": "Pamanang Pelikula: A Tribute to Nora Aunor",
+  "admission": "Free"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "5:30 PM",
+  "film": "Don't Tell Mother",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "5:30 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 29, 2026",
+  "dateISO": "2026-05-29",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Davao",
+  "time": "12:00 NN",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Sentimental Value",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Sound of Falling",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Davao",
+  "time": "5:00 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "May 30, 2026",
+  "dateISO": "2026-05-30",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 03, 2026",
+  "dateISO": "2026-06-03",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "It Was Just an Accident",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 03, 2026",
+  "dateISO": "2026-06-03",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 03, 2026",
+  "dateISO": "2026-06-03",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "4:30 PM",
+  "film": "Case 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 03, 2026",
+  "dateISO": "2026-06-03",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "5:00 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 04, 2026",
+  "dateISO": "2026-06-04",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "The Secret Agent",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 04, 2026",
+  "dateISO": "2026-06-04",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 04, 2026",
+  "dateISO": "2026-06-04",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "5:30 PM",
+  "film": "Don't Tell Mother",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 04, 2026",
+  "dateISO": "2026-06-04",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "5:30 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Sentimental Value",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "DON'T TELL MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Sound of Falling",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "5:00 PM",
+  "film": "RESURRECTION",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 05, 2026",
+  "dateISO": "2026-06-05",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "12:30 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "CASE 137",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Resurrection",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "3:30 PM",
+  "film": "DON'T TELL ME MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "3:30 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "5:30 PM",
+  "film": "The Blue Trail",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "THE SECRET AGENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 06, 2026",
+  "dateISO": "2026-06-06",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "6:30 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 09, 2026",
+  "dateISO": "2026-06-09",
+  "day": "Tuesday",
+  "location": "Iloilo",
+  "time": "2:00 PM",
+  "film": "IT WAS JUST AN ACCIDENT",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 10, 2026",
+  "dateISO": "2026-06-10",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "DON'T TELL MOTHER",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 10, 2026",
+  "dateISO": "2026-06-10",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Ginauhaw Ako, Ginagutom Ako",
+  "program": "Reel to Real: Pelikula at Panayam",
+  "admission": "Free"
+ },
+ {
+  "date": "June 10, 2026",
+  "dateISO": "2026-06-10",
+  "day": "Wednesday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "SOUND OF FALLING",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 11, 2026",
+  "dateISO": "2026-06-11",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "THE BLUE TRAIL",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 11, 2026",
+  "dateISO": "2026-06-11",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Imbisibol",
+  "program": "Cinematheque Director Series: Lawrence Fajardo",
+  "admission": "Free"
+ },
+ {
+  "date": "June 11, 2026",
+  "dateISO": "2026-06-11",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Amok + Talkback Session",
+  "program": "Cinematheque Director Series: Lawrence Fajardo",
+  "admission": "Free"
+ },
+ {
+  "date": "June 11, 2026",
+  "dateISO": "2026-06-11",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "SENTIMENTAL VALUE",
+  "program": "FDCP Presents: A Curation of World Cinema",
+  "admission": "Php 150.00"
+ },
+ {
+  "date": "June 23, 2026",
+  "dateISO": "2026-06-23",
+  "day": "Tuesday",
+  "location": "Davao",
+  "time": "1:00 PM",
+  "film": "Girl Boy Bakla Tomboy",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 23, 2026",
+  "dateISO": "2026-06-23",
+  "day": "Tuesday",
+  "location": "Davao",
+  "time": "3:00 PM",
+  "film": "Petrang Kabayo",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 24, 2026",
+  "dateISO": "2026-06-24",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "5:00 PM",
+  "film": "Macho Dancer",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 24, 2026",
+  "dateISO": "2026-06-24",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "5:00 PM",
+  "film": "Pelikulaya Shorts",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 24, 2026",
+  "dateISO": "2026-06-24",
+  "day": "Wednesday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "Petrang Kabayo",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 24, 2026",
+  "dateISO": "2026-06-24",
+  "day": "Wednesday",
+  "location": "Davao",
+  "time": "7:00 PM",
+  "film": "Macho Dancer",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "The Mysterious Gaze of the Flamingo",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "Pelikulaya Shorts",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "4:35 PM",
+  "film": "A Useful Ghost",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Iloilo",
+  "time": "5:00 PM",
+  "film": "Some Nights I Feel Like Walking",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "Girl, Boy, Bakla, Tomboy",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 25, 2026",
+  "dateISO": "2026-06-25",
+  "day": "Thursday",
+  "location": "Davao",
+  "time": "7:00 PM",
+  "film": "Some Nights I Feel Like Walking",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Petrang Kabayo",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "3:00 PM",
+  "film": "Some Nights I Feel Like Walking",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "3:30 PM",
+  "film": "Petrang Kabayo",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "4:35 PM",
+  "film": "Girl, Boy, Bakla, Tomboy + Film Talk",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Iloilo",
+  "time": "6:00 PM",
+  "film": "Dreamboi",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Negros",
+  "time": "6:00 PM",
+  "film": "Macho Dancer",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 26, 2026",
+  "dateISO": "2026-06-26",
+  "day": "Friday",
+  "location": "Davao",
+  "time": "7:00 PM",
+  "film": "Dreamboi",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "1:00 PM",
+  "film": "Girl, Boy, Bakla, Tomboy",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Dreamboi + Film Talk",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Iloilo",
+  "time": "3:00 PM",
+  "film": "Macho Dancer",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "3:00 PM",
+  "film": "Pelikulaya Shorts",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Negros",
+  "time": "5:00 PM",
+  "film": "Dreamboi",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 27, 2026",
+  "dateISO": "2026-06-27",
+  "day": "Saturday",
+  "location": "Manila",
+  "time": "5:30 PM",
+  "film": "Mysterious Skin",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "June 30, 2026",
+  "dateISO": "2026-06-30",
+  "day": "Tuesday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Embassy Screening",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 01, 2026",
+  "dateISO": "2026-07-01",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Pelikulaya Shorts Set A",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 01, 2026",
+  "dateISO": "2026-07-01",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "3:30 PM",
+  "film": "Pelikulaya Shorts Set B",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 01, 2026",
+  "dateISO": "2026-07-01",
+  "day": "Wednesday",
+  "location": "Manila",
+  "time": "5:15 PM",
+  "film": "The Chronology of Water",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 02, 2026",
+  "dateISO": "2026-07-02",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Amoeba",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 02, 2026",
+  "dateISO": "2026-07-02",
+  "day": "Thursday",
+  "location": "Manila",
+  "time": "4:30 PM",
+  "film": "Tomboy + Film Talk",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 03, 2026",
+  "dateISO": "2026-07-03",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "2:00 PM",
+  "film": "Some Nights I Feel Like Walking",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ },
+ {
+  "date": "July 03, 2026",
+  "dateISO": "2026-07-03",
+  "day": "Friday",
+  "location": "Manila",
+  "time": "4:30 PM",
+  "film": "Blue Film + Film Talk",
+  "program": "Pelikulaya",
+  "admission": "Free"
+ }
+]

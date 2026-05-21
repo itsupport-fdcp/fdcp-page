@@ -1,0 +1,422 @@
+<!-- =====================================================================
+  FDCP — Homepage "Upcoming Event" Sheet Injector
+  Paste the contents of this file as a Custom Block / Full HTML region
+  placed ANYWHERE on the homepage (after the existing "Upcoming Event"
+  section is rendered by Drupal — placing it near the footer is safest).
+
+  What it does:
+    • Fetches events from the same Google Sheet used by /upcoming-events
+    • Finds the homepage's "Upcoming Event" list container by walking the
+      DOM from a[href="/upcoming-events"]
+    • If the container only contains the "No upcoming events at the moment."
+      placeholder, it is replaced with the sheet's upcoming events.
+    • If the container already has CMS-rendered cards, the sheet's events
+      are merged (sorted by start date) so both sources appear together.
+
+  Detail-page alias is configurable via DETAIL_URL below.
+===================================================================== -->
+
+<!-- Card markup is built from a JS string inside the script below.
+     We avoid <template>…</template> because Drupal's text-format filter
+     strips the children of <template> elements at render time. -->
+
+<style>
+  .fdcp-home-card:hover { box-shadow: 0 6px 18px rgba(88,0,118,0.15) !important; transform: translateY(-1px); }
+</style>
+
+<script>
+(function () {
+  // === CONFIG ===========================================================
+  // Use the aggregated ALL tab so the homepage shows events from every
+  // division (AFD, FESTIVALS, etc.), matching /upcoming-events and
+  // /event-details. Fetch as HTML (not CSV) so cell formatting — bold,
+  // italic, hyperlinks — survives all the way to the detail page; the
+  // homepage strip itself only consumes plain text, which the HTML parser
+  // still emits via cellToText.
+  var SHEET_SRC =
+    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=ALL";
+  var DETAIL_URL = "/event-details";
+
+  // Stale-while-revalidate cache, shared with /upcoming-events and the
+  // detail page. localStorage so the strip paints instantly on every
+  // return visit; a background fetch silently swaps in sheet edits. v4
+  // bumps the schema for the CSV→HTML migration.
+  var CACHE_KEY = "fdcp.events.v4";
+  var REVALIDATE_MIN_GAP = 60 * 1000;
+  var MAX_HOME_CARDS = 8;                 // safety cap for the homepage strip
+  // ======================================================================
+
+  var MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+  // Card markup as a string so Drupal's HTML filter can't strip it
+  // (it does strip the children of real <template> elements).
+  var CARD_HTML = [
+    '<a class="fdcp-home-card" href="#" style="display:grid;grid-template-columns:80px 1fr;gap:16px;padding:14px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:box-shadow .2s ease, transform .2s ease;">',
+      '<div style="background:#F5F2FF;border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">',
+        '<span data-field="month" style="background:#580076;color:#fff;font-weight:700;font-size:11px;letter-spacing:.05em;padding:2px 0;border-radius:9999px;width:100%;line-height:1.2;">—</span>',
+        '<span data-field="day" style="font-weight:800;font-size:34px;line-height:1;margin-top:6px;background:linear-gradient(180deg,#580076 0%,#E200A9 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;">—</span>',
+        '<span data-field="year" style="color:#E200A9;font-size:12px;line-height:1.2;margin-top:2px;">—</span>',
+      '</div>',
+      '<div style="display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;">',
+        '<h3 data-field="title" style="font-weight:700;font-size:16px;line-height:1.25;margin:0;color:#111827;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">—</h3>',
+        '<p data-field="description" style="font-size:12px;line-height:1.4;color:#6b7280;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line;"></p>',
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#536471;margin-top:2px;">',
+          '<span data-field="time-row" style="display:inline-flex;align-items:center;gap:4px;">',
+            '<svg width="13" height="13" viewBox="0 0 19 19" fill="none" aria-hidden="true"><path d="M9.5 0C12.0196 0 14.4359 1.00089 16.2175 2.78249C17.9991 4.56408 19 6.98044 19 9.5C19 12.0196 17.9991 14.4359 16.2175 16.2175C14.4359 17.9991 12.0196 19 9.5 19C6.98044 19 4.56408 17.9991 2.78249 16.2175C1.00089 14.4359 0 12.0196 0 9.5C0 6.98044 1.00089 4.56408 2.78249 2.78249C4.56408 1.00089 6.98044 0 9.5 0ZM9 4H10V9.42L14.7 12.13L14.2 13L9 10V4Z" fill="currentColor"/></svg>',
+            '<span data-field="time">—</span>',
+          '</span>',
+          '<span data-field="location-row" style="display:inline-flex;align-items:center;gap:4px;">',
+            '<svg width="11" height="13" viewBox="0 0 19 23" fill="none" aria-hidden="true"><path d="M18.5 9.5C18.5 16.5 9.5 22.5 9.5 22.5C9.5 22.5 0.5 16.5 0.5 9.5C0.5 7.11305 1.44821 4.82387 3.13604 3.13604C4.82387 1.44821 7.11305 0.5 9.5 0.5C11.8869 0.5 14.1761 1.44821 15.864 3.13604C17.5518 4.82387 18.5 7.11305 18.5 9.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 12.5C11.1569 12.5 12.5 11.1569 12.5 9.5C12.5 7.84315 11.1569 6.5 9.5 6.5C7.84315 6.5 6.5 7.84315 6.5 9.5C6.5 11.1569 7.84315 12.5 9.5 12.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+            '<span data-field="location">—</span>',
+          '</span>',
+        '</div>',
+      '</div>',
+    '</a>'
+  ].join("");
+
+  function slugify(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  // Drop the markdown markers the detail page interprets as formatting,
+  // leaving the underlying text for the card-snippet preview.
+  function stripMarkdown(s) {
+    if (!s) return "";
+    return String(s)
+      .replace(/\*\*([^\n*]+?)\*\*/g, "$1")
+      .replace(/\*([^\n*]+?)\*/g, "$1")
+      .replace(/(^|[^A-Za-z0-9_])_([^\n_]+?)_(?![A-Za-z0-9_])/g, "$1$2")
+      .replace(/~~([^\n]+?)~~/g, "$1");
+  }
+
+  // Extract plain text from a gviz HTML cell, converting <br> back to \n
+  // so multi-line cells (Alt+Enter in the sheet) keep their structure.
+  function cellToText(cell) {
+    if (!cell) return "";
+    var clone = cell.cloneNode(true);
+    var brs = clone.querySelectorAll("br");
+    for (var i = 0; i < brs.length; i++) {
+      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+    }
+    return (clone.textContent || "").trim();
+  }
+
+  // Whitelist-sanitize a gviz cell's innerHTML for the shared cache's
+  // Descriptions_html field. The homepage strip itself shows plain text,
+  // but writing the rich version means the detail page can read the
+  // cache and paint bold text instantly when clicked through.
+  var SAN_ALLOWED = {B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,BR:1,SPAN:1,FONT:1,A:1};
+  function sanitizeRichHTML(html) {
+    if (!html) return "";
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    (function walk(node) {
+      var kids = Array.prototype.slice.call(node.childNodes);
+      kids.forEach(function (c) {
+        if (c.nodeType === 1) {
+          if (!SAN_ALLOWED[c.tagName]) {
+            while (c.firstChild) c.parentNode.insertBefore(c.firstChild, c);
+            c.parentNode.removeChild(c);
+            return;
+          }
+          var attrs = Array.prototype.slice.call(c.attributes);
+          attrs.forEach(function (a) {
+            var nm = a.name.toLowerCase(), keep = false;
+            if (c.tagName === "A" && nm === "href" && /^(https?:|mailto:)/i.test(a.value)) keep = true;
+            if (c.tagName === "FONT" && nm === "color" && /^#?[\w(),. ]+$/.test(a.value)) keep = true;
+            if (!keep) c.removeAttribute(a.name);
+          });
+          if (c.tagName === "A") { c.target = "_blank"; c.rel = "noopener noreferrer"; }
+          walk(c);
+        } else if (c.nodeType !== 3) {
+          c.parentNode.removeChild(c);
+        }
+      });
+    })(tmp);
+    return tmp.innerHTML;
+  }
+
+  // Parse gviz tqx=out:html response into the same row-of-objects shape
+  // parseCSV used to produce, plus a parallel Descriptions_html field
+  // for the detail page's rich-text rendering.
+  function parseGvizHTML(text) {
+    var doc;
+    try { doc = new DOMParser().parseFromString(text, "text/html"); }
+    catch (e) { return []; }
+    var table = doc.querySelector("table");
+    if (!table || !table.rows.length) return [];
+    var trs = table.rows;
+    var headers = [];
+    for (var h = 0; h < trs[0].cells.length; h++) {
+      headers.push((trs[0].cells[h].textContent || "").trim());
+    }
+    var out = [];
+    for (var i = 1; i < trs.length; i++) {
+      var cells = trs[i].cells, obj = {}, hasContent = false;
+      for (var j = 0; j < headers.length; j++) {
+        var name = headers[j], cell = cells[j];
+        if (!cell) { obj[name] = ""; continue; }
+        var plain = cellToText(cell);
+        obj[name] = plain;
+        if (name === "Descriptions" || name === "Description") {
+          obj[name + "_html"] = sanitizeRichHTML(cell.innerHTML);
+        }
+        if (plain) hasContent = true;
+      }
+      if (hasContent) out.push(obj);
+    }
+    return out;
+  }
+
+  function parseSheetDate(s) {
+    if (!s) return null;
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (!m) {
+      var d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    var yr = parseInt(m[3], 10); if (yr < 100) yr += 2000;
+    return new Date(yr, parseInt(m[1],10)-1, parseInt(m[2],10),
+                    parseInt(m[4]||"0",10), parseInt(m[5]||"0",10), parseInt(m[6]||"0",10));
+  }
+
+  function fmtTime(d) {
+    if (!d) return "";
+    var h = d.getHours(), mn = d.getMinutes();
+    if (h === 0 && mn === 0) return "";
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12 || 12;
+    return h12 + ":" + (mn < 10 ? "0" + mn : mn) + " " + ampm;
+  }
+
+  // Remarks column: URL-like value → use as external CTA; otherwise null.
+  function asExternalUrl(s) {
+    if (!s) return null;
+    var v = String(s).trim();
+    if (!v || /\s/.test(v) || !/\./.test(v)) return null;
+    if (/^https?:\/\//i.test(v)) return v;
+    return "https://" + v;
+  }
+
+  // FNV-1a 32-bit, hex — fast change-detector for raw CSV text. We only
+  // re-inject after a live fetch when this hash differs from the cached
+  // one, which keeps the homepage strip from flickering on every revisit
+  // when the sheet hasn't actually changed.
+  function hashCSV(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  var lastFetchAt = 0;
+
+  function readCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      return (obj && obj.v === 4 && Array.isArray(obj.rows)) ? obj : null;
+    } catch (e) { return null; }
+  }
+
+  function writeCache(rows, hash) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        v: 4, t: Date.now(), hash: hash, rows: rows
+      }));
+    } catch (e) { /* quota or private-mode — silent */ }
+  }
+
+  // gviz's edge cache can keep serving stale data for several minutes
+  // after a fresh sheet edit; the timestamp query param bypasses it.
+  function fetchLive() {
+    var url = SHEET_SRC + "&_=" + Date.now();
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        lastFetchAt = Date.now();
+        return { txt: txt, hash: hashCSV(txt), rows: parseGvizHTML(txt) };
+      });
+  }
+
+  // Stale-while-revalidate: paint cached rows synchronously, then fetch
+  // live and silently swap if the data has actually changed. Network
+  // failures are swallowed once the cache has painted — the homepage
+  // shouldn't surface error states.
+  function loadEventsSWR(onData) {
+    var cached = readCache();
+    if (cached) onData(cached.rows, "cache");
+
+    return fetchLive().then(function (fresh) {
+      if (!cached || cached.hash !== fresh.hash) {
+        onData(fresh.rows, "live");
+        writeCache(fresh.rows, fresh.hash);
+      }
+    }).catch(function (err) {
+      console.warn("[FDCP home-events] live refresh failed:", err);
+      if (!cached) throw err;
+    });
+  }
+
+  function attachFocusRevalidate(onData) {
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastFetchAt < REVALIDATE_MIN_GAP) return;
+      fetchLive().then(function (fresh) {
+        var cached = readCache();
+        if (!cached || cached.hash !== fresh.hash) {
+          onData(fresh.rows, "live");
+          writeCache(fresh.rows, fresh.hash);
+        }
+      }).catch(function () {});
+    });
+  }
+
+  function findHomeContainer() {
+    // The homepage section uses <a href="/upcoming-events"> as the heading link.
+    // The events list is the next sibling <div> of the link's flex wrapper.
+    var link = document.querySelector('a[href="/upcoming-events"]');
+    if (!link) return null;
+
+    // Walk up to the wrapper that holds the title (the .group element), then
+    // find the next sibling div that contains the events list.
+    var wrap = link.closest('.group') || link.parentElement;
+    if (!wrap || !wrap.parentElement) return null;
+
+    var sibling = wrap.nextElementSibling;
+    while (sibling) {
+      // The list container is a flex column with overflow-y-auto.
+      var cls = sibling.className || "";
+      if (sibling.tagName === "DIV" &&
+          /overflow-y-auto/.test(cls) &&
+          /flex/.test(cls)) {
+        return sibling;
+      }
+      sibling = sibling.nextElementSibling;
+    }
+    return null;
+  }
+
+  function isPlaceholderOnly(container) {
+    // True if the container only holds the "No upcoming events…" placeholder
+    // (or is empty / whitespace). In that case we replace its contents.
+    var children = Array.prototype.filter.call(container.children, function (n) {
+      return !(n.nodeType === 1 && n.tagName === "SCRIPT");
+    });
+    if (children.length === 0) return true;
+    if (children.length === 1) {
+      var only = children[0];
+      var txt = (only.textContent || "").trim().toLowerCase();
+      if (only.tagName === "P" && txt.indexOf("no upcoming events") !== -1) return true;
+    }
+    return false;
+  }
+
+  function setText(node, sel, value) {
+    var el = node.querySelector('[data-field="' + sel + '"]');
+    if (el) el.textContent = value;
+  }
+
+  function buildHomeCard(row) {
+    var holder = document.createElement("div");
+    holder.innerHTML = CARD_HTML;
+    var node = holder.firstElementChild;
+
+    var start = parseSheetDate(row["Start time/Date"]);
+    var end   = parseSheetDate(row["End time/Date"]);
+    var title = row["Event"] || "(untitled event)";
+    var slug  = slugify(title);
+    var remarks    = (row["Remarks"] || "").trim();
+    var remarksUrl = asExternalUrl(remarks);
+    node.href = remarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slug));
+    if (remarksUrl) { node.target = "_blank"; node.rel = "noopener"; }
+
+    if (start) {
+      setText(node, "month", MONTHS[start.getMonth()]);
+      setText(node, "day",   String(start.getDate()));
+      setText(node, "year",  String(start.getFullYear()));
+    } else {
+      setText(node, "month", "TBA");
+      setText(node, "day",   "—");
+      setText(node, "year",  "");
+    }
+
+    setText(node, "title", title);
+
+    // Strip the **bold**/*italic*/_underline_/~~strike~~ markers the detail
+    // page interprets — the homepage card shows a plain-text preview.
+    var desc = stripMarkdown(row["Descriptions"] || "");
+    if (desc.length > 140) desc = desc.slice(0, 140).replace(/\s+\S*$/, "") + "…";
+    // If Remarks is a freeform note (not a URL), surface it after the description.
+    if (remarks && !remarksUrl) {
+      desc = desc ? (desc + " — " + remarks) : remarks;
+      if (desc.length > 180) desc = desc.slice(0, 180).replace(/\s+\S*$/, "") + "…";
+    }
+    setText(node, "description", desc);
+
+    var timeStr = fmtTime(start);
+    if (end && fmtTime(end)) timeStr += (timeStr ? " – " : "") + fmtTime(end);
+    if (timeStr) setText(node, "time", timeStr);
+    else node.querySelector('[data-field="time-row"]').style.display = "none";
+
+    if (row["Location"]) setText(node, "location", row["Location"]);
+    else node.querySelector('[data-field="location-row"]').style.display = "none";
+
+    // Tag so a re-run doesn't insert duplicates
+    node.setAttribute("data-fdcp-sheet-card", slug);
+
+    return node;
+  }
+
+  function inject(rows) {
+    var container = findHomeContainer();
+    if (!container) {
+      console.warn("[FDCP home-events] container not found — is the homepage 'Upcoming Event' section on this page?");
+      return;
+    }
+
+    var today = new Date(); today.setHours(0,0,0,0);
+    var upcoming = rows
+      .map(function (r) { return { row: r, start: parseSheetDate(r["Start time/Date"]) }; })
+      .filter(function (x) { return x.start && x.start >= today; })
+      .sort(function (a, b) { return a.start - b.start; })
+      .slice(0, MAX_HOME_CARDS);
+
+    if (!upcoming.length) return; // nothing to add; leave whatever CMS rendered
+
+    // Drop any sheet-injected cards from a previous SWR pass so renamed,
+    // removed, or re-ordered events refresh cleanly without leaving
+    // duplicates. CMS-rendered cards (which never carry this attribute)
+    // are preserved.
+    var stale = container.querySelectorAll('[data-fdcp-sheet-card]');
+    for (var i = 0; i < stale.length; i++) stale[i].parentNode.removeChild(stale[i]);
+
+    if (isPlaceholderOnly(container)) {
+      container.innerHTML = "";
+    }
+
+    upcoming.forEach(function (x) {
+      container.appendChild(buildHomeCard(x.row));
+    });
+  }
+
+  function init() {
+    loadEventsSWR(inject)
+      .catch(function (err) { console.error("[FDCP home-events]", err); });
+    attachFocusRevalidate(inject);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>

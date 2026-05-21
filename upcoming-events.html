@@ -1,0 +1,1384 @@
+<!-- =====================================================================
+  FDCP — Upcoming Events (listing)
+  Paste the contents of this file into a Drupal Basic Page (Full HTML).
+  URL alias suggestion: /upcoming-events-live
+  Detail page alias (configurable below): /event-details
+===================================================================== -->
+
+<!-- ===== LOCAL-PREVIEW ONLY: delete this block before pasting into Drupal =====
+     The Drupal theme already loads Tailwind + sets UTF-8, so these are
+     redundant on the live site. They are needed only when you open this file
+     directly via file:// or a local server for testing.
+-->
+<meta charset="utf-8">
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- ===== END LOCAL-PREVIEW BLOCK ===== -->
+
+<!-- ===== CALENDAR LAYOUT CSS — keep this block when pasting into Drupal =====
+     Drupal's compiled Tailwind does not include `grid-cols-7` and several
+     arbitrary utilities used by the calendar. These rules hard-define the
+     layout so the calendar renders correctly even if the Tailwind classes
+     don't exist on the site. !important is used as a safety belt against
+     Drupal's CSS specificity.
+-->
+<style>
+  #fdcp-cal-dow {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    column-gap: 4px !important;
+    padding-bottom: 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+  }
+  #fdcp-cal-dow > div { padding: 4px 0 !important; text-align: center !important; }
+
+  #fdcp-cal-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    row-gap: 4px !important;
+    overflow-y: auto !important;
+    padding-right: 4px !important;
+  }
+
+  .fdcp-cal-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .fdcp-cal-week {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    column-gap: 4px !important;
+    position: relative !important;
+    flex: 1 1 0% !important;
+    min-height: 90px !important;
+  }
+
+  .fdcp-cal-bg     { border-radius: 8px !important; }
+  .fdcp-cal-bg-in  { background: #F5F5F7 !important; }
+  .fdcp-cal-bg-out { background: #EEEEF1 !important; }
+
+  .fdcp-cal-daynum {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    padding: 4px 8px 0 0 !important;
+    text-align: right !important;
+    position: relative !important;
+  }
+  .fdcp-cal-daynum-in    { color: #374151 !important; }
+  .fdcp-cal-daynum-out   { color: #9ca3af !important; }
+  .fdcp-cal-daynum-today { font-weight: 700 !important; color: #E200A9 !important; }
+
+  .fdcp-cal-pill {
+    position: relative !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+    padding: 2px 8px !important;
+    border-radius: 9999px !important;
+    color: #fff !important;
+    text-align: center !important;
+    font-weight: 500 !important;
+    margin: 0 2px !important;
+    text-decoration: none !important;
+  }
+  .fdcp-cal-pill:hover { opacity: 0.9 !important; }
+
+  .fdcp-cal-more {
+    position: relative !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    color: #4b5563 !important;
+    font-weight: 500 !important;
+    padding-left: 8px !important;
+    text-align: left !important;
+    background: transparent !important;
+    border: 0 !important;
+    cursor: pointer !important;
+  }
+  .fdcp-cal-more:hover { color: #580076 !important; text-decoration: underline !important; }
+
+  .fdcp-cal-hot {
+    position: absolute !important;
+    inset: 0 !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Modal */
+  #fdcp-day-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 60 !important;
+    padding: 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #fdcp-day-modal.fdcp-modal-open  { display: flex !important; }
+  #fdcp-day-modal:not(.fdcp-modal-open) { display: none !important; }
+  .fdcp-modal-backdrop { position: absolute !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; }
+  .fdcp-modal-panel {
+    position: relative !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
+    max-width: 28rem !important;
+    width: 100% !important;
+    max-height: 80vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* ===== Mobile (≤ 768px) — toolbar must fit narrow screens and the
+     calendar grid needs to shrink so 6 weeks remain visible. ===== */
+  @media (max-width: 768px) {
+    /* Toolbar: tighter gap so prev/next don't push off-screen */
+    .fdcp-cal-toolbar {
+      gap: 8px !important;
+      padding: 0 0 8px !important;
+    }
+    .fdcp-cal-title-wrap {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+    }
+    #fdcp-cal-title {
+      font-size: 22px !important;
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    #fdcp-cal-prev,
+    #fdcp-cal-next {
+      width: 36px !important;
+      height: 36px !important;
+      flex-shrink: 0 !important;
+    }
+    #fdcp-cal-prev svg,
+    #fdcp-cal-next svg { width: 16px !important; height: 16px !important; }
+
+    /* Jump popover sized for narrow screens */
+    #fdcp-cal-jump { min-width: 200px !important; max-width: 90vw !important; }
+
+    /* Calendar panel: less padding, lighter radius */
+    .fdcp-cal-panel {
+      padding: 12px !important;
+      border-radius: 20px !important;
+    }
+
+    /* Weekday header — compact */
+    #fdcp-cal-dow {
+      font-size: 9px !important;
+      column-gap: 2px !important;
+      padding-bottom: 6px !important;
+    }
+
+    /* Grid: tighter gaps */
+    #fdcp-cal-grid {
+      column-gap: 2px !important;
+      row-gap: 3px !important;
+    }
+
+    /* Week rows: shorter so 6 weeks fit without a tall scroll */
+    .fdcp-cal-week {
+      column-gap: 2px !important;
+      min-height: 60px !important;
+    }
+
+    /* Day number — slightly smaller */
+    .fdcp-cal-daynum {
+      font-size: 11px !important;
+      padding: 3px 5px 0 0 !important;
+    }
+
+    /* Pills — shrink type/padding so multi-day pills don't overflow */
+    .fdcp-cal-pill {
+      font-size: 9px !important;
+      padding: 1px 4px !important;
+      margin: 0 1px !important;
+    }
+
+    .fdcp-cal-more {
+      font-size: 9px !important;
+      padding-left: 4px !important;
+    }
+  }
+
+  /* ===== Desktop (≥ lg = 1024px) — restore the original "Upcoming
+     Events first, Calendar second" visual order. The HTML places
+     calendar first in source order (so mobile / tablet see it without
+     needing any CSS reorder), but desktop has historically shown the
+     events list above the calendar. Flex `order` flips just the
+     rendering, not the DOM, so screen readers and tab order still
+     follow source. ===== */
+  @media (min-width: 1024px) {
+    #main-content {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    /* DOM child #1 is the calendar block → push it down to position 2.
+       DOM child #2 is the Upcoming Events block → pull it up to 1. */
+    #main-content > :nth-child(1) { order: 2 !important; }
+    #main-content > :nth-child(2) { order: 1 !important; }
+  }
+
+  /* ===== Mobile / tablet (< lg = 1024px) — DOM order already shows the
+     calendar first, so no reorder rules here. This block tightens the
+     event-card layout: the poster is moved next to the date box on
+     row 1 (instead of stacking as a wide banner under the title) and
+     the long title / description / CTA block takes row 2 across both
+     columns. Result: each card is much shorter, so users can flick
+     past the events list quickly on small screens. ===== */
+  @media (max-width: 1023px) {
+    /* Bound the events list so it scrolls inside its own panel rather
+       than stretching the whole page after the tall calendar block. */
+    #fdcp-events-container {
+      max-height: 70vh !important;
+    }
+
+    /* Card grid override — DOM children of each card are:
+         1) date box   2) title / meta block   3) poster-col */
+    #fdcp-events-container > .grid {
+      grid-template-columns: auto 1fr !important;
+      column-gap: 12px !important;
+      row-gap: 12px !important;
+      align-items: start !important;
+    }
+    #fdcp-events-container > .grid > :nth-child(1) {
+      grid-row: 1 !important;
+      grid-column: 1 !important;
+    }
+    #fdcp-events-container > .grid > :nth-child(2) {
+      grid-row: 2 !important;
+      grid-column: 1 / -1 !important;
+    }
+    #fdcp-events-container > .grid > [data-field="poster-col"] {
+      grid-row: 1 !important;
+      grid-column: 2 !important;
+      max-height: 90px !important;
+      max-width: 160px !important;
+      justify-self: end !important;
+    }
+    #fdcp-events-container [data-field="poster-wrap"] {
+      max-height: 90px !important;
+    }
+  }
+
+  /* ===== Extra-small phones (≤ 380px) — squeeze a bit more ===== */
+  @media (max-width: 380px) {
+    .fdcp-cal-toolbar { gap: 6px !important; }
+    #fdcp-cal-title { font-size: 18px !important; }
+    #fdcp-cal-prev, #fdcp-cal-next { width: 32px !important; height: 32px !important; }
+    #fdcp-cal-prev svg, #fdcp-cal-next svg { width: 14px !important; height: 14px !important; }
+    .fdcp-cal-panel { padding: 8px !important; }
+    .fdcp-cal-week { min-height: 52px !important; }
+    .fdcp-cal-pill { font-size: 8px !important; padding: 1px 3px !important; }
+    #fdcp-cal-dow { font-size: 8px !important; }
+  }
+</style>
+<!-- ===== END CALENDAR LAYOUT CSS ===== -->
+
+<!-- HERO -->
+<div class="relative w-full lg:h-[40rem]">
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,#005D8C,#7399B9,#E09DC2,#FED9B7)] opacity-45 pointer-events-none z-0"></div>
+  <div class="absolute top-[8rem] left-10 lg:top-[30%] lg:left-[4.5rem] z-20">
+    <a href="/">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"></path>
+      </svg>
+    </a>
+  </div>
+
+  <div class="absolute top-2/4 max-lg:-translate-y-2/4 lg:top-[28%] left-2/4 -translate-x-2/4 text-white text-center z-20">
+    <h1 class="text-[40px] lg:text-[72px] font-bold uppercase leading-none">CALENDAR OF EVENTS</h1>
+    <span>Never miss a moment. Explore key dates, mark your calendar, and join us at our upcoming events</span>
+  </div>
+
+  <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg" class="object-cover aspect-square min-h-[80svh] lg:hidden w-full" alt="">
+  <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg" class="hidden lg:block object-cover aspect-square lg:h-full w-full" alt="">
+</div>
+
+<main id="main-content" class="flex-grow">
+  <!-- ============================================================
+       NOTE: DOM order is calendar-first, Upcoming-Events-second so
+       mobile / tablet (< lg) viewers see the calendar without any
+       CSS gymnastics — natural source order does the work. Desktop
+       (≥ lg) restores the visual "events first, calendar below"
+       layout via the `@media (min-width: 1024px)` flex-order block
+       at the top of this file. If you reorder these two blocks in
+       the source, also flip the orders in that media query.
+       ============================================================ -->
+
+  <!-- FDCP EVENT CALENDAR -->
+  <div class="relative w-full max-lg:min-h-[760px] lg:h-[1100px] overflow-hidden py-12 lg:py-20 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50 z-10"></div>
+
+    <img src="/themes/custom/fdcp_theme/assets/images/home/calendar-bg.jpg"
+         class="absolute inset-0 object-cover h-full w-full" alt="">
+
+    <div class="relative z-20 mx-auto px-4 lg:px-6 max-w-screen-xl w-full text-center overflow-hidden space-y-6 lg:space-y-10">
+      <div class="flex flex-col text-white leading-tight">
+        <h3 class="text-[36px] lg:text-[55px] font-bold">FDCP Event Calendar</h3>
+        <span class="lg:text-[26px]">Schedule of Activities</span>
+      </div>
+
+      <div class="fdcp-cal-panel bg-white size-full p-4 border rounded-[30px] lg:h-[750px] text-left flex flex-col overflow-hidden">
+        <!-- toolbar -->
+        <div class="fdcp-cal-toolbar" style="display:flex;align-items:center;justify-content:center;gap:24px;padding:0 8px 8px;">
+          <button id="fdcp-cal-prev" type="button"
+                  aria-label="Previous month"
+                  style="width:44px;height:44px;border-radius:9999px;background:#F5F2FF;color:#580076;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="fdcp-cal-title-wrap" style="position:relative;">
+            <h4 id="fdcp-cal-title"
+                title="Click to jump to a month"
+                style="font-size:40px;line-height:1.1;font-weight:800;margin:0;width:380px;text-align:center;cursor:pointer;user-select:none;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;">—</h4>
+            <div id="fdcp-cal-jump"
+                 style="position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:8px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.18);padding:16px;z-index:55;display:none;min-width:240px;text-align:left;">
+              <select id="fdcp-jump-month"
+                      style="display:block;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px;background:#fff;margin-bottom:8px;cursor:pointer;outline:none;color:#374151;"></select>
+              <select id="fdcp-jump-year"
+                      style="display:block;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px;background:#fff;margin-bottom:12px;cursor:pointer;outline:none;color:#374151;"></select>
+              <button id="fdcp-jump-go" type="button"
+                      style="display:block;width:100%;padding:10px 16px;border-radius:9999px;border:0;color:#fff;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);">Go</button>
+            </div>
+          </div>
+          <button id="fdcp-cal-next" type="button"
+                  aria-label="Next month"
+                  style="width:44px;height:44px;border-radius:9999px;background:#F5F2FF;color:#580076;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <!-- weekday header -->
+        <div id="fdcp-cal-dow">
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+          <div>Sun</div>
+        </div>
+
+        <!-- day grid (weeks stacked vertically; each week is its own subgrid) -->
+        <div id="fdcp-cal-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="py-20 px-6 space-y-10 lg:py-[127px] lg:px-40 lg:space-y-20">
+
+    <div class="max-w-screen-sm mx-auto text-center">
+      <h2 class="text-[55px] font-bold text-center">Upcoming Events</h2>
+      <p>Important Dates at a Glance</p>
+    </div>
+
+    <div class="max-w-screen-lg mx-auto">
+      <div id="fdcp-events-container"
+           class="flex flex-col gap-5 overflow-y-auto lg:max-h-[958px] lg:min-h-0 pl-2 pr-4 p-5 lg:pb-10">
+        <!-- Skeleton placeholder while loading -->
+        <div id="fdcp-events-loading" class="text-center py-20 text-gray-500">
+          Loading events…
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- DAY-EVENTS MODAL -->
+<div id="fdcp-day-modal">
+  <div class="fdcp-modal-backdrop" data-fdcp-close></div>
+  <div class="fdcp-modal-panel">
+    <div class="flex items-center justify-between p-4 border-b">
+      <h4 id="fdcp-day-modal-title" class="text-lg font-bold" style="color:#580076">—</h4>
+      <button type="button" data-fdcp-close
+              style="width:32px;height:32px;border-radius:9999px;background:transparent;border:0;color:#6b7280;font-size:20px;line-height:1;cursor:pointer"
+              aria-label="Close">×</button>
+    </div>
+    <div id="fdcp-day-modal-list" class="flex-1 overflow-y-auto p-4 space-y-2" style="overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Event card markup is built from a JS string inside the script below.
+     We avoid <template>…</template> because Drupal's text-format filter
+     strips the contents of <template> elements at render time. -->
+
+
+<script>
+(function () {
+  // === CONFIG ===========================================================
+  // The default gviz CSV export returns only the first tab (COMMS). The
+  // sheet has one tab per division (AFD, FESTIVALS, etc.) and an "ALL" tab
+  // that aggregates them — that tab is edit-locked in the UI but still
+  // readable via gviz, so we point at it explicitly to get every division's
+  // events instead of just COMMS.
+  // Fetch as HTML (not CSV) so cell formatting — bold, italic, hyperlinks
+  // typed in the sheet — survives all the way to the detail page. The
+  // listing here only consumes plain-text fields (title, location, date),
+  // which the HTML parser still emits via cellToText.
+  var SHEET_SRC =
+    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=ALL";
+  // Change this to your detail-page URL alias on Drupal:
+  var DETAIL_URL = "/event-details";
+
+  // Stale-while-revalidate cache, shared across all three event pages.
+  // localStorage so the cache survives tab closes and the calendar paints
+  // instantly on every return visit; a background fetch silently swaps in
+  // any sheet edits. v4 bumps the schema for the CSV→HTML migration.
+  var CACHE_KEY = "fdcp.events.v4";
+  var REVALIDATE_MIN_GAP = 60 * 1000; // throttle focus-driven refetches
+  // ======================================================================
+
+  var MONTHS      = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  var MONTHS_FULL = ["January","February","March","April","May","June",
+                     "July","August","September","October","November","December"];
+
+  // Single brand-aligned gradient used behind the film overlay when an
+  // event has no poster URL. Uniform across cards so the listing reads
+  // as intentional rather than a grab-bag of placeholders.
+  var FALLBACK_BG = "linear-gradient(135deg,#3a0050 0%,#580076 50%,#E200A9 100%)";
+
+  // Abstract film-themed SVG laid over the gradient — two strips of
+  // sprocket holes top/bottom and a stylised aperture/reel mark in the
+  // centre. Inline per card (no <defs id=...> references that would
+  // collide across many cards in the same document).
+  var FALLBACK_OVERLAY_SVG = (function () {
+    var holes = "";
+    for (var i = 0; i < 8; i++) {
+      var x = 17 + i * 38;
+      holes += '<rect x="' + x + '" y="6"   width="20" height="10" rx="2" fill="#fff" opacity="0.25"/>';
+      holes += '<rect x="' + x + '" y="164" width="20" height="10" rx="2" fill="#fff" opacity="0.25"/>';
+    }
+    return ''
+      + '<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"'
+      +      ' style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">'
+      +   '<rect x="0" y="0"   width="320" height="22" fill="rgba(0,0,0,0.55)"/>'
+      +   '<rect x="0" y="158" width="320" height="22" fill="rgba(0,0,0,0.55)"/>'
+      +   holes
+      +   '<g transform="translate(160 90)" stroke="#fff" stroke-linecap="round" fill="none" opacity="0.85">'
+      +     '<circle r="24" stroke-width="1.8"/>'
+      +     '<circle r="6" fill="#fff" stroke="none"/>'
+      +     '<line x1="0"   y1="-24" x2="0"   y2="-15" stroke-width="2.5"/>'
+      +     '<line x1="0"   y1="15"  x2="0"   y2="24"  stroke-width="2.5"/>'
+      +     '<line x1="-24" y1="0"   x2="-15" y2="0"   stroke-width="2.5"/>'
+      +     '<line x1="15"  y1="0"   x2="24"  y2="0"   stroke-width="2.5"/>'
+      +     '<line x1="-17" y1="-17" x2="-11" y2="-11" stroke-width="2"/>'
+      +     '<line x1="11"  y1="-11" x2="17"  y2="-17" stroke-width="2"/>'
+      +     '<line x1="-17" y1="17"  x2="-11" y2="11"  stroke-width="2"/>'
+      +     '<line x1="11"  y1="11"  x2="17"  y2="17"  stroke-width="2"/>'
+      +   '</g>'
+      + '</svg>';
+  })();
+
+  // Card markup as a string so Drupal's HTML filter can't strip it
+  // (it does strip the children of real <template> elements).
+  var CARD_HTML = [
+    '<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-10 bg-white w-full h-auto p-3 lg:p-5 rounded-2xl shadow-sm shadow-black/40 border">',
+      '<div class="bg-[#F5F2FF] lg:col-span-2 flex flex-col justify-between gap-2 lg:gap-5 text-center rounded-2xl lg:rounded-[30px] py-2 lg:py-0">',
+        '<span data-field="month" class="bg-[#580076] text-white font-bold text-base lg:text-xl py-1 w-full rounded-2xl lg:rounded-[30px]">—</span>',
+        '<div class="flex flex-col">',
+          '<span data-field="day" class="bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold text-[44px] lg:text-[75px] leading-none">—</span>',
+          '<span data-field="year" class="text-[#E200A9] text-sm lg:text-xl">—</span>',
+        '</div>',
+        '<div></div>',
+      '</div>',
+      '<div class="lg:col-span-7 flex flex-col justify-between gap-3 lg:gap-5">',
+        '<div>',
+          '<h2 class="font-bold text-[20px] lg:text-[28px] leading-tight">',
+            '<a data-field="title-link" href="#" class="hover:underline"><span data-field="title">—</span></a>',
+          '</h2>',
+          '<span data-field="description" class="text-xs"></span>',
+        '</div>',
+        '<div class="flex flex-col-reverse gap-3 lg:gap-5 lg:flex-row lg:items-end lg:gap-32">',
+          '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-14 lg:text-sm text-center text-nowrap self-start lg:self-auto" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;">View Details</a>',
+          '<div class="flex flex-col gap-2 lg:gap-3 items-start" style="color:#7C7C7C;">',
+            '<div data-field="time-row" class="flex items-center gap-2">',
+              '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 19 19" fill="none" class="lg:w-[19px] lg:h-[19px]"><path d="M9.5 0C12.0196 0 14.4359 1.00089 16.2175 2.78249C17.9991 4.56408 19 6.98044 19 9.5C19 12.0196 17.9991 14.4359 16.2175 16.2175C14.4359 17.9991 12.0196 19 9.5 19C6.98044 19 4.56408 17.9991 2.78249 16.2175C1.00089 14.4359 0 12.0196 0 9.5C0 6.98044 1.00089 4.56408 2.78249 2.78249C4.56408 1.00089 6.98044 0 9.5 0ZM9 4H10V9.42L14.7 12.13L14.2 13L9 10V4Z" fill="#536471"/></svg>',
+              '<p data-field="time" class="text-xs">—</p>',
+            '</div>',
+            '<div data-field="location-row" class="flex items-center gap-2">',
+              '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="0 0 19 23" fill="none" class="lg:w-[19px] lg:h-[23px]"><path d="M18.5 9.5C18.5 16.5 9.5 22.5 9.5 22.5C9.5 22.5 0.5 16.5 0.5 9.5C0.5 7.11305 1.44821 4.82387 3.13604 3.13604C4.82387 1.44821 7.11305 0.5 9.5 0.5C11.8869 0.5 14.1761 1.44821 15.864 3.13604C17.5518 4.82387 18.5 7.11305 18.5 9.5Z" stroke="#536471" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 12.5C11.1569 12.5 12.5 11.1569 12.5 9.5C12.5 7.84315 11.1569 6.5 9.5 6.5C7.84315 6.5 6.5 7.84315 6.5 9.5C6.5 11.1569 7.84315 12.5 9.5 12.5Z" stroke="#536471" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+              '<p data-field="location" class="text-xs">—</p>',
+            '</div>',
+          '</div>',
+        '</div>',
+      '</div>',
+      '<div data-field="poster-col" class="lg:col-span-3 rounded-2xl size-full border overflow-hidden max-h-[80px] lg:max-h-none">',
+        '<div data-field="poster-wrap" class="size-full aspect-video">',
+          '<img data-field="poster" alt="" class="size-full object-cover aspect-video object-center" style="display:none">',
+          // Film-themed placeholder shown until/unless a real poster URL is in the sheet.
+          '<div data-field="poster-fallback" class="size-full aspect-video" style="position:relative;overflow:hidden;background:' + FALLBACK_BG + ';">' + FALLBACK_OVERLAY_SVG + '</div>',
+        '</div>',
+      '</div>',
+    '</div>'
+  ].join("");
+
+  function slugify(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  // Drop the markdown markers that the detail page interprets as formatting,
+  // leaving only the underlying text. Used for the card-snippet preview so
+  // editors don't see "**important**" rendered literally on the listing.
+  function stripMarkdown(s) {
+    if (!s) return "";
+    return String(s)
+      .replace(/\*\*([^\n*]+?)\*\*/g, "$1")
+      .replace(/\*([^\n*]+?)\*/g, "$1")
+      .replace(/(^|[^A-Za-z0-9_])_([^\n_]+?)_(?![A-Za-z0-9_])/g, "$1$2")
+      .replace(/~~([^\n]+?)~~/g, "$1");
+  }
+
+  // Extract plain text from a gviz HTML cell, converting <br> back to \n
+  // so multi-line cells (Alt+Enter in the sheet) keep their line breaks
+  // when used as text. textContent alone would collapse <br> to nothing.
+  function cellToText(cell) {
+    if (!cell) return "";
+    var clone = cell.cloneNode(true);
+    var brs = clone.querySelectorAll("br");
+    for (var i = 0; i < brs.length; i++) {
+      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+    }
+    return (clone.textContent || "").trim();
+  }
+
+  // Whitelist-sanitize a gviz cell's innerHTML. Only used here to populate
+  // the shared cache's Descriptions_html field — the calendar/listing
+  // itself doesn't render the rich version, but writing it means the
+  // detail page can read the cache and paint bold text instantly.
+  var SAN_ALLOWED = {B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,BR:1,SPAN:1,FONT:1,A:1};
+  function sanitizeRichHTML(html) {
+    if (!html) return "";
+    var tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    (function walk(node) {
+      var kids = Array.prototype.slice.call(node.childNodes);
+      kids.forEach(function (c) {
+        if (c.nodeType === 1) {
+          if (!SAN_ALLOWED[c.tagName]) {
+            while (c.firstChild) c.parentNode.insertBefore(c.firstChild, c);
+            c.parentNode.removeChild(c);
+            return;
+          }
+          var attrs = Array.prototype.slice.call(c.attributes);
+          attrs.forEach(function (a) {
+            var nm = a.name.toLowerCase(), keep = false;
+            if (c.tagName === "A" && nm === "href" && /^(https?:|mailto:)/i.test(a.value)) keep = true;
+            if (c.tagName === "FONT" && nm === "color" && /^#?[\w(),. ]+$/.test(a.value)) keep = true;
+            if (!keep) c.removeAttribute(a.name);
+          });
+          if (c.tagName === "A") { c.target = "_blank"; c.rel = "noopener noreferrer"; }
+          walk(c);
+        } else if (c.nodeType !== 3) {
+          c.parentNode.removeChild(c);
+        }
+      });
+    })(tmp);
+    return tmp.innerHTML;
+  }
+
+  // Parse the response from gviz's tqx=out:html endpoint. Same row-of-
+  // objects shape parseCSV used to produce — plain text for every field,
+  // plus a parallel Descriptions_html for the rich version used by the
+  // detail page. Downstream code on this page is unaffected.
+  function parseGvizHTML(text) {
+    var doc;
+    try { doc = new DOMParser().parseFromString(text, "text/html"); }
+    catch (e) { return []; }
+    var table = doc.querySelector("table");
+    if (!table || !table.rows.length) return [];
+    var trs = table.rows;
+    var headers = [];
+    for (var h = 0; h < trs[0].cells.length; h++) {
+      headers.push((trs[0].cells[h].textContent || "").trim());
+    }
+    var out = [];
+    for (var i = 1; i < trs.length; i++) {
+      var cells = trs[i].cells, obj = {}, hasContent = false;
+      for (var j = 0; j < headers.length; j++) {
+        var name = headers[j], cell = cells[j];
+        if (!cell) { obj[name] = ""; continue; }
+        var plain = cellToText(cell);
+        obj[name] = plain;
+        if (name === "Descriptions" || name === "Description") {
+          obj[name + "_html"] = sanitizeRichHTML(cell.innerHTML);
+        }
+        if (plain) hasContent = true;
+      }
+      if (hasContent) out.push(obj);
+    }
+    return out;
+  }
+
+  // Accepts "M/D/YYYY H:mm:ss" or "M/D/YYYY"
+  function parseSheetDate(s) {
+    if (!s) return null;
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (!m) {
+      var d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    var yr = parseInt(m[3], 10); if (yr < 100) yr += 2000;
+    return new Date(yr, parseInt(m[1],10)-1, parseInt(m[2],10),
+                    parseInt(m[4]||"0",10), parseInt(m[5]||"0",10), parseInt(m[6]||"0",10));
+  }
+
+  function fmtTime(d) {
+    if (!d) return "";
+    var h = d.getHours(), mn = d.getMinutes();
+    if (h === 0 && mn === 0) return ""; // midnight => unspecified
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12 || 12;
+    return h12 + ":" + (mn < 10 ? "0" + mn : mn) + " " + ampm;
+  }
+
+  // Convert any Google Drive share link to a direct-thumbnail URL so the
+  // browser can render it inside an <img>. Returns "" for anything that
+  // isn't a real http(s) URL — editors sometimes type plain text like
+  // "TBA" into the Event Poster column, and we don't want that to land
+  // in img.src and render as a broken-image icon over the fallback.
+  function normalizePoster(url) {
+    if (!url) return "";
+    var u = String(url).trim();
+    var drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);
+    if (drive) return "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w1200";
+    if (/^https?:\/\//i.test(u)) return u;
+    return "";
+  }
+
+  // The sheet's "Remarks" column is sometimes a URL (e.g. "fdcp.ph/isapelikula")
+  // and sometimes a freeform note. Returns a normalized URL when the value
+  // looks link-like, otherwise null.
+  function asExternalUrl(s) {
+    if (!s) return null;
+    var v = String(s).trim();
+    if (!v || /\s/.test(v) || !/\./.test(v)) return null;
+    if (/^https?:\/\//i.test(v)) return v;
+    return "https://" + v;
+  }
+
+  // FNV-1a 32-bit, hex — fast change-detector for raw CSV text. We only
+  // re-render after a live fetch when this hash differs from the cached
+  // one, which keeps the calendar from repainting on every revalidation
+  // when the sheet hasn't actually changed.
+  function hashCSV(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  var lastFetchAt = 0;
+
+  function readCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      return (obj && obj.v === 4 && Array.isArray(obj.rows)) ? obj : null;
+    } catch (e) { return null; }
+  }
+
+  function writeCache(rows, hash) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        v: 4, t: Date.now(), hash: hash, rows: rows
+      }));
+    } catch (e) { /* quota or private-mode — silent */ }
+  }
+
+  // Append a timestamp to bust Google's edge cache — without this, the
+  // gviz endpoint can keep serving the same response for several minutes
+  // even after a fresh sheet edit.
+  function fetchLive() {
+    var url = SHEET_SRC + "&_=" + Date.now();
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        lastFetchAt = Date.now();
+        return { txt: txt, hash: hashCSV(txt), rows: parseGvizHTML(txt) };
+      });
+  }
+
+  // Stale-while-revalidate: paint cached rows synchronously (zero-latency
+  // first render), then refetch live and silently swap if the data has
+  // actually changed. If the network fetch fails but we already painted
+  // from cache, the error is swallowed — the user keeps seeing events.
+  function loadEventsSWR(onData) {
+    var cached = readCache();
+    if (cached) onData(cached.rows, "cache");
+
+    return fetchLive().then(function (fresh) {
+      if (!cached || cached.hash !== fresh.hash) {
+        onData(fresh.rows, "live");
+        writeCache(fresh.rows, fresh.hash);
+      }
+    }).catch(function (err) {
+      console.warn("[FDCP] live refresh failed:", err);
+      if (!cached) throw err; // only surface if we painted nothing
+    });
+  }
+
+  function attachFocusRevalidate(onData) {
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastFetchAt < REVALIDATE_MIN_GAP) return;
+      fetchLive().then(function (fresh) {
+        var cached = readCache();
+        if (!cached || cached.hash !== fresh.hash) {
+          onData(fresh.rows, "live");
+          writeCache(fresh.rows, fresh.hash);
+        }
+      }).catch(function () {});
+    });
+  }
+
+  function setText(node, sel, value) {
+    var el = node.querySelector('[data-field="' + sel + '"]');
+    if (el) el.textContent = value;
+  }
+
+  function buildCard(row) {
+    var holder = document.createElement("div");
+    holder.innerHTML = CARD_HTML;
+    var node = holder.firstElementChild;
+
+    var start = parseSheetDate(row["Start time/Date"]);
+    var end   = parseSheetDate(row["End time/Date"]);
+    var title = row["Event"] || "(untitled event)";
+    var slug  = slugify(title);
+    var remarks    = (row["Remarks"] || "").trim();
+    var remarksUrl = asExternalUrl(remarks);
+    var detailHref = remarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slug));
+
+    if (start) {
+      setText(node, "month", MONTHS[start.getMonth()]);
+      setText(node, "day",   String(start.getDate()));
+      setText(node, "year",  String(start.getFullYear()));
+    } else {
+      setText(node, "month", "TBA");
+      setText(node, "day",   "—");
+      setText(node, "year",  "");
+    }
+
+    setText(node, "title", title);
+    var titleLink = node.querySelector('[data-field="title-link"]');
+    var ctaLink   = node.querySelector('[data-field="cta-link"]');
+    titleLink.href = detailHref;
+    ctaLink.href   = detailHref;
+    if (remarksUrl) {
+      titleLink.target = "_blank"; titleLink.rel = "noopener";
+      ctaLink.target   = "_blank"; ctaLink.rel   = "noopener";
+    }
+
+    // Strip the markdown markers that editors type in the sheet for the
+    // detail page (**bold**, *italic*, _underline_, ~~strike~~) — the
+    // listing snippet renders as plain text, so those characters should
+    // not leak into the card preview.
+    var desc = stripMarkdown(row["Descriptions"] || "");
+    if (desc.length > 180) desc = desc.slice(0, 180).replace(/\s+\S*$/, "") + "…";
+    setText(node, "description", desc);
+    // Preserve line breaks from the sheet (Alt+Enter) inside the card preview
+    var descEl = node.querySelector('[data-field="description"]');
+    if (descEl) descEl.style.whiteSpace = "pre-line";
+
+    // Freeform Remarks (not a URL) → render as a small italic note under the description.
+    if (remarks && !remarksUrl && descEl) {
+      var note = document.createElement("p");
+      note.style.cssText = "font-size:11px;color:#6b7280;font-style:italic;margin-top:6px;white-space:pre-line;";
+      note.textContent = remarks;
+      descEl.parentNode.insertBefore(note, descEl.nextSibling);
+    }
+
+    // Time + location: when the sheet has no value, show "TBA" rather than
+    // hiding the row — so the layout stays consistent and editors can tell
+    // at a glance that a field still needs filling in.
+    var timeStr = fmtTime(start);
+    if (end && fmtTime(end)) timeStr += (timeStr ? " - " : "") + fmtTime(end);
+    setText(node, "time", timeStr || "Time TBA");
+
+    setText(node, "location", row["Location"] ? row["Location"] : "Location TBA");
+
+    var poster = normalizePoster(row["Event Poster"]);
+    if (poster) {
+      var img = node.querySelector('[data-field="poster"]');
+      var fb  = node.querySelector('[data-field="poster-fallback"]');
+      img.src = poster;
+      img.alt = title;
+      img.style.display = "block";
+      if (fb) fb.style.display = "none";
+    }
+
+    return node;
+  }
+
+  var ALL_UPCOMING = []; // populated once, then filtered on each render
+  var ALL_EVENTS   = []; // every row with a valid start date — used by the calendar
+  var CAL_VIEW     = { year: 0, month: 0 }; // 0-indexed month
+  var PILL_COLORS  = ["#0B8043", "#FFCC00", "#580076", "#E200A9", "#0096E2"];
+
+  function pillColor(title) {
+    // Deterministic per-title pick from PILL_COLORS so the same event
+    // always gets the same color across renders.
+    var s = String(title || ""), h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return PILL_COLORS[Math.abs(h) % PILL_COLORS.length];
+  }
+
+  function render() {
+    var container = document.getElementById("fdcp-events-container");
+    container.innerHTML = "";
+
+    if (!ALL_UPCOMING.length) {
+      container.innerHTML =
+        '<div class="text-center py-20 text-gray-500">No upcoming events at the moment.</div>';
+      return;
+    }
+
+    // Build each card in isolation — if one row has malformed data, log it
+    // and skip rather than letting it bubble up to the .catch() in init()
+    // and trigger the "Could not load events" banner.
+    var frag = document.createDocumentFragment();
+    ALL_UPCOMING.forEach(function (x) {
+      try {
+        frag.appendChild(buildCard(x.row));
+      } catch (err) {
+        console.warn("[FDCP] skipped a malformed event row:", err, x.row);
+      }
+    });
+    container.appendChild(frag);
+  }
+
+  function ingest(rows) {
+    var today = new Date(); today.setHours(0,0,0,0);
+
+    ALL_EVENTS = rows
+      .map(function (r) {
+        return {
+          row: r,
+          start: parseSheetDate(r["Start time/Date"]),
+          end:   parseSheetDate(r["End time/Date"])
+        };
+      })
+      .filter(function (x) { return x.start; })
+      .sort(function (a, b) { return a.start - b.start; });
+
+    ALL_UPCOMING = ALL_EVENTS.filter(function (x) { return x.start >= today; });
+
+    render();
+    // Repaint the calendar with the now-populated events; the empty grid
+    // was already rendered at init() so the layout doesn't shift here.
+    renderCalendar();
+    // Refresh year options now that we know the real event-date range.
+    setupJumpPopover();
+  }
+
+  function setupJumpPopover() {
+    var pop   = document.getElementById("fdcp-cal-jump");
+    var title = document.getElementById("fdcp-cal-title");
+    var mSel  = document.getElementById("fdcp-jump-month");
+    var ySel  = document.getElementById("fdcp-jump-year");
+    var go    = document.getElementById("fdcp-jump-go");
+    if (!pop || !title || !mSel || !ySel || !go) return;
+
+    // Month options (populate once — they never change)
+    if (!mSel.options.length) {
+      MONTHS_FULL.forEach(function (mName, idx) {
+        var o = document.createElement("option");
+        o.value = String(idx);
+        o.textContent = mName;
+        mSel.appendChild(o);
+      });
+    }
+
+    // Year options — derived from event range with buffer. Re-built on every
+    // call so the first (pre-load) render works and the second (post-load)
+    // render can widen the range if events extend beyond the default window.
+    var thisYear = new Date().getFullYear();
+    var minY = thisYear - 2, maxY = thisYear + 3;
+    ALL_EVENTS.forEach(function (x) {
+      var yr = x.start.getFullYear();
+      if (yr < minY) minY = yr;
+      if (yr > maxY) maxY = yr;
+    });
+    ySel.innerHTML = "";
+    for (var y = minY; y <= maxY; y++) {
+      var o = document.createElement("option");
+      o.value = String(y);
+      o.textContent = String(y);
+      ySel.appendChild(o);
+    }
+
+    // Bind event listeners only on the first call.
+    if (title.dataset.fdcpJumpBound === "1") return;
+    title.dataset.fdcpJumpBound = "1";
+
+    title.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (pop.style.display === "block") {
+        pop.style.display = "none";
+      } else {
+        mSel.value = String(CAL_VIEW.month);
+        ySel.value = String(CAL_VIEW.year);
+        pop.style.display = "block";
+      }
+    });
+
+    // Clicks inside the popover should not close it
+    pop.addEventListener("click", function (e) { e.stopPropagation(); });
+
+    go.addEventListener("click", function () {
+      CAL_VIEW.year  = parseInt(ySel.value, 10);
+      CAL_VIEW.month = parseInt(mSel.value, 10);
+      renderCalendar();
+      pop.style.display = "none";
+    });
+
+    // Click anywhere else closes it
+    document.addEventListener("click", function () { pop.style.display = "none"; });
+  }
+
+  var VISIBLE_SLOTS = 3;
+  var DAY_MS = 24 * 60 * 60 * 1000;
+  function dayKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function startOfDay(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function renderCalendar() {
+    var grid = document.getElementById("fdcp-cal-grid");
+    var titleEl = document.getElementById("fdcp-cal-title");
+    if (!grid || !titleEl) return;
+
+    var y = CAL_VIEW.year, m = CAL_VIEW.month;
+    titleEl.textContent = MONTHS_FULL[m] + " " + y;
+
+    var firstOfMonth = new Date(y, m, 1);
+    var dow = firstOfMonth.getDay();              // 0=Sun..6=Sat
+    var mondayOffset = (dow === 0 ? 6 : dow - 1); // Mon-first grid
+    var gridStart = startOfDay(new Date(y, m, 1 - mondayOffset));
+
+    var today = startOfDay(new Date());
+    grid.innerHTML = "";
+
+    for (var w = 0; w < 6; w++) {
+      var weekStart = new Date(gridStart);
+      weekStart.setDate(gridStart.getDate() + w * 7);
+      var weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+
+      // Compute event segments that overlap this week
+      var segments = [];
+      ALL_EVENTS.forEach(function (x) {
+        var s = startOfDay(x.start);
+        var e = x.end ? startOfDay(x.end) : s;
+        if (e < weekStart || s > weekEnd) return;
+        var segS = s < weekStart ? weekStart : s;
+        var segE = e > weekEnd   ? weekEnd   : e;
+        var startCol = Math.round((segS - weekStart) / DAY_MS);
+        var endCol   = Math.round((segE - weekStart) / DAY_MS);
+        segments.push({
+          event: x,
+          startCol: startCol,
+          endCol: endCol,
+          length: endCol - startCol + 1
+        });
+      });
+
+      // Slot assignment (longer first, then earliest start; greedy)
+      segments.sort(function (a, b) {
+        if (a.length !== b.length) return b.length - a.length;
+        return a.event.start - b.event.start;
+      });
+      var rowOcc = []; // rowOcc[rowIdx] = [{startCol, endCol}, ...]
+      segments.forEach(function (seg) {
+        var row = 0;
+        while (true) {
+          var occ = rowOcc[row] || (rowOcc[row] = []);
+          var clash = occ.some(function (o) {
+            return !(o.endCol < seg.startCol || o.startCol > seg.endCol);
+          });
+          if (!clash) { occ.push({ startCol: seg.startCol, endCol: seg.endCol }); seg.slot = row; break; }
+          row++;
+        }
+      });
+
+      // Overflow per day (events in slot >= VISIBLE_SLOTS)
+      var overflow = [0,0,0,0,0,0,0];
+      segments.forEach(function (seg) {
+        if (seg.slot >= VISIBLE_SLOTS) {
+          for (var c = seg.startCol; c <= seg.endCol; c++) overflow[c]++;
+        }
+      });
+
+      // Build week container — all critical layout styles inline so Drupal can't strip them
+      var weekDiv = document.createElement("div");
+      weekDiv.className = "fdcp-cal-week";
+      // No `row-gap` on the week grid — pills already carry `margin:2px`,
+      // which gives ~4px between adjacent slot rows. Adding row-gap here
+      // pushed the auto-sized "+N more" row past the week container's
+      // allocated height (each week gets panel_height / 6 ≈ 110px), and
+      // the overflow visibly bled into the next week's cell area.
+      weekDiv.style.cssText =
+        "display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:4px;" +
+        "position:relative;flex:1 1 0%;min-height:90px;" +
+        "grid-template-rows:24px repeat(" + VISIBLE_SLOTS + ",20px) 18px;";
+
+      // Day backgrounds (span full week-row height) + day numbers
+      for (var d = 0; d < 7; d++) {
+        var cellDate = new Date(weekStart);
+        cellDate.setDate(weekStart.getDate() + d);
+        var isThisMonth = cellDate.getMonth() === m;
+        var isToday     = cellDate.getTime() === today.getTime();
+
+        var bg = document.createElement("div");
+        bg.style.cssText =
+          "border-radius:8px;background:" + (isThisMonth ? "#F5F5F7" : "#EEEEF1") + ";" +
+          "grid-column:" + (d + 1) + "/span 1;grid-row:1/-1;";
+        weekDiv.appendChild(bg);
+
+        var dayColor = isToday ? "#E200A9" : (isThisMonth ? "#374151" : "#9ca3af");
+        var dayWeight = isToday ? "700" : "400";
+        var dayNum = document.createElement("div");
+        dayNum.textContent = cellDate.getDate();
+        dayNum.style.cssText =
+          "font-size:12px;line-height:1.2;padding:4px 8px 0 0;text-align:right;position:relative;" +
+          "color:" + dayColor + ";font-weight:" + dayWeight + ";" +
+          "grid-column:" + (d + 1) + "/span 1;grid-row:1;";
+        weekDiv.appendChild(dayNum);
+      }
+
+      // Visible pills (slot < VISIBLE_SLOTS) — span across columns for multi-day
+      segments.forEach(function (seg) {
+        if (seg.slot >= VISIBLE_SLOTS) return;
+        var a = document.createElement("a");
+        var pillRemarksUrl = asExternalUrl(seg.event.row["Remarks"]);
+        var pillTitle = seg.event.row["Event"] || "(untitled event)";
+        a.href = pillRemarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(pillTitle)));
+        if (pillRemarksUrl) { a.target = "_blank"; a.rel = "noopener"; }
+        a.title = pillTitle;
+        a.textContent = pillTitle;
+        a.style.cssText =
+          "position:relative;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" +
+          "font-size:10px;line-height:1.15;padding:2px 8px;border-radius:9999px;color:#fff;" +
+          "text-align:center;font-weight:500;margin:2px;text-decoration:none;" +
+          "background:" + pillColor(seg.event.row["Event"]) + ";" +
+          "grid-column:" + (seg.startCol + 1) + "/" + (seg.endCol + 2) + ";" +
+          "grid-row:" + (seg.slot + 2) + ";";
+        weekDiv.appendChild(a);
+      });
+
+      // Per-day "+N more" buttons
+      for (var d2 = 0; d2 < 7; d2++) {
+        if (!overflow[d2]) continue;
+        var cellDate2 = new Date(weekStart);
+        cellDate2.setDate(weekStart.getDate() + d2);
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.dayKey = dayKey(cellDate2);
+        btn.textContent = "+" + overflow[d2] + " more";
+        btn.style.cssText =
+          "position:relative;font-size:10px;line-height:1.2;color:#4b5563;font-weight:500;" +
+          "padding-left:8px;text-align:left;background:transparent;border:0;cursor:pointer;" +
+          "grid-column:" + (d2 + 1) + "/span 1;grid-row:" + (VISIBLE_SLOTS + 2) + ";";
+        btn.addEventListener("click", function (e) { openDayModal(e.currentTarget.dataset.dayKey); });
+        weekDiv.appendChild(btn);
+      }
+
+      // Day-number hotspot —
+      //   single-event day → direct link to the event detail page
+      //   multi-event day  → opens the day modal so the user can pick
+      for (var d3 = 0; d3 < 7; d3++) {
+        var cd = new Date(weekStart); cd.setDate(weekStart.getDate() + d3);
+        var hits = ALL_EVENTS.filter(function (x) {
+          var s = startOfDay(x.start), e = x.end ? startOfDay(x.end) : s;
+          return cd >= s && cd <= e;
+        });
+        if (!hits.length) continue;
+
+        var hotStyle =
+          "position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;cursor:pointer;" +
+          "background:transparent;border:0;padding:0;" +
+          "grid-column:" + (d3 + 1) + "/span 1;grid-row:1;";
+
+        var hot;
+        if (hits.length === 1) {
+          var onlyEv = hits[0];
+          var hotRemarksUrl = asExternalUrl(onlyEv.row["Remarks"]);
+          var hotTitle = onlyEv.row["Event"] || "(untitled event)";
+          hot = document.createElement("a");
+          hot.href = hotRemarksUrl
+            || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(hotTitle)));
+          if (hotRemarksUrl) { hot.target = "_blank"; hot.rel = "noopener"; }
+          hot.setAttribute("aria-label", "Open " + hotTitle);
+          hot.style.cssText = hotStyle + "display:block;text-decoration:none;";
+        } else {
+          hot = document.createElement("button");
+          hot.type = "button";
+          hot.dataset.dayKey = dayKey(cd);
+          hot.setAttribute("aria-label", "Show events on " + dayKey(cd));
+          hot.style.cssText = hotStyle;
+          hot.addEventListener("click", function (e) { openDayModal(e.currentTarget.dataset.dayKey); });
+        }
+        weekDiv.appendChild(hot);
+      }
+
+      grid.appendChild(weekDiv);
+    }
+  }
+
+  function openDayModal(key) {
+    var modal   = document.getElementById("fdcp-day-modal");
+    var titleEl = document.getElementById("fdcp-day-modal-title");
+    var listEl  = document.getElementById("fdcp-day-modal-list");
+    if (!modal || !titleEl || !listEl) return;
+
+    var parts = key.split("-");
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    titleEl.textContent = MONTHS_FULL[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+
+    var dayHits = ALL_EVENTS.filter(function (x) {
+      var s = startOfDay(x.start), e = x.end ? startOfDay(x.end) : s;
+      return d >= s && d <= e;
+    }).sort(function (a, b) { return a.start - b.start; });
+
+    listEl.innerHTML = "";
+    listEl.style.cssText = "flex:1 1 0%;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;";
+
+    if (!dayHits.length) {
+      var empty = document.createElement("p");
+      empty.style.cssText = "font-size:14px;color:#6b7280;text-align:center;padding:16px 0;";
+      empty.textContent = "No events on this day.";
+      listEl.appendChild(empty);
+    } else {
+      dayHits.forEach(function (x) {
+        var a = document.createElement("a");
+        var modalRemarksUrl = asExternalUrl(x.row["Remarks"]);
+        a.href = modalRemarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(x.row["Event"])));
+        if (modalRemarksUrl) { a.target = "_blank"; a.rel = "noopener"; }
+        a.style.cssText =
+          "display:block;padding:12px;border-radius:12px;text-decoration:none;color:#fff;" +
+          "background:" + pillColor(x.row["Event"]) + ";";
+
+        var title = document.createElement("div");
+        title.style.cssText = "color:#fff;font-weight:600;font-size:14px;";
+        title.textContent = x.row["Event"] || "(untitled)";
+        a.appendChild(title);
+
+        var t = fmtTime(x.start);
+        var tEnd = x.end ? fmtTime(x.end) : "";
+        var meta = [];
+        if (t) meta.push(tEnd ? (t + " – " + tEnd) : t);
+        if (x.row["Location"]) meta.push(x.row["Location"]);
+        if (meta.length) {
+          var sub = document.createElement("div");
+          sub.style.cssText = "color:rgba(255,255,255,0.85);font-size:12px;margin-top:4px;";
+          sub.textContent = meta.join(" • ");
+          a.appendChild(sub);
+        }
+        listEl.appendChild(a);
+      });
+    }
+
+    modal.style.display = "flex";
+  }
+
+  function closeDayModal() {
+    var modal = document.getElementById("fdcp-day-modal");
+    if (!modal) return;
+    modal.style.display = "none";
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.matches("[data-fdcp-close]")) closeDayModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeDayModal();
+      var pop = document.getElementById("fdcp-cal-jump");
+      if (pop) pop.style.display = "none";
+    }
+  });
+
+  function showError() {
+    var container = document.getElementById("fdcp-events-container");
+    container.innerHTML =
+      '<div class="text-center py-20 text-red-600">Could not load events. Please refresh the page.</div>';
+  }
+
+  // Walk up the DOM from a known element and zero out top padding/margin
+  // on each ancestor, so Drupal's basic-page wrappers can't introduce a gap
+  // between the site header and our content.
+  function killTopSpacing(startEl) {
+    var el = startEl, hops = 0;
+    while (el && el !== document.body && el !== document.documentElement && hops < 8) {
+      el.style.marginTop = "0";
+      el.style.paddingTop = "0";
+      el = el.parentElement;
+      hops++;
+    }
+  }
+
+  function applyBaseStyles() {
+    killTopSpacing(document.getElementById("main-content"));
+
+    var grid = document.getElementById("fdcp-cal-grid");
+    if (grid) {
+      grid.style.cssText =
+        "display:flex;flex-direction:column;flex:1 1 0%;min-height:0;row-gap:4px;" +
+        "overflow-y:auto;padding-right:4px;";
+    }
+
+    var dow = document.getElementById("fdcp-cal-dow");
+    if (dow) {
+      dow.style.cssText =
+        "display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:4px;" +
+        "padding-bottom:8px;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;";
+      for (var i = 0; i < dow.children.length; i++) {
+        dow.children[i].style.cssText = "padding:4px 0;text-align:center;";
+      }
+    }
+
+    var panel = document.querySelector(".fdcp-cal-panel");
+    if (panel) {
+      panel.style.display = "flex";
+      panel.style.flexDirection = "column";
+      panel.style.overflow = "hidden";
+    }
+
+    // Toolbar wrapper — find via the title's grandparent
+    var title = document.getElementById("fdcp-cal-title");
+    if (title) {
+      var titleWrap = title.parentElement;          // position:relative div
+      var toolbar   = titleWrap && titleWrap.parentElement; // top-level flex row
+      if (toolbar) {
+        toolbar.style.cssText =
+          "display:flex;align-items:center;justify-content:center;gap:24px;padding:0 8px 8px;";
+      }
+      if (titleWrap) {
+        titleWrap.style.cssText = "position:relative;";
+      }
+
+      // Gradient title — set props one-by-one so vendor prefixes survive
+      title.style.setProperty("font-size", "40px");
+      title.style.setProperty("line-height", "1.1");
+      title.style.setProperty("font-weight", "800");
+      title.style.setProperty("margin", "0");
+      title.style.setProperty("width", "380px");
+      title.style.setProperty("text-align", "center");
+      title.style.setProperty("cursor", "pointer");
+      title.style.setProperty("user-select", "none");
+      title.style.setProperty("background", "linear-gradient(90deg,#580076 0%,#E200A9 100%)");
+      title.style.setProperty("background-clip", "text");
+      title.style.setProperty("-webkit-background-clip", "text");
+      title.style.setProperty("-webkit-text-fill-color", "transparent");
+      title.style.setProperty("color", "transparent");
+    }
+
+    // Prev / Next buttons
+    ["fdcp-cal-prev", "fdcp-cal-next"].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      b.style.cssText =
+        "width:44px;height:44px;border-radius:9999px;background:#F5F2FF;color:#580076;" +
+        "border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;";
+    });
+
+    // Jump-to popover + its controls
+    var pop = document.getElementById("fdcp-cal-jump");
+    if (pop) {
+      pop.style.cssText =
+        "position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:8px;" +
+        "background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.18);" +
+        "padding:16px;z-index:55;display:none;min-width:240px;text-align:left;";
+    }
+    var jumpSelectCss =
+      "display:block;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;" +
+      "font-size:14px;background:#fff;margin-bottom:8px;cursor:pointer;outline:none;color:#374151;";
+    var jM = document.getElementById("fdcp-jump-month");
+    if (jM) jM.style.cssText = jumpSelectCss;
+    var jY = document.getElementById("fdcp-jump-year");
+    if (jY) jY.style.cssText = jumpSelectCss + "margin-bottom:12px;";
+    var jGo = document.getElementById("fdcp-jump-go");
+    if (jGo) {
+      jGo.style.cssText =
+        "display:block;width:100%;padding:10px 16px;border-radius:9999px;border:0;" +
+        "color:#fff;font-weight:700;font-size:14px;cursor:pointer;" +
+        "background:linear-gradient(90deg,#580076 0%,#E200A9 100%);";
+    }
+
+    // Modal
+    var modal = document.getElementById("fdcp-day-modal");
+    if (modal) {
+      modal.style.cssText =
+        "position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;padding:16px;" +
+        "align-items:center;justify-content:center;display:none;";
+      var backdrop = modal.querySelector(".fdcp-modal-backdrop");
+      if (backdrop) {
+        backdrop.style.cssText =
+          "position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);";
+      }
+      var mPanel = modal.querySelector(".fdcp-modal-panel");
+      if (mPanel) {
+        mPanel.style.cssText =
+          "position:relative;background:#fff;border-radius:16px;" +
+          "box-shadow:0 20px 50px rgba(0,0,0,0.3);max-width:28rem;width:100%;" +
+          "max-height:80vh;display:flex;flex-direction:column;";
+      }
+    }
+  }
+
+  function init() {
+    applyBaseStyles();
+
+    // Show the calendar shell (month title + day cells) immediately, so it's
+    // visible before the Google Sheet fetch resolves. Events paint in later
+    // via ingest() → renderCalendar().
+    var today = new Date();
+    CAL_VIEW.year  = today.getFullYear();
+    CAL_VIEW.month = today.getMonth();
+    renderCalendar();
+
+    document.getElementById("fdcp-cal-prev").addEventListener("click", function () {
+      CAL_VIEW.month--;
+      if (CAL_VIEW.month < 0) { CAL_VIEW.month = 11; CAL_VIEW.year--; }
+      renderCalendar();
+    });
+    document.getElementById("fdcp-cal-next").addEventListener("click", function () {
+      CAL_VIEW.month++;
+      if (CAL_VIEW.month > 11) { CAL_VIEW.month = 0; CAL_VIEW.year++; }
+      renderCalendar();
+    });
+    setupJumpPopover();
+
+    loadEventsSWR(ingest).catch(function (err) { console.error("[FDCP]", err); showError(); });
+    attachFocusRevalidate(ingest);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
