@@ -239,36 +239,33 @@
      columns. Result: each card is much shorter, so users can flick
      past the events list quickly on small screens. ===== */
   @media (max-width: 1023px) {
-    /* Bound the events list so it scrolls inside its own panel rather
-       than stretching the whole page after the tall calendar block. */
-    #fdcp-events-container {
-      max-height: 70vh !important;
-    }
-
-    /* Card grid override — DOM children of each card are:
-         1) date box   2) title / meta block   3) poster-col */
-    #fdcp-events-container > .grid {
+    /* Poster-variant card grid override — cards now live inside .fdcp-month-grid,
+       so target that path. DOM children of each card are:
+         1) date box   2) title / meta block   3) poster-col
+       The posterless variant uses .fdcp-card-noposter and is excluded from these
+       rules so its own 2-column (date-left + content-right) layout is preserved. */
+    .fdcp-month-grid > .grid {
       grid-template-columns: auto 1fr !important;
       column-gap: 12px !important;
       row-gap: 12px !important;
       align-items: start !important;
     }
-    #fdcp-events-container > .grid > :nth-child(1) {
+    .fdcp-month-grid > .grid > :nth-child(1) {
       grid-row: 1 !important;
       grid-column: 1 !important;
     }
-    #fdcp-events-container > .grid > :nth-child(2) {
+    .fdcp-month-grid > .grid > :nth-child(2) {
       grid-row: 2 !important;
       grid-column: 1 / -1 !important;
     }
-    #fdcp-events-container > .grid > [data-field="poster-col"] {
+    .fdcp-month-grid > .grid > [data-field="poster-col"] {
       grid-row: 1 !important;
       grid-column: 2 !important;
       max-height: 90px !important;
       max-width: 160px !important;
       justify-self: end !important;
     }
-    #fdcp-events-container [data-field="poster-wrap"] {
+    .fdcp-month-grid [data-field="poster-wrap"] {
       max-height: 90px !important;
     }
   }
@@ -283,6 +280,162 @@
     .fdcp-cal-week { min-height: 52px !important; }
     .fdcp-cal-pill { font-size: 8px !important; padding: 1px 3px !important; }
     #fdcp-cal-dow { font-size: 8px !important; }
+    .fdcp-stats-num { font-size: 20px !important; }
+    .fdcp-stats-cap { font-size: 9px !important; }
+  }
+
+  /* ===== STATS BAND — minimalist separator between hero and calendar ===== */
+  #fdcp-stats-band {
+    background: #fff !important;
+    padding: 12px 16px !important;
+    overflow-x: hidden !important;
+  }
+  .fdcp-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    max-width: 1280px !important;
+    margin: 0 auto !important;
+    align-items: center !important;
+  }
+  .fdcp-stats-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 4px 0 !important;
+  }
+  .fdcp-stats-num {
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    background: linear-gradient(90deg,#580076 0%,#E200A9 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+  }
+  .fdcp-stats-cap {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    margin-top: 4px !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    font-weight: 600 !important;
+  }
+  @media (min-width: 1024px) {
+    #fdcp-stats-band { padding: 20px 24px !important; }
+    .fdcp-stats-grid { gap: 24px !important; }
+    .fdcp-stats-item + .fdcp-stats-item { border-left: 1px solid #E5E7EB !important; }
+    .fdcp-stats-num { font-size: 36px !important; }
+    .fdcp-stats-cap { font-size: 13px !important; margin-top: 6px !important; }
+  }
+
+  /* ===== FILTER CHIPS ===== */
+  #fdcp-events-filters {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin-bottom: 32px !important;
+  }
+  .fdcp-chip {
+    min-height: 44px !important;
+    padding: 8px 14px !important;
+    border-radius: 9999px !important;
+    border: 1px solid #E5E7EB !important;
+    background: #F5F2FF !important;
+    color: #580076 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: opacity 120ms ease !important;
+  }
+  .fdcp-chip:hover { opacity: 0.85 !important; }
+  .fdcp-chip-active {
+    background: linear-gradient(90deg,#580076 0%,#E200A9 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+  }
+  .fdcp-chip[hidden] { display: none !important; }
+  @media (min-width: 1024px) {
+    .fdcp-chip { padding: 10px 18px !important; font-size: 14px !important; }
+  }
+
+  /* ===== MONTH HEADERS + GRID ===== */
+  .fdcp-month-header {
+    position: sticky !important;
+    top: 0 !important;
+    background: transparent !important;
+    z-index: 5 !important;
+    padding: 8px 0 !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #580076 !important;
+    border-bottom: 2px solid #F5F2FF !important;
+  }
+  @media (min-width: 1024px) {
+    .fdcp-month-header { font-size: 20px !important; padding: 12px 0 !important; }
+  }
+  .fdcp-month-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding-top: 16px !important;
+  }
+
+  /* ===== PAGINATION ===== */
+  #fdcp-events-pagination {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-top: 32px !important;
+  }
+  .fdcp-page-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  .fdcp-page-btn {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    border-radius: 9999px !important;
+    border: 1px solid #E5E7EB !important;
+    background: #fff !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+  }
+  .fdcp-page-btn:hover:not(:disabled):not(.fdcp-page-btn-active) {
+    background: #F5F2FF !important;
+    color: #580076 !important;
+  }
+  .fdcp-page-btn:disabled { opacity: 0.4 !important; cursor: not-allowed !important; }
+  .fdcp-page-btn-active {
+    background: linear-gradient(90deg,#580076 0%,#E200A9 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+  }
+  .fdcp-page-ellipsis {
+    color: #9ca3af !important;
+    padding: 0 4px !important;
+    font-size: 14px !important;
+  }
+  .fdcp-page-counter {
+    font-size: 13px !important;
+    color: #6b7280 !important;
+    text-align: center !important;
+  }
+  @media (max-width: 480px) {
+    .fdcp-page-btn:not(.fdcp-page-btn-active):not(.fdcp-page-btn-nav) { display: none !important; }
+    .fdcp-page-ellipsis { display: none !important; }
   }
 </style>
 <!-- ===== END CALENDAR LAYOUT CSS ===== -->
@@ -305,6 +458,37 @@
 
   <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg" class="object-cover aspect-square min-h-[80svh] lg:hidden w-full" alt="">
   <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg" class="hidden lg:block object-cover aspect-square lg:h-full w-full" alt="">
+</div>
+
+<!-- STATS BAND — minimalist separator between hero and calendar, populated by JS from sheet rows.
+     Uses <div> (not <section>) and inlines critical layout styles so Drupal's Full HTML filter
+     can't strip the layout via dropped class attributes or semantic-element scrubbing.
+     Number color is a solid brand purple so it's always readable; the linear-gradient + text-clip
+     are kept as a progressive enhancement (browsers / filters that don't support text-clip just
+     see the solid color instead of invisible white text). -->
+<div id="fdcp-stats-band" aria-label="Upcoming events at a glance"
+     style="background:#fff;padding:48px 16px;overflow-x:hidden;">
+  <div class="fdcp-stats-grid"
+       style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:1280px;margin:0 auto;align-items:center;">
+    <div class="fdcp-stats-item" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0;">
+      <span class="fdcp-stats-num" data-stat="month"
+            style="font-size:32px;font-weight:800;line-height:1.1;color:#580076;">—</span>
+      <span class="fdcp-stats-cap"
+            style="font-size:11px;line-height:1.3;margin-top:6px;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Events This Month</span>
+    </div>
+    <div class="fdcp-stats-item" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0;">
+      <span class="fdcp-stats-num" data-stat="next"
+            style="font-size:32px;font-weight:800;line-height:1.1;color:#580076;">—</span>
+      <span class="fdcp-stats-cap"
+            style="font-size:11px;line-height:1.3;margin-top:6px;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Next Event</span>
+    </div>
+    <div class="fdcp-stats-item" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0;">
+      <span class="fdcp-stats-num" data-stat="multiday"
+            style="font-size:32px;font-weight:800;line-height:1.1;color:#580076;">—</span>
+      <span class="fdcp-stats-cap"
+            style="font-size:11px;line-height:1.3;margin-top:6px;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">Multi-day Events</span>
+    </div>
+  </div>
 </div>
 
 <main id="main-content" class="flex-grow">
@@ -385,13 +569,34 @@
     </div>
 
     <div class="max-w-screen-lg mx-auto">
-      <div id="fdcp-events-container"
-           class="flex flex-col gap-5 overflow-y-auto lg:max-h-[958px] lg:min-h-0 pl-2 pr-4 p-5 lg:pb-10">
+      <!-- Filter chips: 4 date-based filters; Multi-day chip is hidden when no multi-day events exist.
+           Inline styles guard against Drupal stripping class attributes. -->
+      <div id="fdcp-events-filters" role="tablist" aria-label="Filter events"
+           style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:32px;">
+        <button type="button" data-filter="all"      aria-pressed="true"  class="fdcp-chip fdcp-chip-active"
+                style="min-height:44px;padding:8px 14px;border-radius:9999px;border:1px solid transparent;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">All</button>
+        <button type="button" data-filter="week"     aria-pressed="false" class="fdcp-chip"
+                style="min-height:44px;padding:8px 14px;border-radius:9999px;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:13px;font-weight:600;cursor:pointer;">This Week</button>
+        <button type="button" data-filter="month"    aria-pressed="false" class="fdcp-chip"
+                style="min-height:44px;padding:8px 14px;border-radius:9999px;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:13px;font-weight:600;cursor:pointer;">This Month</button>
+        <button type="button" data-filter="multiday" aria-pressed="false" class="fdcp-chip" hidden
+                style="min-height:44px;padding:8px 14px;border-radius:9999px;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:13px;font-weight:600;cursor:pointer;">Multi-day</button>
+      </div>
+
+      <!-- Events list: single column, no inner scroll, page scrolls naturally.
+           Inline display+gap so spacing survives a stripped <style> block. -->
+      <div id="fdcp-events-container" class="flex flex-col gap-10"
+           style="display:flex;flex-direction:column;gap:40px;">
         <!-- Skeleton placeholder while loading -->
         <div id="fdcp-events-loading" class="text-center py-20 text-gray-500">
           Loading events…
         </div>
       </div>
+
+      <!-- Pagination control: rendered dynamically; hidden for bounded filters or single-page lists.
+           Plain <div> (not <nav>) for Drupal compatibility. -->
+      <div id="fdcp-events-pagination" aria-label="Events pagination"
+           style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px;"></div>
     </div>
 
   </div>
@@ -501,8 +706,9 @@
           '</h2>',
           '<span data-field="description" class="text-xs"></span>',
         '</div>',
-        '<div class="flex flex-col-reverse gap-3 lg:gap-5 lg:flex-row lg:items-end lg:gap-32">',
-          '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-14 lg:text-sm text-center text-nowrap self-start lg:self-auto" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;">View Details</a>',
+        // Time/location on the left, CTA pinned to the right via justify-between so the
+        // CTA never shifts based on how long the location text happens to be.
+        '<div class="flex flex-col gap-3 lg:gap-5 lg:flex-row lg:items-end lg:justify-between" style="width:100%;">',
           '<div class="flex flex-col gap-2 lg:gap-3 items-start" style="color:#7C7C7C;">',
             '<div data-field="time-row" class="flex items-center gap-2">',
               '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 19 19" fill="none" class="lg:w-[19px] lg:h-[19px]"><path d="M9.5 0C12.0196 0 14.4359 1.00089 16.2175 2.78249C17.9991 4.56408 19 6.98044 19 9.5C19 12.0196 17.9991 14.4359 16.2175 16.2175C14.4359 17.9991 12.0196 19 9.5 19C6.98044 19 4.56408 17.9991 2.78249 16.2175C1.00089 14.4359 0 12.0196 0 9.5C0 6.98044 1.00089 4.56408 2.78249 2.78249C4.56408 1.00089 6.98044 0 9.5 0ZM9 4H10V9.42L14.7 12.13L14.2 13L9 10V4Z" fill="#536471"/></svg>',
@@ -513,6 +719,11 @@
               '<p data-field="location" class="text-xs">—</p>',
             '</div>',
           '</div>',
+          // align-self + margin-left:auto pin the CTA to the right edge of its flex parent
+          // regardless of direction (column on mobile, row on desktop), and survive a
+          // stripped Tailwind subset on Drupal (the `self-end` utility class can't be
+          // counted on inside CKEditor blocks).
+          '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-14 lg:text-sm text-center text-nowrap" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;flex-shrink:0;align-self:flex-end;margin-left:auto;">View Details</a>',
         '</div>',
       '</div>',
       '<div data-field="poster-col" class="lg:col-span-3 rounded-2xl size-full border overflow-hidden max-h-[80px] lg:max-h-none">',
@@ -520,6 +731,52 @@
           '<img data-field="poster" alt="" class="size-full object-cover aspect-video object-center" style="display:none">',
           // Film-themed placeholder shown until/unless a real poster URL is in the sheet.
           '<div data-field="poster-fallback" class="size-full aspect-video" style="position:relative;overflow:hidden;background:' + FALLBACK_BG + ';">' + FALLBACK_OVERLAY_SVG + '</div>',
+        '</div>',
+      '</div>',
+    '</div>'
+  ].join("");
+
+  // Posterless card variant — used per-row when the sheet has no Event Poster URL.
+  // Uses a 2-column layout on every viewport so the date tile stays on the LEFT
+  // (it never takes the full card width). No right-edge gradient bar — the card's
+  // own date tile carries the brand color, and the content fills everything else.
+  // Inline styles on the root <div> guard against Drupal stripping class attributes.
+  var CARD_HTML_NO_POSTER = [
+    '<div class="fdcp-card-noposter bg-white w-full p-3 lg:p-5 rounded-2xl shadow-sm shadow-black/40 border" style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:stretch;">',
+
+      // Date tile — auto-sized column on the left, on every viewport
+      '<div class="bg-[#F5F2FF] flex flex-col justify-between gap-2 lg:gap-5 text-center rounded-2xl lg:rounded-[30px] py-2 lg:py-3 px-3 lg:px-4" style="min-width:80px;">',
+        '<span data-field="month" class="bg-[#580076] text-white font-bold text-base lg:text-xl py-1 w-full rounded-2xl lg:rounded-[30px]" style="display:block;">—</span>',
+        '<div class="flex flex-col">',
+          '<span data-field="day" class="bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold text-[44px] lg:text-[75px] leading-none">—</span>',
+          '<span data-field="year" class="text-[#E200A9] text-sm lg:text-xl">—</span>',
+        '</div>',
+      '</div>',
+
+      // Content block — fills the remaining width
+      '<div class="flex flex-col justify-between gap-3 lg:gap-5" style="min-width:0;">',
+        '<div>',
+          '<h2 class="font-bold text-[18px] lg:text-[28px] leading-tight">',
+            '<a data-field="title-link" href="#" class="hover:underline"><span data-field="title">—</span></a>',
+          '</h2>',
+          '<span data-field="description" class="text-xs lg:text-sm" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;"></span>',
+        '</div>',
+        // Same shape as the poster-variant CTA row: time/loc left, CTA pinned right on desktop,
+        // CTA never compresses (flex-shrink:0) regardless of location text length.
+        '<div class="flex flex-col gap-3 lg:gap-5 lg:flex-row lg:items-end lg:justify-between" style="width:100%;">',
+          '<div class="flex flex-col gap-2 lg:gap-3 items-start" style="color:#7C7C7C;">',
+            '<div data-field="time-row" class="flex items-center gap-2">',
+              '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 19 19" fill="none" class="lg:w-[19px] lg:h-[19px]"><path d="M9.5 0C12.0196 0 14.4359 1.00089 16.2175 2.78249C17.9991 4.56408 19 6.98044 19 9.5C19 12.0196 17.9991 14.4359 16.2175 16.2175C14.4359 17.9991 12.0196 19 9.5 19C6.98044 19 4.56408 17.9991 2.78249 16.2175C1.00089 14.4359 0 12.0196 0 9.5C0 6.98044 1.00089 4.56408 2.78249 2.78249C4.56408 1.00089 6.98044 0 9.5 0ZM9 4H10V9.42L14.7 12.13L14.2 13L9 10V4Z" fill="#536471"/></svg>',
+              '<p data-field="time" class="text-xs">—</p>',
+            '</div>',
+            '<div data-field="location-row" class="flex items-center gap-2">',
+              '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="0 0 19 23" fill="none" class="lg:w-[19px] lg:h-[23px]"><path d="M18.5 9.5C18.5 16.5 9.5 22.5 9.5 22.5C9.5 22.5 0.5 16.5 0.5 9.5C0.5 7.11305 1.44821 4.82387 3.13604 3.13604C4.82387 1.44821 7.11305 0.5 9.5 0.5C11.8869 0.5 14.1761 1.44821 15.864 3.13604C17.5518 4.82387 18.5 7.11305 18.5 9.5Z" stroke="#536471" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 12.5C11.1569 12.5 12.5 11.1569 12.5 9.5C12.5 7.84315 11.1569 6.5 9.5 6.5C7.84315 6.5 6.5 7.84315 6.5 9.5C6.5 11.1569 7.84315 12.5 9.5 12.5Z" stroke="#536471" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+              '<p data-field="location" class="text-xs">—</p>',
+            '</div>',
+          '</div>',
+          // Same right-pin trick as the poster variant — inline align-self + margin-left:auto
+          // so it works in flex-col (mobile) and flex-row (desktop) even without Tailwind self-end.
+          '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-12 lg:text-sm text-center text-nowrap font-semibold" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;flex-shrink:0;align-self:flex-end;margin-left:auto;">View Details ▸</a>',
         '</div>',
       '</div>',
     '</div>'
@@ -757,8 +1014,12 @@
   }
 
   function buildCard(row) {
+    // Pick the card variant up-front: rows with a real poster URL keep the
+    // existing 3-zone layout; rows without a poster use the posterless variant
+    // (expanded content column + right-edge gradient bar so nothing reads as missing).
+    var poster = normalizePoster(row["Event Poster"]);
     var holder = document.createElement("div");
-    holder.innerHTML = CARD_HTML;
+    holder.innerHTML = poster ? CARD_HTML : CARD_HTML_NO_POSTER;
     var node = holder.firstElementChild;
 
     var start = parseSheetDate(row["Start time/Date"]);
@@ -817,13 +1078,16 @@
 
     setText(node, "location", row["Location"] ? row["Location"] : "Location TBA");
 
-    var poster = normalizePoster(row["Event Poster"]);
+    // `poster` was computed at the top of the function to pick the card variant.
+    // Only the poster variant has these nodes — the posterless variant skips them entirely.
     if (poster) {
       var img = node.querySelector('[data-field="poster"]');
       var fb  = node.querySelector('[data-field="poster-fallback"]');
-      img.src = poster;
-      img.alt = title;
-      img.style.display = "block";
+      if (img) {
+        img.src = poster;
+        img.alt = title;
+        img.style.display = "block";
+      }
       if (fb) fb.style.display = "none";
     }
 
@@ -835,6 +1099,28 @@
   var CAL_VIEW     = { year: 0, month: 0 }; // 0-indexed month
   var PILL_COLORS  = ["#0B8043", "#FFCC00", "#580076", "#E200A9", "#0096E2"];
 
+  // Events-list filter + pagination state. "all" and "multiday" paginate by 30-day
+  // windows from today; "week" and "month" are bounded slices that skip pagination.
+  var CURRENT_FILTER = "all";
+  var CURRENT_PAGE   = 1;
+  var WINDOW_DAYS    = 30;
+  var STATE_KEY      = "fdcp.events.state"; // sessionStorage — survives refresh, resets on tab close
+
+  function loadState() {
+    try {
+      var raw = sessionStorage.getItem(STATE_KEY);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      if (s && typeof s.filter === "string") CURRENT_FILTER = s.filter;
+      if (s && typeof s.page === "number" && s.page >= 1) CURRENT_PAGE = s.page;
+    } catch (e) { /* ignore */ }
+  }
+  function saveState() {
+    try {
+      sessionStorage.setItem(STATE_KEY, JSON.stringify({ filter: CURRENT_FILTER, page: CURRENT_PAGE }));
+    } catch (e) { /* ignore */ }
+  }
+
   function pillColor(title) {
     // Deterministic per-title pick from PILL_COLORS so the same event
     // always gets the same color across renders.
@@ -843,9 +1129,99 @@
     return PILL_COLORS[Math.abs(h) % PILL_COLORS.length];
   }
 
+  // Short month name like "Jun 21" — used in the pagination counter line.
+  function fmtShortDate(d) {
+    var name = MONTHS[d.getMonth()];                          // "JUN"
+    return name.charAt(0) + name.slice(1).toLowerCase() + " " + d.getDate();
+  }
+
+  // Filter + window-by-date selection. Returns the items to render plus paging metadata.
+  //   week / month   → bounded slice, paginated:false
+  //   all / multiday → 30-day window starting from today, paginated:true
+  function buildPage() {
+    var today = startOfDay(new Date());
+
+    if (CURRENT_FILTER === "week") {
+      var weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 7);
+      var items = ALL_UPCOMING.filter(function (x) { return x.start <= weekEnd; });
+      return {
+        items: items, paginated: false,
+        label: "Showing " + items.length + " event" + (items.length === 1 ? "" : "s") + " in the next 7 days"
+      };
+    }
+
+    if (CURRENT_FILTER === "month") {
+      var mItems = ALL_UPCOMING.filter(function (x) {
+        return x.start.getFullYear() === today.getFullYear()
+            && x.start.getMonth() === today.getMonth();
+      });
+      return {
+        items: mItems, paginated: false,
+        label: "Showing " + mItems.length + " event" + (mItems.length === 1 ? "" : "s") +
+               " in " + MONTHS_FULL[today.getMonth()] + " " + today.getFullYear()
+      };
+    }
+
+    // "all" and "multiday" — 30-day window pagination from today.
+    var base = CURRENT_FILTER === "multiday"
+      ? ALL_UPCOMING.filter(function (x) { return x.end && startOfDay(x.end) > startOfDay(x.start); })
+      : ALL_UPCOMING;
+
+    var totalPages = 1;
+    if (base.length) {
+      var lastStart = startOfDay(base[base.length - 1].start);
+      var daysOut = Math.ceil((lastStart - today) / DAY_MS) + 1;
+      totalPages = Math.max(1, Math.ceil(daysOut / WINDOW_DAYS));
+    }
+    if (CURRENT_PAGE > totalPages) CURRENT_PAGE = totalPages;
+    if (CURRENT_PAGE < 1) CURRENT_PAGE = 1;
+
+    var winStart = new Date(today); winStart.setDate(today.getDate() + (CURRENT_PAGE - 1) * WINDOW_DAYS);
+    var winEnd   = new Date(today); winEnd.setDate(today.getDate() + CURRENT_PAGE * WINDOW_DAYS);
+    var pageItems = base.filter(function (x) { return x.start >= winStart && x.start < winEnd; });
+
+    var lastInWindow = new Date(winEnd.getTime() - DAY_MS);
+    return {
+      items: pageItems, paginated: true, page: CURRENT_PAGE, totalPages: totalPages,
+      base: base,
+      label: "Showing events for " + fmtShortDate(winStart) + " – " + fmtShortDate(lastInWindow)
+    };
+  }
+
+  function groupByMonth(items) {
+    var groups = new Map();
+    items.forEach(function (x) {
+      var key = x.start.getFullYear() + "-" + String(x.start.getMonth()).padStart(2, "0");
+      if (!groups.has(key)) groups.set(key, { year: x.start.getFullYear(), month: x.start.getMonth(), items: [] });
+      groups.get(key).items.push(x);
+    });
+    return groups;
+  }
+
+  // Find the first paginated window AFTER `fromPage` that has at least one event.
+  // Used by the empty-window "Skip to next →" link.
+  function findNextNonEmptyPage(base, fromPage) {
+    var today = startOfDay(new Date());
+    if (!base.length) return null;
+    var lastStart = startOfDay(base[base.length - 1].start);
+    var daysOut = Math.ceil((lastStart - today) / DAY_MS) + 1;
+    var totalPages = Math.max(1, Math.ceil(daysOut / WINDOW_DAYS));
+    for (var p = fromPage + 1; p <= totalPages; p++) {
+      var ws = new Date(today); ws.setDate(today.getDate() + (p - 1) * WINDOW_DAYS);
+      var we = new Date(today); we.setDate(today.getDate() + p * WINDOW_DAYS);
+      var hit = base.some(function (x) { return x.start >= ws && x.start < we; });
+      if (hit) return p;
+    }
+    return null;
+  }
+
   function render() {
-    var container = document.getElementById("fdcp-events-container");
+    var container  = document.getElementById("fdcp-events-container");
+    var pagination = document.getElementById("fdcp-events-pagination");
+    if (!container) return;
+
     container.innerHTML = "";
+    if (pagination) pagination.innerHTML = "";
 
     if (!ALL_UPCOMING.length) {
       container.innerHTML =
@@ -853,18 +1229,252 @@
       return;
     }
 
-    // Build each card in isolation — if one row has malformed data, log it
-    // and skip rather than letting it bubble up to the .catch() in init()
-    // and trigger the "Could not load events" banner.
-    var frag = document.createDocumentFragment();
-    ALL_UPCOMING.forEach(function (x) {
-      try {
-        frag.appendChild(buildCard(x.row));
-      } catch (err) {
-        console.warn("[FDCP] skipped a malformed event row:", err, x.row);
+    var page = buildPage();
+
+    // Empty-state branch — either the filter returns nothing at all, or the
+    // current 30-day window is empty even though later windows have events.
+    if (!page.items.length) {
+      var emptyHtml = '<div class="text-center py-16 text-gray-500"><p class="mb-3">No events in this view.</p>';
+      if (page.paginated) {
+        var nextPage = findNextNonEmptyPage(page.base, page.page);
+        if (nextPage) {
+          emptyHtml += '<button type="button" data-fdcp-skip-next="' + nextPage +
+                       '" class="fdcp-chip" style="background:transparent;color:#580076;border:1px solid #580076;">Skip to next 30 days with events →</button>';
+        } else {
+          emptyHtml += '<p class="text-xs">No future windows with events.</p>';
+        }
+      } else {
+        emptyHtml += '<button type="button" data-fdcp-reset class="fdcp-chip" style="background:transparent;color:#580076;border:1px solid #580076;">Show all upcoming events</button>';
       }
+      emptyHtml += '</div>';
+      container.innerHTML = emptyHtml;
+      renderPagination(page);
+      return;
+    }
+
+    // Group the page's events by calendar month and emit a sticky <h3> + .fdcp-month-grid per group.
+    // Inline critical styles on each so they survive even if the <style> block is stripped.
+    var groups = groupByMonth(page.items);
+    var frag = document.createDocumentFragment();
+    groups.forEach(function (g) {
+      var header = document.createElement("h3");
+      header.className = "fdcp-month-header";
+      header.textContent = MONTHS_FULL[g.month] + " " + g.year;
+      header.style.cssText =
+        "position:sticky;top:0;background:transparent;z-index:5;padding:12px 0;margin:0;" +
+        "font-size:20px;font-weight:700;color:#580076;border-bottom:2px solid #F5F2FF;";
+      frag.appendChild(header);
+
+      var grid = document.createElement("div");
+      grid.className = "fdcp-month-grid";
+      grid.style.cssText = "display:grid;grid-template-columns:1fr;gap:24px;padding-top:20px;";
+      g.items.forEach(function (x) {
+        try { grid.appendChild(buildCard(x.row)); }
+        catch (err) { console.warn("[FDCP] skipped a malformed event row:", err, x.row); }
+      });
+      frag.appendChild(grid);
     });
     container.appendChild(frag);
+
+    renderPagination(page);
+  }
+
+  // Pagination button styles. Inlined per-element from these constants so the
+  // pill look survives even when Drupal strips the <style> block / class attributes.
+  var PAGE_BTN_BASE =
+    "min-width:40px;min-height:40px;padding:0 12px;border-radius:9999px;" +
+    "background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;" +
+    "display:inline-flex;align-items:center;justify-content:center;line-height:1;" +
+    "border:1px solid #E5E7EB;";
+  var PAGE_BTN_ACTIVE =
+    "min-width:40px;min-height:40px;padding:0 14px;border-radius:9999px;" +
+    "color:#fff;font-size:14px;font-weight:700;cursor:default;" +
+    "display:inline-flex;align-items:center;justify-content:center;line-height:1;" +
+    "border:1px solid transparent;" +
+    "background:linear-gradient(90deg,#580076 0%,#E200A9 100%);";
+  var PAGE_BTN_DISABLED = PAGE_BTN_BASE + "opacity:0.4;cursor:not-allowed;";
+
+  function renderPagination(page) {
+    var pagination = document.getElementById("fdcp-events-pagination");
+    if (!pagination) return;
+    pagination.innerHTML = "";
+    // Container itself — inline so the column layout + gap survive a stripped <style>.
+    pagination.setAttribute("style",
+      "display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px;");
+
+    var counterStyle = "font-size:13px;color:#6b7280;text-align:center;";
+
+    // Bounded slices (week/month) — just show the counter line.
+    if (!page.paginated) {
+      if (page.items.length) {
+        pagination.innerHTML = '<div class="fdcp-page-counter" style="' + counterStyle + '">' + page.label + "</div>";
+      }
+      return;
+    }
+
+    // Single-page result — no chrome needed if there's content on page 1.
+    if (page.totalPages <= 1) {
+      if (page.items.length) {
+        pagination.innerHTML = '<div class="fdcp-page-counter" style="' + counterStyle + '">' + page.label + "</div>";
+      }
+      return;
+    }
+
+    // Page-button windowing: always show first, last, current ±1; ellipsis the rest.
+    function buildPageNumbers(current, total) {
+      var nums = [];
+      var add = function (v) { if (nums[nums.length - 1] !== v) nums.push(v); };
+      add(1);
+      if (current - 1 > 2) add("…");
+      for (var p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) add(p);
+      if (current + 1 < total - 1) add("…");
+      if (total > 1) add(total);
+      return nums;
+    }
+    var nums = buildPageNumbers(page.page, page.totalPages);
+
+    var row = document.createElement("div");
+    row.className = "fdcp-page-row";
+    row.setAttribute("style",
+      "display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;");
+
+    var isNarrow = window.innerWidth <= 480;
+
+    var prev = document.createElement("button");
+    prev.type = "button";
+    prev.className = "fdcp-page-btn fdcp-page-btn-nav";
+    prev.dataset.fdcpPage = String(page.page - 1);
+    prev.setAttribute("aria-label", "Previous 30 days");
+    prev.disabled = page.page <= 1;
+    prev.textContent = "‹ Prev";
+    prev.setAttribute("style", prev.disabled ? PAGE_BTN_DISABLED : PAGE_BTN_BASE);
+    row.appendChild(prev);
+
+    nums.forEach(function (n) {
+      if (n === "…") {
+        // Hide ellipsis on narrow screens to keep the row to: Prev · current · Next
+        if (isNarrow) return;
+        var el = document.createElement("span");
+        el.className = "fdcp-page-ellipsis";
+        el.textContent = "…";
+        el.setAttribute("style", "color:#9ca3af;padding:0 4px;font-size:14px;");
+        row.appendChild(el);
+      } else {
+        var active = n === page.page;
+        // On narrow screens we show only the active page chip + Prev/Next.
+        if (isNarrow && !active) return;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "fdcp-page-btn" + (active ? " fdcp-page-btn-active" : "");
+        b.dataset.fdcpPage = String(n);
+        b.setAttribute("aria-label", "Page " + n);
+        if (active) b.setAttribute("aria-current", "page");
+        b.textContent = String(n);
+        b.setAttribute("style", active ? PAGE_BTN_ACTIVE : PAGE_BTN_BASE);
+        row.appendChild(b);
+      }
+    });
+
+    var next = document.createElement("button");
+    next.type = "button";
+    next.className = "fdcp-page-btn fdcp-page-btn-nav";
+    next.dataset.fdcpPage = String(page.page + 1);
+    next.setAttribute("aria-label", "Next 30 days");
+    next.disabled = page.page >= page.totalPages;
+    next.textContent = "Next ›";
+    next.setAttribute("style", next.disabled ? PAGE_BTN_DISABLED : PAGE_BTN_BASE);
+    row.appendChild(next);
+
+    pagination.appendChild(row);
+
+    var counter = document.createElement("div");
+    counter.className = "fdcp-page-counter";
+    counter.setAttribute("style", counterStyle);
+    counter.textContent = page.label;
+    pagination.appendChild(counter);
+  }
+
+  // Compute and inject the three stats values. Called from ingest() after data settles.
+  function renderStatsBand() {
+    var band = document.getElementById("fdcp-stats-band");
+    if (!band) return;
+
+    var today = startOfDay(new Date());
+
+    var monthCount = ALL_EVENTS.filter(function (x) {
+      return x.start.getFullYear() === today.getFullYear()
+          && x.start.getMonth() === today.getMonth();
+    }).length;
+
+    var nextStr;
+    if (!ALL_UPCOMING.length) {
+      nextStr = "—";
+    } else {
+      var next = ALL_UPCOMING[0]; // ALL_UPCOMING is sorted ascending in ingest()
+      var nextStart = startOfDay(next.start);
+      var diff = Math.round((nextStart - today) / DAY_MS);
+      if (diff <= 0) nextStr = "Today";
+      else if (diff === 1) nextStr = "Tomorrow";
+      else if (diff <= 30) nextStr = "in " + diff + " days";
+      else nextStr = MONTHS[nextStart.getMonth()].charAt(0) + MONTHS[nextStart.getMonth()].slice(1).toLowerCase() + " " + nextStart.getDate();
+    }
+
+    var multidayCount = ALL_UPCOMING.filter(function (x) {
+      return x.end && startOfDay(x.end) > startOfDay(x.start);
+    }).length;
+
+    var m = band.querySelector('[data-stat="month"]');
+    var n = band.querySelector('[data-stat="next"]');
+    var d = band.querySelector('[data-stat="multiday"]');
+    if (m) m.textContent = String(monthCount);
+    if (n) n.textContent = nextStr;
+    if (d) d.textContent = String(multidayCount);
+  }
+
+  // Hide the Multi-day chip if no upcoming event spans more than one day.
+  // Also auto-reset the filter when the user had Multi-day selected and a refresh removed all such rows.
+  function updateMultidayChipVisibility() {
+    var chip = document.querySelector('#fdcp-events-filters [data-filter="multiday"]');
+    if (!chip) return;
+    var hasMultiday = ALL_UPCOMING.some(function (x) {
+      return x.end && startOfDay(x.end) > startOfDay(x.start);
+    });
+    if (hasMultiday) {
+      chip.removeAttribute("hidden");
+    } else {
+      chip.setAttribute("hidden", "");
+      if (CURRENT_FILTER === "multiday") {
+        CURRENT_FILTER = "all";
+        CURRENT_PAGE = 1;
+        saveState();
+        document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
+          var active = b.dataset.filter === "all";
+          b.classList.toggle('fdcp-chip-active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          applyChipStyle(b, active);
+        });
+      }
+    }
+  }
+
+  // Inline-style swap for chips so the active/inactive flip works even when the
+  // <style> block is stripped (some Drupal block text formats do this). The
+  // class toggle stays for stylesheet-driven theming; inline is the safety net.
+  var CHIP_STYLE_BASE   = "min-height:44px;padding:8px 14px;border-radius:9999px;font-size:13px;font-weight:600;cursor:pointer;";
+  var CHIP_STYLE_ACTIVE = CHIP_STYLE_BASE + "background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:1px solid transparent;";
+  var CHIP_STYLE_INACTIVE = CHIP_STYLE_BASE + "background:#F5F2FF;color:#580076;border:1px solid #E5E7EB;";
+  function applyChipStyle(btn, active) {
+    btn.setAttribute("style", active ? CHIP_STYLE_ACTIVE : CHIP_STYLE_INACTIVE);
+  }
+
+  // Sync the chip group's active state to CURRENT_FILTER (used on initial render after loadState).
+  function syncChipActiveState() {
+    document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
+      var active = b.dataset.filter === CURRENT_FILTER;
+      b.classList.toggle('fdcp-chip-active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      applyChipStyle(b, active);
+    });
   }
 
   function ingest(rows) {
@@ -882,6 +1492,10 @@
       .sort(function (a, b) { return a.start - b.start; });
 
     ALL_UPCOMING = ALL_EVENTS.filter(function (x) { return x.start >= today; });
+
+    // Stats band + chip visibility update once the data set is known.
+    renderStatsBand();
+    updateMultidayChipVisibility();
 
     render();
     // Repaint the calendar with the now-populated events; the empty grid
@@ -970,6 +1584,16 @@
     var titleEl = document.getElementById("fdcp-cal-title");
     if (!grid || !titleEl) return;
 
+    // Calendar row sizing is viewport-aware: on mobile we drop one visible slot
+    // and tighten every row so the +N more button never overflows into the
+    // next week's cell (mobile weeks are capped at 60px tall by the CSS).
+    var isMobile = window.innerWidth <= 768;
+    var visibleSlots = isMobile ? 2 : VISIBLE_SLOTS;
+    var rowDayNum   = isMobile ? 16 : 24;
+    var rowSlot     = isMobile ? 13 : 20;
+    var rowMore     = isMobile ? 14 : 18;
+    var minWeekH    = isMobile ? 60 : 90;
+
     var y = CAL_VIEW.year, m = CAL_VIEW.month;
     titleEl.textContent = MONTHS_FULL[m] + " " + y;
 
@@ -1023,10 +1647,10 @@
         }
       });
 
-      // Overflow per day (events in slot >= VISIBLE_SLOTS)
+      // Overflow per day (events in slot >= visibleSlots; viewport-aware)
       var overflow = [0,0,0,0,0,0,0];
       segments.forEach(function (seg) {
-        if (seg.slot >= VISIBLE_SLOTS) {
+        if (seg.slot >= visibleSlots) {
           for (var c = seg.startCol; c <= seg.endCol; c++) overflow[c]++;
         }
       });
@@ -1041,8 +1665,8 @@
       // the overflow visibly bled into the next week's cell area.
       weekDiv.style.cssText =
         "display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:4px;" +
-        "position:relative;flex:1 1 0%;min-height:90px;" +
-        "grid-template-rows:24px repeat(" + VISIBLE_SLOTS + ",20px) 18px;";
+        "position:relative;flex:1 1 0%;min-height:" + minWeekH + "px;" +
+        "grid-template-rows:" + rowDayNum + "px repeat(" + visibleSlots + "," + rowSlot + "px) " + rowMore + "px;";
 
       // Day backgrounds (span full week-row height) + day numbers
       for (var d = 0; d < 7; d++) {
@@ -1068,9 +1692,9 @@
         weekDiv.appendChild(dayNum);
       }
 
-      // Visible pills (slot < VISIBLE_SLOTS) — span across columns for multi-day
+      // Visible pills (slot < visibleSlots) — span across columns for multi-day
       segments.forEach(function (seg) {
-        if (seg.slot >= VISIBLE_SLOTS) return;
+        if (seg.slot >= visibleSlots) return;
         var a = document.createElement("a");
         var pillRemarksUrl = asExternalUrl(seg.event.row["Remarks"]);
         var pillTitle = seg.event.row["Event"] || "(untitled event)";
@@ -1100,7 +1724,7 @@
         btn.style.cssText =
           "position:relative;font-size:10px;line-height:1.2;color:#4b5563;font-weight:500;" +
           "padding-left:8px;text-align:left;background:transparent;border:0;cursor:pointer;" +
-          "grid-column:" + (d2 + 1) + "/span 1;grid-row:" + (VISIBLE_SLOTS + 2) + ";";
+          "grid-column:" + (d2 + 1) + "/span 1;grid-row:" + (visibleSlots + 2) + ";";
         btn.addEventListener("click", function (e) { openDayModal(e.currentTarget.dataset.dayKey); });
         weekDiv.appendChild(btn);
       }
@@ -1351,6 +1975,10 @@
   function init() {
     applyBaseStyles();
 
+    // Restore the user's filter + page choice from the last visit in this tab.
+    loadState();
+    syncChipActiveState();
+
     // Show the calendar shell (month title + day cells) immediately, so it's
     // visible before the Google Sheet fetch resolves. Events paint in later
     // via ingest() → renderCalendar().
@@ -1370,6 +1998,68 @@
       renderCalendar();
     });
     setupJumpPopover();
+
+    // Filter chips — delegated click handler; reset to page 1 on filter change.
+    var filtersEl = document.getElementById("fdcp-events-filters");
+    if (filtersEl) {
+      filtersEl.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-filter]");
+        if (!btn || btn.hasAttribute("hidden")) return;
+        CURRENT_FILTER = btn.dataset.filter;
+        CURRENT_PAGE = 1;
+        saveState();
+        document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
+          var active = b === btn;
+          b.classList.toggle('fdcp-chip-active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          applyChipStyle(b, active);
+        });
+        render();
+      });
+    }
+
+    // Pagination — delegated click handler on the nav. Smooth-scrolls to the chips
+    // row so users can refilter without re-finding it; respects reduced-motion.
+    var paginationEl = document.getElementById("fdcp-events-pagination");
+    if (paginationEl) {
+      paginationEl.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-fdcp-page]");
+        if (!btn || btn.disabled) return;
+        var p = parseInt(btn.dataset.fdcpPage, 10);
+        if (!isNaN(p) && p >= 1) {
+          CURRENT_PAGE = p;
+          saveState();
+          render();
+          var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (filtersEl) filtersEl.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        }
+      });
+    }
+
+    // Events container — handles the "Skip to next →" link inside an empty window
+    // and the "Show all upcoming events" reset link inside a bounded empty slice.
+    var containerEl = document.getElementById("fdcp-events-container");
+    if (containerEl) {
+      containerEl.addEventListener("click", function (e) {
+        var skip = e.target.closest("[data-fdcp-skip-next]");
+        if (skip) {
+          var np = parseInt(skip.dataset.fdcpSkipNext, 10);
+          if (!isNaN(np)) {
+            CURRENT_PAGE = np;
+            saveState();
+            render();
+            var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (filtersEl) filtersEl.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+          }
+          return;
+        }
+        var reset = e.target.closest("[data-fdcp-reset]");
+        if (reset) {
+          var allChip = document.querySelector('#fdcp-events-filters [data-filter="all"]');
+          if (allChip) allChip.click();
+        }
+      });
+    }
 
     loadEventsSWR(ingest).catch(function (err) { console.error("[FDCP]", err); showError(); });
     attachFocusRevalidate(ingest);
