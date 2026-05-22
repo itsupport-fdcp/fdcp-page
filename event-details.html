@@ -107,8 +107,8 @@
 
           <div class="fdcp-pe-card"
               role="link" tabindex="0"
-              data-href="https://fdcp.ph/post-events"
-              aria-label="Visit the Post-Event Highlights page"
+              data-href="https://fdcp.ph/highlights-gallery"
+              aria-label="Visit the FDCP Highlights Gallery"
               style="display:block;position:relative;margin-top:48px;border-radius:24px;overflow:hidden;color:#fff;background-color:#1A0024;background-image:linear-gradient(135deg,#E200A9 0%,#7A0098 38%,#3B0050 78%,#1A0024 100%);border:1px solid rgba(255,255,255,0.08);cursor:pointer;">
 
             <!-- Grain / noise overlay for filmic texture -->
@@ -133,7 +133,7 @@
               <!-- Eyebrow -->
               <div style="position:relative;display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid rgba(255,255,255,0.22);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#FFCC00;background-color:rgba(11,0,16,0.5);backdrop-filter:blur(4px);">
                 <span class="fdcp-pe-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:#FF3D9A;box-shadow:0 0 10px #FF3D9A;"></span>
-                <span id="fdcp-pe-eyebrow">View All Post-Event Highlights</span>
+                <span id="fdcp-pe-eyebrow">View The Highlights Gallery</span>
               </div>
 
               <!-- Headline -->
@@ -154,13 +154,13 @@
                   Photo recaps, behind-the-scenes reels, and stories from past FDCP screenings, festivals, and forums — all archived in one place.
                 </p>
 
-                <a href="https://fdcp.ph/post-events" target="_blank" rel="noopener"
+                <a href="https://fdcp.ph/highlights-gallery" target="_blank" rel="noopener"
                   class="fdcp-pe-arrow-chip"
                   style="position:relative;display:inline-flex;align-items:center;gap:18px;padding:18px 24px 18px 28px;background-color:#ffffff;color:#1A0024;border-radius:999px;font-weight:700;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;overflow:hidden;box-shadow:0 18px 40px -15px rgba(255,61,154,0.55);flex-shrink:0;text-decoration:none;">
                   <!-- Shimmer sheen -->
                   <span aria-hidden="true" class="fdcp-pe-sheen"
                         style="position:absolute;top:0;left:-60%;width:45%;height:100%;background-image:linear-gradient(110deg,transparent 0%,rgba(255,204,0,0.55) 50%,transparent 100%);transform:translateX(0);transition:transform 0.9s cubic-bezier(.2,.7,.2,1);pointer-events:none;"></span>
-                  <span id="fdcp-pe-chip-label" style="position:relative;">Visit Post-Event Highlights</span>
+                  <span id="fdcp-pe-chip-label" style="position:relative;">Visit Highlights Gallery</span>
                   <span class="fdcp-pe-arrow" style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background-color:#E200A9;background-image:linear-gradient(135deg,#E200A9 0%,#580076 100%);color:#fff;line-height:0;transition:transform 0.4s cubic-bezier(.2,.7,.2,1);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -629,18 +629,18 @@
   // the FDCP experience by browsing past coverage. Same destination either way.
   var POST_EVENT_CTA_VARIANTS = {
     past: {
-      eyebrow: "View All Post-Event Highlights",
+      eyebrow: "View The Highlights Gallery",
       h1: "Missed it?",
       h2: "Relive every frame.",
       copy: "Photo recaps, behind-the-scenes reels, and stories from past FDCP screenings, festivals, and forums — all archived in one place.",
-      chip: "Visit Post-Event Highlights"
+      chip: "Visit Highlights Gallery"
     },
     upcoming: {
       eyebrow: "While You Wait",
       h1: "Counting down?",
       h2: "Preview the experience.",
       copy: "Get a taste of what's ahead — explore galleries, recap reels, and stories from past FDCP screenings, festivals, and forums.",
-      chip: "Browse Past Highlights"
+      chip: "Browse Highlights Gallery"
     }
   };
 
@@ -698,7 +698,7 @@
       // Swap the Post-Event CTA copy based on whether this event is in the past
     // or still upcoming. "Past" = the end date (or start, if no end) is strictly
     // before today's local date. Same target URL either way — we still want to
-    // funnel people to /post-events; only the framing changes.
+    // funnel people to /highlights-gallery; only the framing changes.
     applyPostEventCTA(end || start);
 
     var poster = normalizePoster(row["Event Poster"]);

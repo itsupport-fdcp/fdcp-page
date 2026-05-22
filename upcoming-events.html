@@ -1,26 +1,12 @@
-<!-- =====================================================================
-  FDCP — Upcoming Events (listing)
-  Paste the contents of this file into a Drupal Basic Page (Full HTML).
-  URL alias suggestion: /upcoming-events-live
-  Detail page alias (configurable below): /event-details
-===================================================================== -->
+<!-- FDCP Upcoming Events — paste into a Drupal Basic Page (Full HTML). -->
 
-<!-- ===== LOCAL-PREVIEW ONLY: delete this block before pasting into Drupal =====
-     The Drupal theme already loads Tailwind + sets UTF-8, so these are
-     redundant on the live site. They are needed only when you open this file
-     directly via file:// or a local server for testing.
--->
+<!-- LOCAL-PREVIEW ONLY — delete before pasting into Drupal. -->
 <meta charset="utf-8">
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- ===== END LOCAL-PREVIEW BLOCK ===== -->
+<!-- END LOCAL-PREVIEW -->
 
-<!-- ===== CALENDAR LAYOUT CSS — keep this block when pasting into Drupal =====
-     Drupal's compiled Tailwind does not include `grid-cols-7` and several
-     arbitrary utilities used by the calendar. These rules hard-define the
-     layout so the calendar renders correctly even if the Tailwind classes
-     don't exist on the site. !important is used as a safety belt against
-     Drupal's CSS specificity.
--->
+<!-- Drupal's compiled Tailwind misses grid-cols-7 and most arbitrary
+     utilities, so the calendar layout is hard-defined here with !important. -->
 <style>
   #fdcp-cal-dow {
     display: grid !important;
@@ -140,110 +126,34 @@
     flex-direction: column !important;
   }
 
-  /* ===== Mobile (≤ 768px) — toolbar must fit narrow screens and the
-     calendar grid needs to shrink so 6 weeks remain visible. ===== */
   @media (max-width: 768px) {
-    /* Toolbar: tighter gap so prev/next don't push off-screen */
-    .fdcp-cal-toolbar {
-      gap: 8px !important;
-      padding: 0 0 8px !important;
-    }
-    .fdcp-cal-title-wrap {
-      flex: 1 1 auto !important;
-      min-width: 0 !important;
-    }
-    #fdcp-cal-title {
-      font-size: 22px !important;
-      min-width: 0 !important;
-      width: 100% !important;
-    }
-    #fdcp-cal-prev,
-    #fdcp-cal-next {
-      width: 36px !important;
-      height: 36px !important;
-      flex-shrink: 0 !important;
-    }
-    #fdcp-cal-prev svg,
-    #fdcp-cal-next svg { width: 16px !important; height: 16px !important; }
-
-    /* Jump popover sized for narrow screens */
+    .fdcp-cal-toolbar { gap: 8px !important; padding: 0 0 8px !important; }
+    .fdcp-cal-title-wrap { flex: 1 1 auto !important; min-width: 0 !important; }
+    #fdcp-cal-title { font-size: 22px !important; min-width: 0 !important; width: 100% !important; }
+    #fdcp-cal-prev, #fdcp-cal-next { width: 36px !important; height: 36px !important; flex-shrink: 0 !important; }
+    #fdcp-cal-prev svg, #fdcp-cal-next svg { width: 16px !important; height: 16px !important; }
     #fdcp-cal-jump { min-width: 200px !important; max-width: 90vw !important; }
-
-    /* Calendar panel: less padding, lighter radius */
-    .fdcp-cal-panel {
-      padding: 12px !important;
-      border-radius: 20px !important;
-    }
-
-    /* Weekday header — compact */
-    #fdcp-cal-dow {
-      font-size: 9px !important;
-      column-gap: 2px !important;
-      padding-bottom: 6px !important;
-    }
-
-    /* Grid: tighter gaps */
-    #fdcp-cal-grid {
-      column-gap: 2px !important;
-      row-gap: 3px !important;
-    }
-
-    /* Week rows: shorter so 6 weeks fit without a tall scroll */
-    .fdcp-cal-week {
-      column-gap: 2px !important;
-      min-height: 60px !important;
-    }
-
-    /* Day number — slightly smaller */
-    .fdcp-cal-daynum {
-      font-size: 11px !important;
-      padding: 3px 5px 0 0 !important;
-    }
-
-    /* Pills — shrink type/padding so multi-day pills don't overflow */
-    .fdcp-cal-pill {
-      font-size: 9px !important;
-      padding: 1px 4px !important;
-      margin: 0 1px !important;
-    }
-
-    .fdcp-cal-more {
-      font-size: 9px !important;
-      padding-left: 4px !important;
-    }
+    .fdcp-cal-panel { padding: 12px !important; border-radius: 20px !important; }
+    #fdcp-cal-dow { font-size: 9px !important; column-gap: 2px !important; padding-bottom: 6px !important; }
+    #fdcp-cal-grid { column-gap: 2px !important; row-gap: 3px !important; }
+    /* Week min-height must clear the JS-computed row total or pills bleed
+       into the next week's "+N more" cell. */
+    .fdcp-cal-week { column-gap: 2px !important; min-height: 78px !important; }
+    .fdcp-cal-daynum { font-size: 11px !important; padding: 3px 5px 0 0 !important; }
+    /* Margin 0 + tight line-height keeps pills inside the 18px slot row. */
+    .fdcp-cal-pill { font-size: 9px !important; line-height: 1.15 !important; padding: 1px 4px !important; margin: 0 1px !important; }
+    .fdcp-cal-more { font-size: 9px !important; padding-left: 4px !important; }
   }
 
-  /* ===== Desktop (≥ lg = 1024px) — restore the original "Upcoming
-     Events first, Calendar second" visual order. The HTML places
-     calendar first in source order (so mobile / tablet see it without
-     needing any CSS reorder), but desktop has historically shown the
-     events list above the calendar. Flex `order` flips just the
-     rendering, not the DOM, so screen readers and tab order still
-     follow source. ===== */
+  /* Desktop flips visual order (events first, calendar second) without
+     touching DOM order — keeps mobile/tablet rendering and a11y intact. */
   @media (min-width: 1024px) {
-    #main-content {
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    /* DOM child #1 is the calendar block → push it down to position 2.
-       DOM child #2 is the Upcoming Events block → pull it up to 1. */
+    #main-content { display: flex !important; flex-direction: column !important; }
     #main-content > :nth-child(1) { order: 2 !important; }
     #main-content > :nth-child(2) { order: 1 !important; }
   }
 
-  /* ===== Mobile / tablet (< lg = 1024px) — DOM order already shows the
-     calendar first, so no reorder rules here. This block tightens the
-     event-card layout: the poster is moved next to the date box on
-     row 1 (instead of stacking as a wide banner under the title) and
-     the long title / description / CTA block takes row 2 across both
-     columns. Result: each card is much shorter, so users can flick
-     past the events list quickly on small screens. ===== */
   @media (max-width: 1023px) {
-    /* Poster-variant card grid override — cards now live inside .fdcp-month-grid,
-       so target that path. DOM children of each card are:
-         1) date box   2) title / meta block   3) poster-col
-       The posterless variant uses .fdcp-card-noposter and is excluded from these
-       rules so its own 2-column (date-left + content-right) layout is preserved. */
     .fdcp-month-grid > .grid {
       grid-template-columns: auto 1fr !important;
       column-gap: 12px !important;
@@ -270,21 +180,57 @@
     }
   }
 
-  /* ===== Extra-small phones (≤ 380px) — squeeze a bit more ===== */
+  /* Highlights Gallery CTA — animations are enhancement only; the card
+     reads correctly from inline styles if Drupal strips this block. */
+  @keyframes fdcpHgBlink { 0%,60%,100% { opacity:1; } 70%,90% { opacity:0.25; } }
+  .fdcp-hg-card { transition: transform 0.35s cubic-bezier(.2,.7,.2,1), box-shadow 0.35s cubic-bezier(.2,.7,.2,1) !important; }
+  .fdcp-hg-card:hover { transform: translateY(-3px) !important; box-shadow: 0 30px 80px -28px rgba(204,133,0,0.55) !important; }
+  .fdcp-hg-card:hover .fdcp-hg-arrow { transform: translateX(6px) !important; }
+  .fdcp-hg-dot { animation: fdcpHgBlink 1.8s ease-in-out infinite !important; }
+  .fdcp-hg-frame { transition: transform 0.35s cubic-bezier(.2,.7,.2,1) !important; }
+  .fdcp-hg-frame:hover { transform: translateY(-6px) !important; }
+  .fdcp-hg-frame:hover .fdcp-hg-caption { transform: translateY(0) !important; opacity: 1 !important; }
+  @media (max-width: 720px) {
+    .fdcp-hg-grid { grid-template-columns: 1fr !important; }
+    .fdcp-hg-copy { border-right: none !important; border-bottom: 1px dashed rgba(204,133,0,0.25) !important; padding: 28px 24px !important; }
+    .fdcp-hg-headline { font-size: 32px !important; }
+    .fdcp-hg-chip { width: 100% !important; align-self: stretch !important; }
+    #fdcp-hg-frames {
+      overflow-x: auto !important;
+      scroll-snap-type: x mandatory !important;
+      -webkit-overflow-scrolling: touch !important;
+      padding: 14px !important;
+      gap: 8px !important;
+    }
+    #fdcp-hg-frames > * {
+      flex: 0 0 70% !important;
+      scroll-snap-align: start !important;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fdcp-hg-card, .fdcp-hg-frame, .fdcp-hg-dot, .fdcp-hg-arrow { animation: none !important; transition: none !important; }
+  }
+
+  /* Drupal's Tailwind subset misses text-[44px]/text-[75px], so set the day
+     size here. Inline font-size on the span is the mobile fallback. */
+  .fdcp-card-day { font-size: 60px !important; line-height: 0.95 !important; }
+  @media (min-width: 1024px) {
+    .fdcp-card-day { font-size: 84px !important; }
+  }
+
   @media (max-width: 380px) {
     .fdcp-cal-toolbar { gap: 6px !important; }
     #fdcp-cal-title { font-size: 18px !important; }
     #fdcp-cal-prev, #fdcp-cal-next { width: 32px !important; height: 32px !important; }
     #fdcp-cal-prev svg, #fdcp-cal-next svg { width: 14px !important; height: 14px !important; }
     .fdcp-cal-panel { padding: 8px !important; }
-    .fdcp-cal-week { min-height: 52px !important; }
-    .fdcp-cal-pill { font-size: 8px !important; padding: 1px 3px !important; }
+    .fdcp-cal-week { min-height: 70px !important; }
+    .fdcp-cal-pill { font-size: 8px !important; padding: 1px 3px !important; line-height: 1.2 !important; }
     #fdcp-cal-dow { font-size: 8px !important; }
     .fdcp-stats-num { font-size: 20px !important; }
     .fdcp-stats-cap { font-size: 9px !important; }
   }
 
-  /* ===== STATS BAND — minimalist separator between hero and calendar ===== */
   #fdcp-stats-band {
     background: #fff !important;
     padding: 12px 16px !important;
@@ -332,7 +278,6 @@
     .fdcp-stats-cap { font-size: 13px !important; margin-top: 6px !important; }
   }
 
-  /* ===== FILTER CHIPS ===== */
   #fdcp-events-filters {
     display: flex !important;
     flex-wrap: wrap !important;
@@ -363,7 +308,6 @@
     .fdcp-chip { padding: 10px 18px !important; font-size: 14px !important; }
   }
 
-  /* ===== MONTH HEADERS + GRID ===== */
   .fdcp-month-header {
     position: sticky !important;
     top: 0 !important;
@@ -438,9 +382,7 @@
     .fdcp-page-ellipsis { display: none !important; }
   }
 </style>
-<!-- ===== END CALENDAR LAYOUT CSS ===== -->
 
-<!-- HERO -->
 <div class="relative w-full lg:h-[40rem]">
   <div class="absolute inset-0 bg-[linear-gradient(to_right,#005D8C,#7399B9,#E09DC2,#FED9B7)] opacity-45 pointer-events-none z-0"></div>
   <div class="absolute top-[8rem] left-10 lg:top-[30%] lg:left-[4.5rem] z-20">
@@ -460,12 +402,6 @@
   <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg" class="hidden lg:block object-cover aspect-square lg:h-full w-full" alt="">
 </div>
 
-<!-- STATS BAND — minimalist separator between hero and calendar, populated by JS from sheet rows.
-     Uses <div> (not <section>) and inlines critical layout styles so Drupal's Full HTML filter
-     can't strip the layout via dropped class attributes or semantic-element scrubbing.
-     Number color is a solid brand purple so it's always readable; the linear-gradient + text-clip
-     are kept as a progressive enhancement (browsers / filters that don't support text-clip just
-     see the solid color instead of invisible white text). -->
 <div id="fdcp-stats-band" aria-label="Upcoming events at a glance"
      style="background:#fff;padding:48px 16px;overflow-x:hidden;">
   <div class="fdcp-stats-grid"
@@ -492,17 +428,10 @@
 </div>
 
 <main id="main-content" class="flex-grow">
-  <!-- ============================================================
-       NOTE: DOM order is calendar-first, Upcoming-Events-second so
-       mobile / tablet (< lg) viewers see the calendar without any
-       CSS gymnastics — natural source order does the work. Desktop
-       (≥ lg) restores the visual "events first, calendar below"
-       layout via the `@media (min-width: 1024px)` flex-order block
-       at the top of this file. If you reorder these two blocks in
-       the source, also flip the orders in that media query.
-       ============================================================ -->
+  <!-- DOM order: calendar first, events second. Desktop flips visually via
+       the flex-order @media rule above. Flipping this source order means
+       also flipping that rule. -->
 
-  <!-- FDCP EVENT CALENDAR -->
   <div class="relative w-full max-lg:min-h-[760px] lg:h-[1100px] overflow-hidden py-12 lg:py-20 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/50 z-10"></div>
 
@@ -561,6 +490,86 @@
     </div>
   </div>
 
+  <!-- highlights gallery CTA strip — between calendar and events list -->
+  <div style="padding:48px 24px;background-color:#FFF8E7;background-image:linear-gradient(180deg,#FFF8E7 0%,#FFE7B3 100%);">
+    <div class="fdcp-hg-card"
+         role="link" tabindex="0"
+         data-href="https://fdcp.ph/highlights-gallery"
+         aria-label="Browse the FDCP Highlights Gallery"
+         style="position:relative;max-width:1200px;margin:0 auto;background-color:#ffffff;border-radius:24px;overflow:hidden;border:1px solid rgba(204,133,0,0.22);box-shadow:0 24px 60px -28px rgba(204,133,0,0.45);cursor:pointer;transition:transform 0.35s cubic-bezier(.2,.7,.2,1),box-shadow 0.35s cubic-bezier(.2,.7,.2,1);">
+
+      <div class="fdcp-hg-grid" style="display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:0;align-items:stretch;">
+
+        <!-- LEFT: Copy + CTA — warm cream wash, deep purple eyebrow accent
+             so the brand purple still anchors the section despite the
+             amber-dominant palette. -->
+        <div class="fdcp-hg-copy" style="padding:36px 32px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;background-color:#ffffff;background-image:linear-gradient(180deg,#ffffff 0%,#FFF6D9 100%);border-right:1px dashed rgba(204,133,0,0.25);">
+
+          <!-- Eyebrow — cream pill with deep amber text and a purple pulse dot -->
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background-color:#FFF1C7;border:1px solid rgba(204,133,0,0.32);font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#7A4F00;">
+            <span class="fdcp-hg-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background-color:#580076;box-shadow:0 0 8px rgba(88,0,118,0.7);"></span>
+            <span>Highlights Gallery</span>
+          </div>
+
+          <!-- Headline — deep purple anchor + amber italic second line.
+               Solid colors only (no background-clip:text — Drupal strips
+               the vendor-prefixed rule, leaving invisible text). -->
+          <div>
+            <div class="fdcp-hg-headline" style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:42px;line-height:0.98;letter-spacing:-0.01em;color:#580076;text-transform:uppercase;">
+              The moments
+            </div>
+            <div class="fdcp-hg-headline" style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-style:italic;font-weight:700;font-size:42px;line-height:0.98;color:#CC8500;text-transform:uppercase;">
+              after the lights.
+            </div>
+            <p style="margin:18px 0 0 0;font-size:14px;line-height:1.55;color:#6B5A2E;">
+              Galleries, recap reels, and behind-the-scenes from past FDCP screenings, festivals, and forums.
+            </p>
+          </div>
+
+          <!-- CTA chip — gold→amber gradient with purple chip text (purple
+               is the accent, gold is the body). Arrow circle inverts to
+               deep purple for the strongest brand handshake. -->
+          <a href="https://fdcp.ph/highlights-gallery" target="_blank" rel="noopener"
+             class="fdcp-hg-chip"
+             style="display:inline-flex;align-items:center;justify-content:space-between;gap:14px;align-self:flex-start;padding:14px 18px 14px 22px;background-color:#FFCC00;background-image:linear-gradient(90deg,#FFCC00 0%,#CC8500 100%);color:#3B0050;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 14px 30px -12px rgba(204,133,0,0.65);">
+            <span>View Full Gallery</span>
+            <span class="fdcp-hg-arrow" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:#580076;color:#FFCC00;line-height:0;transition:transform 0.35s cubic-bezier(.2,.7,.2,1);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </span>
+          </a>
+        </div>
+
+        <!-- RIGHT: Contact-sheet thumbnail strip — flex column that fills
+             the card height so the frames center vertically and a small
+             tag-strip tucks at the bottom. Without the column flex layout,
+             the dark area collapses or leaves a big empty band. -->
+        <div class="fdcp-hg-stripcol" style="position:relative;display:flex;flex-direction:column;background-color:#1F1300;background-image:linear-gradient(135deg,#2B1A00 0%,#5C3A00 100%);overflow:hidden;">
+
+          <!-- Film-perforation strip along the top — warm brown sprockets -->
+          <div aria-hidden="true" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background-color:#120A00;border-bottom:1px solid rgba(255,204,0,0.1);flex-shrink:0;">
+            <span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span>
+          </div>
+
+          <!-- The frames; populated by JS from HIGHLIGHTS_THUMBS. The
+               container grows to fill remaining column height (flex:1)
+               and centers the frames vertically so dark space above/below
+               feels like intentional matting, not leftover. -->
+          <div id="fdcp-hg-frames" style="display:flex;gap:8px;padding:24px 18px;flex:1;align-items:center;background-color:transparent;">
+            <!-- Frames injected here at runtime -->
+          </div>
+
+          <!-- mirrors event-details marquee — keeps both highlight CTAs reading as a family -->
+          <div aria-hidden="true" style="display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:14px;padding:10px 16px;background-color:#120A00;border-top:1px solid rgba(255,204,0,0.12);font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:0.24em;text-transform:uppercase;color:#FFCC00;white-space:nowrap;overflow:hidden;flex-shrink:0;">
+            <span>Event Highlights</span><span style="color:#E200A9;">★</span><span>Photo Gallery</span><span style="color:#580076;">★</span><span>Behind the Reels</span><span style="color:#E200A9;">★</span><span>Festivals</span><span style="color:#580076;">★</span><span>International</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="py-20 px-6 space-y-10 lg:py-[127px] lg:px-40 lg:space-y-20">
 
     <div class="max-w-screen-sm mx-auto text-center">
@@ -569,8 +578,7 @@
     </div>
 
     <div class="max-w-screen-lg mx-auto">
-      <!-- Filter chips: 4 date-based filters; Multi-day chip is hidden when no multi-day events exist.
-           Inline styles guard against Drupal stripping class attributes. -->
+      <!-- multi-day chip hidden via JS when no multi-day events exist -->
       <div id="fdcp-events-filters" role="tablist" aria-label="Filter events"
            style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:32px;">
         <button type="button" data-filter="all"      aria-pressed="true"  class="fdcp-chip fdcp-chip-active"
@@ -583,18 +591,14 @@
                 style="min-height:44px;padding:8px 14px;border-radius:9999px;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:13px;font-weight:600;cursor:pointer;">Multi-day</button>
       </div>
 
-      <!-- Events list: single column, no inner scroll, page scrolls naturally.
-           Inline display+gap so spacing survives a stripped <style> block. -->
       <div id="fdcp-events-container" class="flex flex-col gap-10"
            style="display:flex;flex-direction:column;gap:40px;">
-        <!-- Skeleton placeholder while loading -->
         <div id="fdcp-events-loading" class="text-center py-20 text-gray-500">
           Loading events…
         </div>
       </div>
 
-      <!-- Pagination control: rendered dynamically; hidden for bounded filters or single-page lists.
-           Plain <div> (not <nav>) for Drupal compatibility. -->
+      <!-- plain <div> not <nav> — Drupal block filters can strip semantic elements -->
       <div id="fdcp-events-pagination" aria-label="Events pagination"
            style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px;"></div>
     </div>
@@ -616,49 +620,37 @@
   </div>
 </div>
 
-<!-- Event card markup is built from a JS string inside the script below.
-     We avoid <template>…</template> because Drupal's text-format filter
-     strips the contents of <template> elements at render time. -->
+<!-- card markup in a JS string — Drupal strips <template> children -->
 
 
 <script>
 (function () {
-  // === CONFIG ===========================================================
-  // The default gviz CSV export returns only the first tab (COMMS). The
-  // sheet has one tab per division (AFD, FESTIVALS, etc.) and an "ALL" tab
-  // that aggregates them — that tab is edit-locked in the UI but still
-  // readable via gviz, so we point at it explicitly to get every division's
-  // events instead of just COMMS.
-  // Fetch as HTML (not CSV) so cell formatting — bold, italic, hyperlinks
-  // typed in the sheet — survives all the way to the detail page. The
-  // listing here only consumes plain-text fields (title, location, date),
-  // which the HTML parser still emits via cellToText.
+  // CONFIG
+  // "ALL" tab aggregates every division — individual tabs only show their own events
   var SHEET_SRC =
     "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=ALL";
-  // Change this to your detail-page URL alias on Drupal:
   var DETAIL_URL = "/event-details";
 
-  // Stale-while-revalidate cache, shared across all three event pages.
-  // localStorage so the cache survives tab closes and the calendar paints
-  // instantly on every return visit; a background fetch silently swaps in
-  // any sheet edits. v4 bumps the schema for the CSV→HTML migration.
+  // shared SWR cache — bump CACHE_KEY version if you change the row schema
   var CACHE_KEY = "fdcp.events.v4";
   var REVALIDATE_MIN_GAP = 60 * 1000; // throttle focus-driven refetches
-  // ======================================================================
 
+  // HIGHLIGHTS GALLERY CTA
+  // edit these entries to curate the strip; upload images to /sites/default/files/<YYYY-MM>/ first
+  var HIGHLIGHTS_GALLERY_URL = "https://fdcp.ph/highlights-gallery";
+  var HIGHLIGHTS_THUMBS = [
+    { src: "/sites/default/files/2026-05/cinemalaya-night.webp",   caption: "Cinemalaya · MAY 2026" },
+    { src: "/sites/default/files/2026-04/qcinema-redcarpet.webp",  caption: "QCinema · APR 2026" },
+    { src: "/sites/default/files/2026-03/silakbo-screening.webp",  caption: "Silakbo · MAR 2026" },
+    { src: "/sites/default/files/2026-02/pelikulaya-opening.webp", caption: "Pelikulaya · FEB 2026" }
+  ];
   var MONTHS      = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
   var MONTHS_FULL = ["January","February","March","April","May","June",
                      "July","August","September","October","November","December"];
 
-  // Single brand-aligned gradient used behind the film overlay when an
-  // event has no poster URL. Uniform across cards so the listing reads
-  // as intentional rather than a grab-bag of placeholders.
   var FALLBACK_BG = "linear-gradient(135deg,#3a0050 0%,#580076 50%,#E200A9 100%)";
 
-  // Abstract film-themed SVG laid over the gradient — two strips of
-  // sprocket holes top/bottom and a stylised aperture/reel mark in the
-  // centre. Inline per card (no <defs id=...> references that would
-  // collide across many cards in the same document).
+  // inline per card — avoids <defs id="..."> collisions across multiple cards
   var FALLBACK_OVERLAY_SVG = (function () {
     var holes = "";
     for (var i = 0; i < 8; i++) {
@@ -687,15 +679,14 @@
       + '</svg>';
   })();
 
-  // Card markup as a string so Drupal's HTML filter can't strip it
-  // (it does strip the children of real <template> elements).
+  // string not <template> — Drupal strips template children
   var CARD_HTML = [
     '<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-10 bg-white w-full h-auto p-3 lg:p-5 rounded-2xl shadow-sm shadow-black/40 border">',
       '<div class="bg-[#F5F2FF] lg:col-span-2 flex flex-col justify-between gap-2 lg:gap-5 text-center rounded-2xl lg:rounded-[30px] py-2 lg:py-0">',
         '<span data-field="month" class="bg-[#580076] text-white font-bold text-base lg:text-xl py-1 w-full rounded-2xl lg:rounded-[30px]">—</span>',
         '<div class="flex flex-col">',
-          '<span data-field="day" class="bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold text-[44px] lg:text-[75px] leading-none">—</span>',
-          '<span data-field="year" class="text-[#E200A9] text-sm lg:text-xl">—</span>',
+          '<span data-field="day" class="fdcp-card-day bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold leading-none" style="font-size:60px;line-height:0.95;color:#580076;">—</span>',
+          '<span data-field="year" class="text-[#E200A9] lg:text-xl" style="font-size:14px;color:#E200A9;">—</span>',
         '</div>',
         '<div></div>',
       '</div>',
@@ -706,8 +697,6 @@
           '</h2>',
           '<span data-field="description" class="text-xs"></span>',
         '</div>',
-        // Time/location on the left, CTA pinned to the right via justify-between so the
-        // CTA never shifts based on how long the location text happens to be.
         '<div class="flex flex-col gap-3 lg:gap-5 lg:flex-row lg:items-end lg:justify-between" style="width:100%;">',
           '<div class="flex flex-col gap-2 lg:gap-3 items-start" style="color:#7C7C7C;">',
             '<div data-field="time-row" class="flex items-center gap-2">',
@@ -719,41 +708,31 @@
               '<p data-field="location" class="text-xs">—</p>',
             '</div>',
           '</div>',
-          // align-self + margin-left:auto pin the CTA to the right edge of its flex parent
-          // regardless of direction (column on mobile, row on desktop), and survive a
-          // stripped Tailwind subset on Drupal (the `self-end` utility class can't be
-          // counted on inside CKEditor blocks).
+          // inline align-self:flex-end + margin-left:auto — Drupal's Tailwind subset drops self-end
           '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-14 lg:text-sm text-center text-nowrap" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;flex-shrink:0;align-self:flex-end;margin-left:auto;">View Details</a>',
         '</div>',
       '</div>',
       '<div data-field="poster-col" class="lg:col-span-3 rounded-2xl size-full border overflow-hidden max-h-[80px] lg:max-h-none">',
         '<div data-field="poster-wrap" class="size-full aspect-video">',
           '<img data-field="poster" alt="" class="size-full object-cover aspect-video object-center" style="display:none">',
-          // Film-themed placeholder shown until/unless a real poster URL is in the sheet.
           '<div data-field="poster-fallback" class="size-full aspect-video" style="position:relative;overflow:hidden;background:' + FALLBACK_BG + ';">' + FALLBACK_OVERLAY_SVG + '</div>',
         '</div>',
       '</div>',
     '</div>'
   ].join("");
 
-  // Posterless card variant — used per-row when the sheet has no Event Poster URL.
-  // Uses a 2-column layout on every viewport so the date tile stays on the LEFT
-  // (it never takes the full card width). No right-edge gradient bar — the card's
-  // own date tile carries the brand color, and the content fills everything else.
-  // Inline styles on the root <div> guard against Drupal stripping class attributes.
+  // 2-col layout used when the sheet has no poster URL — date tile left, content right
   var CARD_HTML_NO_POSTER = [
     '<div class="fdcp-card-noposter bg-white w-full p-3 lg:p-5 rounded-2xl shadow-sm shadow-black/40 border" style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:stretch;">',
 
-      // Date tile — auto-sized column on the left, on every viewport
-      '<div class="bg-[#F5F2FF] flex flex-col justify-between gap-2 lg:gap-5 text-center rounded-2xl lg:rounded-[30px] py-2 lg:py-3 px-3 lg:px-4" style="min-width:80px;">',
+      '<div class="bg-[#F5F2FF] flex flex-col justify-between gap-2 lg:gap-5 text-center rounded-2xl lg:rounded-[30px] py-2 lg:py-3 px-3 lg:px-4" style="min-width:100px;">',
         '<span data-field="month" class="bg-[#580076] text-white font-bold text-base lg:text-xl py-1 w-full rounded-2xl lg:rounded-[30px]" style="display:block;">—</span>',
         '<div class="flex flex-col">',
-          '<span data-field="day" class="bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold text-[44px] lg:text-[75px] leading-none">—</span>',
-          '<span data-field="year" class="text-[#E200A9] text-sm lg:text-xl">—</span>',
+          '<span data-field="day" class="fdcp-card-day bg-gradient-to-b from-[#580076] to-[#E200A9] bg-clip-text text-transparent font-bold leading-none" style="font-size:60px;line-height:0.95;color:#580076;">—</span>',
+          '<span data-field="year" class="text-[#E200A9] lg:text-xl" style="font-size:14px;color:#E200A9;">—</span>',
         '</div>',
       '</div>',
 
-      // Content block — fills the remaining width
       '<div class="flex flex-col justify-between gap-3 lg:gap-5" style="min-width:0;">',
         '<div>',
           '<h2 class="font-bold text-[18px] lg:text-[28px] leading-tight">',
@@ -761,8 +740,6 @@
           '</h2>',
           '<span data-field="description" class="text-xs lg:text-sm" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;"></span>',
         '</div>',
-        // Same shape as the poster-variant CTA row: time/loc left, CTA pinned right on desktop,
-        // CTA never compresses (flex-shrink:0) regardless of location text length.
         '<div class="flex flex-col gap-3 lg:gap-5 lg:flex-row lg:items-end lg:justify-between" style="width:100%;">',
           '<div class="flex flex-col gap-2 lg:gap-3 items-start" style="color:#7C7C7C;">',
             '<div data-field="time-row" class="flex items-center gap-2">',
@@ -774,8 +751,6 @@
               '<p data-field="location" class="text-xs">—</p>',
             '</div>',
           '</div>',
-          // Same right-pin trick as the poster variant — inline align-self + margin-left:auto
-          // so it works in flex-col (mobile) and flex-row (desktop) even without Tailwind self-end.
           '<a data-field="cta-link" href="#" class="rounded-full px-6 py-2 text-xs lg:px-12 lg:text-sm text-center text-nowrap font-semibold" style="background:linear-gradient(90deg,#FFD24D 0%,#F5A623 100%);color:#1a1a1a;flex-shrink:0;align-self:flex-end;margin-left:auto;">View Details ▸</a>',
         '</div>',
       '</div>',
@@ -790,9 +765,7 @@
       .replace(/^-+|-+$/g, "");
   }
 
-  // Drop the markdown markers that the detail page interprets as formatting,
-  // leaving only the underlying text. Used for the card-snippet preview so
-  // editors don't see "**important**" rendered literally on the listing.
+  // strip markdown markers so they don't appear literally on listing cards
   function stripMarkdown(s) {
     if (!s) return "";
     return String(s)
@@ -802,9 +775,7 @@
       .replace(/~~([^\n]+?)~~/g, "$1");
   }
 
-  // Extract plain text from a gviz HTML cell, converting <br> back to \n
-  // so multi-line cells (Alt+Enter in the sheet) keep their line breaks
-  // when used as text. textContent alone would collapse <br> to nothing.
+  // textContent collapses br — convert to \n first so Alt+Enter sheet cells keep their breaks
   function cellToText(cell) {
     if (!cell) return "";
     var clone = cell.cloneNode(true);
@@ -815,10 +786,7 @@
     return (clone.textContent || "").trim();
   }
 
-  // Whitelist-sanitize a gviz cell's innerHTML. Only used here to populate
-  // the shared cache's Descriptions_html field — the calendar/listing
-  // itself doesn't render the rich version, but writing it means the
-  // detail page can read the cache and paint bold text instantly.
+  // writes Descriptions_html to the shared cache so event-details can paint bold text instantly
   var SAN_ALLOWED = {B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,BR:1,SPAN:1,FONT:1,A:1};
   function sanitizeRichHTML(html) {
     if (!html) return "";
@@ -850,10 +818,6 @@
     return tmp.innerHTML;
   }
 
-  // Parse the response from gviz's tqx=out:html endpoint. Same row-of-
-  // objects shape parseCSV used to produce — plain text for every field,
-  // plus a parallel Descriptions_html for the rich version used by the
-  // detail page. Downstream code on this page is unaffected.
   function parseGvizHTML(text) {
     var doc;
     try { doc = new DOMParser().parseFromString(text, "text/html"); }
@@ -905,11 +869,7 @@
     return h12 + ":" + (mn < 10 ? "0" + mn : mn) + " " + ampm;
   }
 
-  // Convert any Google Drive share link to a direct-thumbnail URL so the
-  // browser can render it inside an <img>. Returns "" for anything that
-  // isn't a real http(s) URL — editors sometimes type plain text like
-  // "TBA" into the Event Poster column, and we don't want that to land
-  // in img.src and render as a broken-image icon over the fallback.
+  // returns "" for non-URLs — editors sometimes type "TBA" in the Poster column
   function normalizePoster(url) {
     if (!url) return "";
     var u = String(url).trim();
@@ -919,9 +879,7 @@
     return "";
   }
 
-  // The sheet's "Remarks" column is sometimes a URL (e.g. "fdcp.ph/isapelikula")
-  // and sometimes a freeform note. Returns a normalized URL when the value
-  // looks link-like, otherwise null.
+  // Remarks is sometimes a URL ("fdcp.ph/..."), sometimes a freeform note
   function asExternalUrl(s) {
     if (!s) return null;
     var v = String(s).trim();
@@ -930,10 +888,7 @@
     return "https://" + v;
   }
 
-  // FNV-1a 32-bit, hex — fast change-detector for raw CSV text. We only
-  // re-render after a live fetch when this hash differs from the cached
-  // one, which keeps the calendar from repainting on every revalidation
-  // when the sheet hasn't actually changed.
+  // FNV-1a hash — skip re-render if live data matches cached
   function hashCSV(s) {
     var h = 0x811c9dc5;
     for (var i = 0; i < s.length; i++) {
@@ -962,9 +917,7 @@
     } catch (e) { /* quota or private-mode — silent */ }
   }
 
-  // Append a timestamp to bust Google's edge cache — without this, the
-  // gviz endpoint can keep serving the same response for several minutes
-  // even after a fresh sheet edit.
+  // timestamp busts Google's edge cache on the gviz endpoint
   function fetchLive() {
     var url = SHEET_SRC + "&_=" + Date.now();
     return fetch(url, { cache: "no-store" })
@@ -975,10 +928,7 @@
       });
   }
 
-  // Stale-while-revalidate: paint cached rows synchronously (zero-latency
-  // first render), then refetch live and silently swap if the data has
-  // actually changed. If the network fetch fails but we already painted
-  // from cache, the error is swallowed — the user keeps seeing events.
+  // paint from cache first, refetch live in background, swap if changed
   function loadEventsSWR(onData) {
     var cached = readCache();
     if (cached) onData(cached.rows, "cache");
@@ -1014,9 +964,6 @@
   }
 
   function buildCard(row) {
-    // Pick the card variant up-front: rows with a real poster URL keep the
-    // existing 3-zone layout; rows without a poster use the posterless variant
-    // (expanded content column + right-edge gradient bar so nothing reads as missing).
     var poster = normalizePoster(row["Event Poster"]);
     var holder = document.createElement("div");
     holder.innerHTML = poster ? CARD_HTML : CARD_HTML_NO_POSTER;
@@ -1050,14 +997,9 @@
       ctaLink.target   = "_blank"; ctaLink.rel   = "noopener";
     }
 
-    // Strip the markdown markers that editors type in the sheet for the
-    // detail page (**bold**, *italic*, _underline_, ~~strike~~) — the
-    // listing snippet renders as plain text, so those characters should
-    // not leak into the card preview.
     var desc = stripMarkdown(row["Descriptions"] || "");
     if (desc.length > 180) desc = desc.slice(0, 180).replace(/\s+\S*$/, "") + "…";
     setText(node, "description", desc);
-    // Preserve line breaks from the sheet (Alt+Enter) inside the card preview
     var descEl = node.querySelector('[data-field="description"]');
     if (descEl) descEl.style.whiteSpace = "pre-line";
 
@@ -1069,8 +1011,6 @@
       descEl.parentNode.insertBefore(note, descEl.nextSibling);
     }
 
-    // Time: hide the row entirely when the sheet has no value, so cards
-    // don't show a placeholder. Location still falls back to "Location TBA".
     var timeStr = fmtTime(start);
     if (end && fmtTime(end)) timeStr += (timeStr ? " - " : "") + fmtTime(end);
     var timeRow = node.querySelector('[data-field="time-row"]');
@@ -1083,8 +1023,6 @@
 
     setText(node, "location", row["Location"] ? row["Location"] : "Location TBA");
 
-    // `poster` was computed at the top of the function to pick the card variant.
-    // Only the poster variant has these nodes — the posterless variant skips them entirely.
     if (poster) {
       var img = node.querySelector('[data-field="poster"]');
       var fb  = node.querySelector('[data-field="poster-fallback"]');
@@ -1104,8 +1042,7 @@
   var CAL_VIEW     = { year: 0, month: 0 }; // 0-indexed month
   var PILL_COLORS  = ["#0B8043", "#FFCC00", "#580076", "#E200A9", "#0096E2"];
 
-  // Events-list filter + pagination state. "all" and "multiday" paginate by 30-day
-  // windows from today; "week" and "month" are bounded slices that skip pagination.
+  // "all"/"multiday" paginate by 30-day windows; "week"/"month" are bounded (no pagination)
   var CURRENT_FILTER = "all";
   var CURRENT_PAGE   = 1;
   var WINDOW_DAYS    = 30;
@@ -1127,22 +1064,17 @@
   }
 
   function pillColor(title) {
-    // Deterministic per-title pick from PILL_COLORS so the same event
-    // always gets the same color across renders.
     var s = String(title || ""), h = 0;
     for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
     return PILL_COLORS[Math.abs(h) % PILL_COLORS.length];
   }
 
-  // Short month name like "Jun 21" — used in the pagination counter line.
   function fmtShortDate(d) {
     var name = MONTHS[d.getMonth()];                          // "JUN"
     return name.charAt(0) + name.slice(1).toLowerCase() + " " + d.getDate();
   }
 
-  // Filter + window-by-date selection. Returns the items to render plus paging metadata.
-  //   week / month   → bounded slice, paginated:false
-  //   all / multiday → 30-day window starting from today, paginated:true
+  // week/month return a bounded slice; all/multiday use 30-day windows from today
   function buildPage() {
     var today = startOfDay(new Date());
 
@@ -1167,7 +1099,6 @@
       };
     }
 
-    // "all" and "multiday" — 30-day window pagination from today.
     var base = CURRENT_FILTER === "multiday"
       ? ALL_UPCOMING.filter(function (x) { return x.end && startOfDay(x.end) > startOfDay(x.start); })
       : ALL_UPCOMING;
@@ -1203,8 +1134,7 @@
     return groups;
   }
 
-  // Find the first paginated window AFTER `fromPage` that has at least one event.
-  // Used by the empty-window "Skip to next →" link.
+  // finds the next 30-day window with events — powers the "Skip to next" link
   function findNextNonEmptyPage(base, fromPage) {
     var today = startOfDay(new Date());
     if (!base.length) return null;
@@ -1236,8 +1166,6 @@
 
     var page = buildPage();
 
-    // Empty-state branch — either the filter returns nothing at all, or the
-    // current 30-day window is empty even though later windows have events.
     if (!page.items.length) {
       var emptyHtml = '<div class="text-center py-16 text-gray-500"><p class="mb-3">No events in this view.</p>';
       if (page.paginated) {
@@ -1257,8 +1185,6 @@
       return;
     }
 
-    // Group the page's events by calendar month and emit a sticky <h3> + .fdcp-month-grid per group.
-    // Inline critical styles on each so they survive even if the <style> block is stripped.
     var groups = groupByMonth(page.items);
     var frag = document.createDocumentFragment();
     groups.forEach(function (g) {
@@ -1284,8 +1210,7 @@
     renderPagination(page);
   }
 
-  // Pagination button styles. Inlined per-element from these constants so the
-  // pill look survives even when Drupal strips the <style> block / class attributes.
+  // inlined per-element so the pill look survives Drupal stripping the style block
   var PAGE_BTN_BASE =
     "min-width:40px;min-height:40px;padding:0 12px;border-radius:9999px;" +
     "background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;" +
@@ -1303,13 +1228,11 @@
     var pagination = document.getElementById("fdcp-events-pagination");
     if (!pagination) return;
     pagination.innerHTML = "";
-    // Container itself — inline so the column layout + gap survive a stripped <style>.
     pagination.setAttribute("style",
       "display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px;");
 
     var counterStyle = "font-size:13px;color:#6b7280;text-align:center;";
 
-    // Bounded slices (week/month) — just show the counter line.
     if (!page.paginated) {
       if (page.items.length) {
         pagination.innerHTML = '<div class="fdcp-page-counter" style="' + counterStyle + '">' + page.label + "</div>";
@@ -1317,7 +1240,6 @@
       return;
     }
 
-    // Single-page result — no chrome needed if there's content on page 1.
     if (page.totalPages <= 1) {
       if (page.items.length) {
         pagination.innerHTML = '<div class="fdcp-page-counter" style="' + counterStyle + '">' + page.label + "</div>";
@@ -1399,7 +1321,6 @@
     pagination.appendChild(counter);
   }
 
-  // Compute and inject the three stats values. Called from ingest() after data settles.
   function renderStatsBand() {
     var band = document.getElementById("fdcp-stats-band");
     if (!band) return;
@@ -1436,8 +1357,7 @@
     if (d) d.textContent = String(multidayCount);
   }
 
-  // Hide the Multi-day chip if no upcoming event spans more than one day.
-  // Also auto-reset the filter when the user had Multi-day selected and a refresh removed all such rows.
+  // auto-resets to "all" if multi-day filter becomes empty after a data refresh
   function updateMultidayChipVisibility() {
     var chip = document.querySelector('#fdcp-events-filters [data-filter="multiday"]');
     if (!chip) return;
@@ -1462,9 +1382,7 @@
     }
   }
 
-  // Inline-style swap for chips so the active/inactive flip works even when the
-  // <style> block is stripped (some Drupal block text formats do this). The
-  // class toggle stays for stylesheet-driven theming; inline is the safety net.
+  // class toggle alone fails if Drupal strips the style block — inline is the safety net
   var CHIP_STYLE_BASE   = "min-height:44px;padding:8px 14px;border-radius:9999px;font-size:13px;font-weight:600;cursor:pointer;";
   var CHIP_STYLE_ACTIVE = CHIP_STYLE_BASE + "background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:1px solid transparent;";
   var CHIP_STYLE_INACTIVE = CHIP_STYLE_BASE + "background:#F5F2FF;color:#580076;border:1px solid #E5E7EB;";
@@ -1472,7 +1390,6 @@
     btn.setAttribute("style", active ? CHIP_STYLE_ACTIVE : CHIP_STYLE_INACTIVE);
   }
 
-  // Sync the chip group's active state to CURRENT_FILTER (used on initial render after loadState).
   function syncChipActiveState() {
     document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
       var active = b.dataset.filter === CURRENT_FILTER;
@@ -1498,15 +1415,11 @@
 
     ALL_UPCOMING = ALL_EVENTS.filter(function (x) { return x.start >= today; });
 
-    // Stats band + chip visibility update once the data set is known.
     renderStatsBand();
     updateMultidayChipVisibility();
 
     render();
-    // Repaint the calendar with the now-populated events; the empty grid
-    // was already rendered at init() so the layout doesn't shift here.
     renderCalendar();
-    // Refresh year options now that we know the real event-date range.
     setupJumpPopover();
   }
 
@@ -1518,7 +1431,6 @@
     var go    = document.getElementById("fdcp-jump-go");
     if (!pop || !title || !mSel || !ySel || !go) return;
 
-    // Month options (populate once — they never change)
     if (!mSel.options.length) {
       MONTHS_FULL.forEach(function (mName, idx) {
         var o = document.createElement("option");
@@ -1528,9 +1440,7 @@
       });
     }
 
-    // Year options — derived from event range with buffer. Re-built on every
-    // call so the first (pre-load) render works and the second (post-load)
-    // render can widen the range if events extend beyond the default window.
+    // re-built each call — first render uses a default range, second widens to actual event dates
     var thisYear = new Date().getFullYear();
     var minY = thisYear - 2, maxY = thisYear + 3;
     ALL_EVENTS.forEach(function (x) {
@@ -1546,7 +1456,6 @@
       ySel.appendChild(o);
     }
 
-    // Bind event listeners only on the first call.
     if (title.dataset.fdcpJumpBound === "1") return;
     title.dataset.fdcpJumpBound = "1";
 
@@ -1561,7 +1470,6 @@
       }
     });
 
-    // Clicks inside the popover should not close it
     pop.addEventListener("click", function (e) { e.stopPropagation(); });
 
     go.addEventListener("click", function () {
@@ -1571,7 +1479,6 @@
       pop.style.display = "none";
     });
 
-    // Click anywhere else closes it
     document.addEventListener("click", function () { pop.style.display = "none"; });
   }
 
@@ -1593,11 +1500,13 @@
     // and tighten every row so the +N more button never overflows into the
     // next week's cell (mobile weeks are capped at 60px tall by the CSS).
     var isMobile = window.innerWidth <= 768;
+    var isTiny   = window.innerWidth <= 380;
     var visibleSlots = isMobile ? 2 : VISIBLE_SLOTS;
-    var rowDayNum   = isMobile ? 16 : 24;
-    var rowSlot     = isMobile ? 13 : 20;
-    var rowMore     = isMobile ? 14 : 18;
-    var minWeekH    = isMobile ? 60 : 90;
+    // pixel values give ~3px slack above pill height; tighter and pills bleed into the "+N" row
+    var rowDayNum   = isMobile ? 18 : 24;
+    var rowSlot     = isTiny ? 16 : (isMobile ? 18 : 20);
+    var rowMore     = isMobile ? 16 : 18;
+    var minWeekH    = isTiny ? 70 : (isMobile ? 78 : 90);
 
     var y = CAL_VIEW.year, m = CAL_VIEW.month;
     titleEl.textContent = MONTHS_FULL[m] + " " + y;
@@ -1616,7 +1525,6 @@
       var weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
 
-      // Compute event segments that overlap this week
       var segments = [];
       ALL_EVENTS.forEach(function (x) {
         var s = startOfDay(x.start);
@@ -1652,7 +1560,6 @@
         }
       });
 
-      // Overflow per day (events in slot >= visibleSlots; viewport-aware)
       var overflow = [0,0,0,0,0,0,0];
       segments.forEach(function (seg) {
         if (seg.slot >= visibleSlots) {
@@ -1660,20 +1567,14 @@
         }
       });
 
-      // Build week container — all critical layout styles inline so Drupal can't strip them
       var weekDiv = document.createElement("div");
       weekDiv.className = "fdcp-cal-week";
-      // No `row-gap` on the week grid — pills already carry `margin:2px`,
-      // which gives ~4px between adjacent slot rows. Adding row-gap here
-      // pushed the auto-sized "+N more" row past the week container's
-      // allocated height (each week gets panel_height / 6 ≈ 110px), and
-      // the overflow visibly bled into the next week's cell area.
+      // no row-gap — pills have margin:2px; adding row-gap pushed "+N more" past the week height
       weekDiv.style.cssText =
         "display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:4px;" +
         "position:relative;flex:1 1 0%;min-height:" + minWeekH + "px;" +
         "grid-template-rows:" + rowDayNum + "px repeat(" + visibleSlots + "," + rowSlot + "px) " + rowMore + "px;";
 
-      // Day backgrounds (span full week-row height) + day numbers
       for (var d = 0; d < 7; d++) {
         var cellDate = new Date(weekStart);
         cellDate.setDate(weekStart.getDate() + d);
@@ -1697,7 +1598,6 @@
         weekDiv.appendChild(dayNum);
       }
 
-      // Visible pills (slot < visibleSlots) — span across columns for multi-day
       segments.forEach(function (seg) {
         if (seg.slot >= visibleSlots) return;
         var a = document.createElement("a");
@@ -1717,7 +1617,6 @@
         weekDiv.appendChild(a);
       });
 
-      // Per-day "+N more" buttons
       for (var d2 = 0; d2 < 7; d2++) {
         if (!overflow[d2]) continue;
         var cellDate2 = new Date(weekStart);
@@ -1734,9 +1633,7 @@
         weekDiv.appendChild(btn);
       }
 
-      // Day-number hotspot —
-      //   single-event day → direct link to the event detail page
-      //   multi-event day  → opens the day modal so the user can pick
+      // single-event day: direct link; multi-event day: open modal
       for (var d3 = 0; d3 < 7; d3++) {
         var cd = new Date(weekStart); cd.setDate(weekStart.getDate() + d3);
         var hits = ALL_EVENTS.filter(function (x) {
@@ -1855,9 +1752,7 @@
       '<div class="text-center py-20 text-red-600">Could not load events. Please refresh the page.</div>';
   }
 
-  // Walk up the DOM from a known element and zero out top padding/margin
-  // on each ancestor, so Drupal's basic-page wrappers can't introduce a gap
-  // between the site header and our content.
+  // zeros ancestor padding/margin so Drupal's wrappers don't gap below the site header
   function killTopSpacing(startEl) {
     var el = startEl, hops = 0;
     while (el && el !== document.body && el !== document.documentElement && hops < 8) {
@@ -1895,7 +1790,6 @@
       panel.style.overflow = "hidden";
     }
 
-    // Toolbar wrapper — find via the title's grandparent
     var title = document.getElementById("fdcp-cal-title");
     if (title) {
       var titleWrap = title.parentElement;          // position:relative div
@@ -1924,7 +1818,6 @@
       title.style.setProperty("color", "transparent");
     }
 
-    // Prev / Next buttons
     ["fdcp-cal-prev", "fdcp-cal-next"].forEach(function (id) {
       var b = document.getElementById(id);
       if (!b) return;
@@ -1933,7 +1826,6 @@
         "border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;";
     });
 
-    // Jump-to popover + its controls
     var pop = document.getElementById("fdcp-cal-jump");
     if (pop) {
       pop.style.cssText =
@@ -1956,7 +1848,6 @@
         "background:linear-gradient(90deg,#580076 0%,#E200A9 100%);";
     }
 
-    // Modal
     var modal = document.getElementById("fdcp-day-modal");
     if (modal) {
       modal.style.cssText =
@@ -1977,16 +1868,60 @@
     }
   }
 
+  // runs before the Sheet fetch — thumbnails paint immediately on page load
+  function initHighlightsGalleryCTA() {
+    var framesHost = document.getElementById("fdcp-hg-frames");
+    if (framesHost) {
+      var html = HIGHLIGHTS_THUMBS.map(function (t) {
+        var safeSrc = String(t.src || "").replace(/"/g, "&quot;");
+        var safeCap = String(t.caption || "").replace(/[<>&"]/g, function (ch) {
+          return ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", "\"":"&quot;" })[ch];
+        });
+        return ''
+          + '<div class="fdcp-hg-frame" style="position:relative;flex:1 1 0;aspect-ratio:16/10;'
+          +   'border-radius:6px;overflow:hidden;background-color:#2B1A00;'
+          +   'box-shadow:inset 0 0 0 1px rgba(255,204,0,0.35);">'
+          +   '<img src="' + safeSrc + '" alt="" loading="lazy" width="320" height="200" '
+          +     'style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;'
+          +     'transition:transform 0.5s cubic-bezier(.2,.7,.2,1);"'
+          +     ' onerror="this.style.display=&quot;none&quot;;this.parentNode.style.backgroundImage=&quot;linear-gradient(135deg,#CC8500 0%,#FFCC00 100%)&quot;">'
+          +   '<div class="fdcp-hg-caption" aria-hidden="true" '
+          +     'style="position:absolute;left:0;right:0;bottom:0;padding:10px 12px;'
+          +     'background-color:rgba(18,10,0,0.82);background-image:linear-gradient(180deg,rgba(18,10,0,0) 0%,rgba(18,10,0,0.9) 100%);'
+          +     'color:#FFCC00;font-family:\'Oswald\',\'Bebas Neue\',\'Arial Narrow\',sans-serif;'
+          +     'font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;line-height:1.2;'
+          +     'transform:translateY(100%);opacity:0;transition:transform 0.35s cubic-bezier(.2,.7,.2,1),opacity 0.35s ease;">'
+          +     safeCap
+          +   '</div>'
+          + '</div>';
+      }).join("");
+      framesHost.innerHTML = html;
+    }
+
+    // role="link" + JS click/keydown — safe in Drupal (no block-level a wrapping)
+    var cards = document.querySelectorAll(".fdcp-hg-card[data-href]");
+    cards.forEach(function (card) {
+      card.addEventListener("click", function (e) {
+        if (e.target.closest("a")) return;
+        window.open(card.getAttribute("data-href"), "_blank", "noopener");
+      });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          window.open(card.getAttribute("data-href"), "_blank", "noopener");
+        }
+      });
+    });
+  }
+
   function init() {
     applyBaseStyles();
+    initHighlightsGalleryCTA();
 
-    // Restore the user's filter + page choice from the last visit in this tab.
     loadState();
     syncChipActiveState();
 
-    // Show the calendar shell (month title + day cells) immediately, so it's
-    // visible before the Google Sheet fetch resolves. Events paint in later
-    // via ingest() → renderCalendar().
+    // render calendar shell immediately; events fill in after ingest()
     var today = new Date();
     CAL_VIEW.year  = today.getFullYear();
     CAL_VIEW.month = today.getMonth();
@@ -2004,7 +1939,6 @@
     });
     setupJumpPopover();
 
-    // Filter chips — delegated click handler; reset to page 1 on filter change.
     var filtersEl = document.getElementById("fdcp-events-filters");
     if (filtersEl) {
       filtersEl.addEventListener("click", function (e) {
@@ -2023,8 +1957,7 @@
       });
     }
 
-    // Pagination — delegated click handler on the nav. Smooth-scrolls to the chips
-    // row so users can refilter without re-finding it; respects reduced-motion.
+    // smooth-scrolls to filters on page change; respects prefers-reduced-motion
     var paginationEl = document.getElementById("fdcp-events-pagination");
     if (paginationEl) {
       paginationEl.addEventListener("click", function (e) {
@@ -2041,8 +1974,6 @@
       });
     }
 
-    // Events container — handles the "Skip to next →" link inside an empty window
-    // and the "Show all upcoming events" reset link inside a bounded empty slice.
     var containerEl = document.getElementById("fdcp-events-container");
     if (containerEl) {
       containerEl.addEventListener("click", function (e) {
