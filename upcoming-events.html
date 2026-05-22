@@ -180,37 +180,6 @@
     }
   }
 
-  /* Highlights Gallery CTA — animations are enhancement only; the card
-     reads correctly from inline styles if Drupal strips this block. */
-  @keyframes fdcpHgBlink { 0%,60%,100% { opacity:1; } 70%,90% { opacity:0.25; } }
-  .fdcp-hg-card { transition: transform 0.35s cubic-bezier(.2,.7,.2,1), box-shadow 0.35s cubic-bezier(.2,.7,.2,1) !important; }
-  .fdcp-hg-card:hover { transform: translateY(-3px) !important; box-shadow: 0 30px 80px -28px rgba(204,133,0,0.55) !important; }
-  .fdcp-hg-card:hover .fdcp-hg-arrow { transform: translateX(6px) !important; }
-  .fdcp-hg-dot { animation: fdcpHgBlink 1.8s ease-in-out infinite !important; }
-  .fdcp-hg-frame { transition: transform 0.35s cubic-bezier(.2,.7,.2,1) !important; }
-  .fdcp-hg-frame:hover { transform: translateY(-6px) !important; }
-  .fdcp-hg-frame:hover .fdcp-hg-caption { transform: translateY(0) !important; opacity: 1 !important; }
-  @media (max-width: 720px) {
-    .fdcp-hg-grid { grid-template-columns: 1fr !important; }
-    .fdcp-hg-copy { border-right: none !important; border-bottom: 1px dashed rgba(204,133,0,0.25) !important; padding: 28px 24px !important; }
-    .fdcp-hg-headline { font-size: 32px !important; }
-    .fdcp-hg-chip { width: 100% !important; align-self: stretch !important; }
-    #fdcp-hg-frames {
-      overflow-x: auto !important;
-      scroll-snap-type: x mandatory !important;
-      -webkit-overflow-scrolling: touch !important;
-      padding: 14px !important;
-      gap: 8px !important;
-    }
-    #fdcp-hg-frames > * {
-      flex: 0 0 70% !important;
-      scroll-snap-align: start !important;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .fdcp-hg-card, .fdcp-hg-frame, .fdcp-hg-dot, .fdcp-hg-arrow { animation: none !important; transition: none !important; }
-  }
-
   /* Drupal's Tailwind subset misses text-[44px]/text-[75px], so set the day
      size here. Inline font-size on the span is the mobile fallback. */
   .fdcp-card-day { font-size: 60px !important; line-height: 0.95 !important; }
@@ -309,10 +278,7 @@
   }
 
   .fdcp-month-header {
-    position: sticky !important;
-    top: 0 !important;
     background: transparent !important;
-    z-index: 5 !important;
     padding: 8px 0 !important;
     margin: 0 !important;
     font-size: 18px !important;
@@ -490,86 +456,6 @@
     </div>
   </div>
 
-  <!-- highlights gallery CTA strip — between calendar and events list -->
-  <div style="padding:48px 24px;background-color:#FFF8E7;background-image:linear-gradient(180deg,#FFF8E7 0%,#FFE7B3 100%);">
-    <div class="fdcp-hg-card"
-         role="link" tabindex="0"
-         data-href="https://fdcp.ph/highlights-gallery"
-         aria-label="Browse the FDCP Highlights Gallery"
-         style="position:relative;max-width:1200px;margin:0 auto;background-color:#ffffff;border-radius:24px;overflow:hidden;border:1px solid rgba(204,133,0,0.22);box-shadow:0 24px 60px -28px rgba(204,133,0,0.45);cursor:pointer;transition:transform 0.35s cubic-bezier(.2,.7,.2,1),box-shadow 0.35s cubic-bezier(.2,.7,.2,1);">
-
-      <div class="fdcp-hg-grid" style="display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:0;align-items:stretch;">
-
-        <!-- LEFT: Copy + CTA — warm cream wash, deep purple eyebrow accent
-             so the brand purple still anchors the section despite the
-             amber-dominant palette. -->
-        <div class="fdcp-hg-copy" style="padding:36px 32px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;background-color:#ffffff;background-image:linear-gradient(180deg,#ffffff 0%,#FFF6D9 100%);border-right:1px dashed rgba(204,133,0,0.25);">
-
-          <!-- Eyebrow — cream pill with deep amber text and a purple pulse dot -->
-          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background-color:#FFF1C7;border:1px solid rgba(204,133,0,0.32);font-size:10.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#7A4F00;">
-            <span class="fdcp-hg-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background-color:#580076;box-shadow:0 0 8px rgba(88,0,118,0.7);"></span>
-            <span>Highlights Gallery</span>
-          </div>
-
-          <!-- Headline — deep purple anchor + amber italic second line.
-               Solid colors only (no background-clip:text — Drupal strips
-               the vendor-prefixed rule, leaving invisible text). -->
-          <div>
-            <div class="fdcp-hg-headline" style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:42px;line-height:0.98;letter-spacing:-0.01em;color:#580076;text-transform:uppercase;">
-              The moments
-            </div>
-            <div class="fdcp-hg-headline" style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-style:italic;font-weight:700;font-size:42px;line-height:0.98;color:#CC8500;text-transform:uppercase;">
-              after the lights.
-            </div>
-            <p style="margin:18px 0 0 0;font-size:14px;line-height:1.55;color:#6B5A2E;">
-              Galleries, recap reels, and behind-the-scenes from past FDCP screenings, festivals, and forums.
-            </p>
-          </div>
-
-          <!-- CTA chip — gold→amber gradient with purple chip text (purple
-               is the accent, gold is the body). Arrow circle inverts to
-               deep purple for the strongest brand handshake. -->
-          <a href="https://fdcp.ph/highlights-gallery" target="_blank" rel="noopener"
-             class="fdcp-hg-chip"
-             style="display:inline-flex;align-items:center;justify-content:space-between;gap:14px;align-self:flex-start;padding:14px 18px 14px 22px;background-color:#FFCC00;background-image:linear-gradient(90deg,#FFCC00 0%,#CC8500 100%);color:#3B0050;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 14px 30px -12px rgba(204,133,0,0.65);">
-            <span>View Full Gallery</span>
-            <span class="fdcp-hg-arrow" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background-color:#580076;color:#FFCC00;line-height:0;transition:transform 0.35s cubic-bezier(.2,.7,.2,1);">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </span>
-          </a>
-        </div>
-
-        <!-- RIGHT: Contact-sheet thumbnail strip — flex column that fills
-             the card height so the frames center vertically and a small
-             tag-strip tucks at the bottom. Without the column flex layout,
-             the dark area collapses or leaves a big empty band. -->
-        <div class="fdcp-hg-stripcol" style="position:relative;display:flex;flex-direction:column;background-color:#1F1300;background-image:linear-gradient(135deg,#2B1A00 0%,#5C3A00 100%);overflow:hidden;">
-
-          <!-- Film-perforation strip along the top — warm brown sprockets -->
-          <div aria-hidden="true" style="display:flex;align-items:center;gap:8px;padding:8px 14px;background-color:#120A00;border-bottom:1px solid rgba(255,204,0,0.1);flex-shrink:0;">
-            <span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span><span style="display:block;width:18px;height:8px;background-color:#2B1A00;border-radius:2px;"></span>
-          </div>
-
-          <!-- The frames; populated by JS from HIGHLIGHTS_THUMBS. The
-               container grows to fill remaining column height (flex:1)
-               and centers the frames vertically so dark space above/below
-               feels like intentional matting, not leftover. -->
-          <div id="fdcp-hg-frames" style="display:flex;gap:8px;padding:24px 18px;flex:1;align-items:center;background-color:transparent;">
-            <!-- Frames injected here at runtime -->
-          </div>
-
-          <!-- mirrors event-details marquee — keeps both highlight CTAs reading as a family -->
-          <div aria-hidden="true" style="display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:14px;padding:10px 16px;background-color:#120A00;border-top:1px solid rgba(255,204,0,0.12);font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:0.24em;text-transform:uppercase;color:#FFCC00;white-space:nowrap;overflow:hidden;flex-shrink:0;">
-            <span>Event Highlights</span><span style="color:#E200A9;">★</span><span>Photo Gallery</span><span style="color:#580076;">★</span><span>Behind the Reels</span><span style="color:#E200A9;">★</span><span>Festivals</span><span style="color:#580076;">★</span><span>International</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="py-20 px-6 space-y-10 lg:py-[127px] lg:px-40 lg:space-y-20">
 
     <div class="max-w-screen-sm mx-auto text-center">
@@ -635,15 +521,6 @@
   var CACHE_KEY = "fdcp.events.v4";
   var REVALIDATE_MIN_GAP = 60 * 1000; // throttle focus-driven refetches
 
-  // HIGHLIGHTS GALLERY CTA
-  // edit these entries to curate the strip; upload images to /sites/default/files/<YYYY-MM>/ first
-  var HIGHLIGHTS_GALLERY_URL = "https://fdcp.ph/highlights-gallery";
-  var HIGHLIGHTS_THUMBS = [
-    { src: "/sites/default/files/2026-05/cinemalaya-night.webp",   caption: "Cinemalaya · MAY 2026" },
-    { src: "/sites/default/files/2026-04/qcinema-redcarpet.webp",  caption: "QCinema · APR 2026" },
-    { src: "/sites/default/files/2026-03/silakbo-screening.webp",  caption: "Silakbo · MAR 2026" },
-    { src: "/sites/default/files/2026-02/pelikulaya-opening.webp", caption: "Pelikulaya · FEB 2026" }
-  ];
   var MONTHS      = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
   var MONTHS_FULL = ["January","February","March","April","May","June",
                      "July","August","September","October","November","December"];
@@ -879,15 +756,6 @@
     return "";
   }
 
-  // Remarks is sometimes a URL ("fdcp.ph/..."), sometimes a freeform note
-  function asExternalUrl(s) {
-    if (!s) return null;
-    var v = String(s).trim();
-    if (!v || /\s/.test(v) || !/\./.test(v)) return null;
-    if (/^https?:\/\//i.test(v)) return v;
-    return "https://" + v;
-  }
-
   // FNV-1a hash — skip re-render if live data matches cached
   function hashCSV(s) {
     var h = 0x811c9dc5;
@@ -973,9 +841,7 @@
     var end   = parseSheetDate(row["End time/Date"]);
     var title = row["Event"] || "(untitled event)";
     var slug  = slugify(title);
-    var remarks    = (row["Remarks"] || "").trim();
-    var remarksUrl = asExternalUrl(remarks);
-    var detailHref = remarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slug));
+    var detailHref = DETAIL_URL + "?id=" + encodeURIComponent(slug);
 
     if (start) {
       setText(node, "month", MONTHS[start.getMonth()]);
@@ -992,24 +858,12 @@
     var ctaLink   = node.querySelector('[data-field="cta-link"]');
     titleLink.href = detailHref;
     ctaLink.href   = detailHref;
-    if (remarksUrl) {
-      titleLink.target = "_blank"; titleLink.rel = "noopener";
-      ctaLink.target   = "_blank"; ctaLink.rel   = "noopener";
-    }
 
     var desc = stripMarkdown(row["Descriptions"] || "");
     if (desc.length > 180) desc = desc.slice(0, 180).replace(/\s+\S*$/, "") + "…";
     setText(node, "description", desc);
     var descEl = node.querySelector('[data-field="description"]');
     if (descEl) descEl.style.whiteSpace = "pre-line";
-
-    // Freeform Remarks (not a URL) → render as a small italic note under the description.
-    if (remarks && !remarksUrl && descEl) {
-      var note = document.createElement("p");
-      note.style.cssText = "font-size:11px;color:#6b7280;font-style:italic;margin-top:6px;white-space:pre-line;";
-      note.textContent = remarks;
-      descEl.parentNode.insertBefore(note, descEl.nextSibling);
-    }
 
     var timeStr = fmtTime(start);
     if (end && fmtTime(end)) timeStr += (timeStr ? " - " : "") + fmtTime(end);
@@ -1192,7 +1046,7 @@
       header.className = "fdcp-month-header";
       header.textContent = MONTHS_FULL[g.month] + " " + g.year;
       header.style.cssText =
-        "position:sticky;top:0;background:transparent;z-index:5;padding:12px 0;margin:0;" +
+        "background:transparent;padding:12px 0;margin:0;" +
         "font-size:20px;font-weight:700;color:#580076;border-bottom:2px solid #F5F2FF;";
       frag.appendChild(header);
 
@@ -1601,10 +1455,8 @@
       segments.forEach(function (seg) {
         if (seg.slot >= visibleSlots) return;
         var a = document.createElement("a");
-        var pillRemarksUrl = asExternalUrl(seg.event.row["Remarks"]);
         var pillTitle = seg.event.row["Event"] || "(untitled event)";
-        a.href = pillRemarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(pillTitle)));
-        if (pillRemarksUrl) { a.target = "_blank"; a.rel = "noopener"; }
+        a.href = DETAIL_URL + "?id=" + encodeURIComponent(slugify(pillTitle));
         a.title = pillTitle;
         a.textContent = pillTitle;
         a.style.cssText =
@@ -1650,12 +1502,9 @@
         var hot;
         if (hits.length === 1) {
           var onlyEv = hits[0];
-          var hotRemarksUrl = asExternalUrl(onlyEv.row["Remarks"]);
           var hotTitle = onlyEv.row["Event"] || "(untitled event)";
           hot = document.createElement("a");
-          hot.href = hotRemarksUrl
-            || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(hotTitle)));
-          if (hotRemarksUrl) { hot.target = "_blank"; hot.rel = "noopener"; }
+          hot.href = DETAIL_URL + "?id=" + encodeURIComponent(slugify(hotTitle));
           hot.setAttribute("aria-label", "Open " + hotTitle);
           hot.style.cssText = hotStyle + "display:block;text-decoration:none;";
         } else {
@@ -1699,9 +1548,7 @@
     } else {
       dayHits.forEach(function (x) {
         var a = document.createElement("a");
-        var modalRemarksUrl = asExternalUrl(x.row["Remarks"]);
-        a.href = modalRemarksUrl || (DETAIL_URL + "?id=" + encodeURIComponent(slugify(x.row["Event"])));
-        if (modalRemarksUrl) { a.target = "_blank"; a.rel = "noopener"; }
+        a.href = DETAIL_URL + "?id=" + encodeURIComponent(slugify(x.row["Event"]));
         a.style.cssText =
           "display:block;padding:12px;border-radius:12px;text-decoration:none;color:#fff;" +
           "background:" + pillColor(x.row["Event"]) + ";";
@@ -1868,55 +1715,8 @@
     }
   }
 
-  // runs before the Sheet fetch — thumbnails paint immediately on page load
-  function initHighlightsGalleryCTA() {
-    var framesHost = document.getElementById("fdcp-hg-frames");
-    if (framesHost) {
-      var html = HIGHLIGHTS_THUMBS.map(function (t) {
-        var safeSrc = String(t.src || "").replace(/"/g, "&quot;");
-        var safeCap = String(t.caption || "").replace(/[<>&"]/g, function (ch) {
-          return ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", "\"":"&quot;" })[ch];
-        });
-        return ''
-          + '<div class="fdcp-hg-frame" style="position:relative;flex:1 1 0;aspect-ratio:16/10;'
-          +   'border-radius:6px;overflow:hidden;background-color:#2B1A00;'
-          +   'box-shadow:inset 0 0 0 1px rgba(255,204,0,0.35);">'
-          +   '<img src="' + safeSrc + '" alt="" loading="lazy" width="320" height="200" '
-          +     'style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;'
-          +     'transition:transform 0.5s cubic-bezier(.2,.7,.2,1);"'
-          +     ' onerror="this.style.display=&quot;none&quot;;this.parentNode.style.backgroundImage=&quot;linear-gradient(135deg,#CC8500 0%,#FFCC00 100%)&quot;">'
-          +   '<div class="fdcp-hg-caption" aria-hidden="true" '
-          +     'style="position:absolute;left:0;right:0;bottom:0;padding:10px 12px;'
-          +     'background-color:rgba(18,10,0,0.82);background-image:linear-gradient(180deg,rgba(18,10,0,0) 0%,rgba(18,10,0,0.9) 100%);'
-          +     'color:#FFCC00;font-family:\'Oswald\',\'Bebas Neue\',\'Arial Narrow\',sans-serif;'
-          +     'font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;line-height:1.2;'
-          +     'transform:translateY(100%);opacity:0;transition:transform 0.35s cubic-bezier(.2,.7,.2,1),opacity 0.35s ease;">'
-          +     safeCap
-          +   '</div>'
-          + '</div>';
-      }).join("");
-      framesHost.innerHTML = html;
-    }
-
-    // role="link" + JS click/keydown — safe in Drupal (no block-level a wrapping)
-    var cards = document.querySelectorAll(".fdcp-hg-card[data-href]");
-    cards.forEach(function (card) {
-      card.addEventListener("click", function (e) {
-        if (e.target.closest("a")) return;
-        window.open(card.getAttribute("data-href"), "_blank", "noopener");
-      });
-      card.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          window.open(card.getAttribute("data-href"), "_blank", "noopener");
-        }
-      });
-    });
-  }
-
   function init() {
     applyBaseStyles();
-    initHighlightsGalleryCTA();
 
     loadState();
     syncChipActiveState();

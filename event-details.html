@@ -66,7 +66,7 @@
 
           <!-- ===================================================================
               POST-EVENT HIGHLIGHTS CTA
-              Cinematic "After the Credits" module — film-strip + marquee aesthetic.
+              Quiet module — soft purple-tinted surface, brand-purple accent.
 
               Drupal-filter survival notes (learned the hard way on the live site):
               1. NEVER wrap block-level <div> children in an <a> — Drupal's HTML
@@ -84,24 +84,19 @@
                   brand colors instead.
           ==================================================================== -->
           <style>
-            @keyframes fdcpPeMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-            @keyframes fdcpPeBlink   { 0%,60%,100% { opacity:1; } 70%,90% { opacity:0.25; } }
-            @keyframes fdcpPeGlow    { 0%,100% { box-shadow:0 0 0 0 rgba(226,0,169,0.55), 0 30px 80px -20px rgba(88,0,118,0.55); }
-                                      50%     { box-shadow:0 0 0 6px rgba(226,0,169,0.0),  0 35px 90px -15px rgba(88,0,118,0.7); } }
-            .fdcp-pe-card { animation: fdcpPeGlow 4.2s ease-in-out infinite !important; }
-            .fdcp-pe-card:hover .fdcp-pe-arrow { transform: translateX(10px) !important; }
-            .fdcp-pe-card:hover .fdcp-pe-sheen { transform: translateX(220%) !important; }
-            .fdcp-pe-card:hover .fdcp-pe-headline-2 { letter-spacing:-0.01em !important; }
-            .fdcp-pe-marquee-track { animation: fdcpPeMarquee 22s linear infinite !important; }
-            .fdcp-pe-dot { animation: fdcpPeBlink 1.6s ease-in-out infinite !important; }
+            /* Post-Event Highlights CTA — quiet pass: brand-purple accent on
+               a soft purple-tinted surface. No marquee, no pulsing glow, no
+               sheen sweep — hierarchy comes from typography and the chip. */
+            .fdcp-pe-card { transition: border-color 0.3s ease, transform 0.3s cubic-bezier(.2,.7,.2,1) !important; }
+            .fdcp-pe-card:hover { border-color: rgba(88,0,118,0.28) !important; transform: translateY(-1px) !important; }
+            .fdcp-pe-card:hover .fdcp-pe-arrow { transform: translateX(4px) !important; }
             @media (max-width: 720px) {
-              .fdcp-pe-headline-1, .fdcp-pe-headline-2 { font-size:44px !important; line-height:0.95 !important; }
-              .fdcp-pe-row { flex-direction:column !important; align-items:flex-start !important; gap:28px !important; }
-              .fdcp-pe-arrow-chip { width:100% !important; justify-content:space-between !important; }
-              .fdcp-pe-bigword { font-size:88px !important; right:-12px !important; }
+              .fdcp-pe-headline-1, .fdcp-pe-headline-2 { font-size: 28px !important; line-height: 1.05 !important; }
+              .fdcp-pe-row { flex-direction: column !important; align-items: flex-start !important; gap: 24px !important; }
+              .fdcp-pe-arrow-chip { width: 100% !important; justify-content: space-between !important; }
             }
             @media (prefers-reduced-motion: reduce) {
-              .fdcp-pe-card, .fdcp-pe-marquee-track, .fdcp-pe-dot { animation:none !important; }
+              .fdcp-pe-card, .fdcp-pe-arrow { transition: none !important; transform: none !important; }
             }
           </style>
 
@@ -109,73 +104,46 @@
               role="link" tabindex="0"
               data-href="https://fdcp.ph/highlights-gallery"
               aria-label="Visit the FDCP Highlights Gallery"
-              style="display:block;position:relative;margin-top:48px;border-radius:24px;overflow:hidden;color:#fff;background-color:#1A0024;background-image:linear-gradient(135deg,#E200A9 0%,#7A0098 38%,#3B0050 78%,#1A0024 100%);border:1px solid rgba(255,255,255,0.08);cursor:pointer;">
-
-            <!-- Grain / noise overlay for filmic texture -->
-            <div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;opacity:0.18;mix-blend-mode:overlay;background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>');background-size:160px 160px;"></div>
-
-            <!-- Top film perforation strip -->
-            <div aria-hidden="true" style="position:relative;height:22px;background-color:#0B0010;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <div style="display:flex;gap:10px;flex:1;">
-                <span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span><span style="display:block;width:22px;height:10px;background-color:#1A0024;border-radius:2px;"></span>
-              </div>
-            </div>
+              style="display:block;position:relative;margin-top:48px;border-radius:20px;overflow:hidden;color:#1F0A2A;background-color:#F7F4FB;border:1px solid #ECE6F4;cursor:pointer;">
 
             <!-- Body -->
-            <div style="position:relative;padding:48px 40px 40px 40px;">
+            <div style="position:relative;padding:40px 36px;">
 
-              <!-- Faded oversized backdrop word -->
-              <div aria-hidden="true" class="fdcp-pe-bigword"
-                  style="position:absolute;top:50%;right:-20px;transform:translateY(-50%);font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:700;font-size:200px;line-height:0.8;letter-spacing:-0.04em;color:rgba(255,255,255,0.045);text-transform:uppercase;pointer-events:none;white-space:nowrap;">
-                REWIND
-              </div>
-
-              <!-- Eyebrow -->
-              <div style="position:relative;display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid rgba(255,255,255,0.22);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#FFCC00;background-color:rgba(11,0,16,0.5);backdrop-filter:blur(4px);">
-                <span class="fdcp-pe-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:#FF3D9A;box-shadow:0 0 10px #FF3D9A;"></span>
+              <!-- Eyebrow — small caps purple label, no pulse dot, no pill -->
+              <div style="display:inline-flex;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#580076;">
                 <span id="fdcp-pe-eyebrow">View The Highlights Gallery</span>
               </div>
 
-              <!-- Headline -->
-              <div style="position:relative;margin-top:22px;">
+              <!-- Headline — two solid lines. Line one in deep plum (anchor),
+                   line two in brand purple (emphasis). No italic, no gradient. -->
+              <div style="position:relative;margin-top:18px;">
                 <div id="fdcp-pe-headline-1" class="fdcp-pe-headline-1"
-                    style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:72px;line-height:0.92;letter-spacing:-0.015em;color:#ffffff;text-transform:uppercase;">
+                    style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:40px;line-height:1.02;letter-spacing:-0.015em;color:#1F0A2A;text-transform:uppercase;">
                   Missed it?
                 </div>
                 <div id="fdcp-pe-headline-2" class="fdcp-pe-headline-2"
-                    style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-style:italic;font-weight:700;font-size:72px;line-height:0.92;letter-spacing:0;color:#FFCC00;text-transform:uppercase;transition:letter-spacing 0.35s ease;">
+                    style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:40px;line-height:1.02;letter-spacing:-0.015em;color:#580076;text-transform:uppercase;">
                   Relive every frame.
                 </div>
               </div>
 
-              <!-- Row: copy + arrow CTA -->
-              <div class="fdcp-pe-row" style="position:relative;margin-top:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:48px;">
-                <p id="fdcp-pe-copy" style="max-width:520px;margin:0;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.78);">
+              <!-- Row: copy + chip CTA -->
+              <div class="fdcp-pe-row" style="position:relative;margin-top:24px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;">
+                <p id="fdcp-pe-copy" style="max-width:60ch;margin:0;font-size:14px;line-height:1.6;color:#5B5167;">
                   Photo recaps, behind-the-scenes reels, and stories from past FDCP screenings, festivals, and forums — all archived in one place.
                 </p>
 
                 <a href="https://fdcp.ph/highlights-gallery" target="_blank" rel="noopener"
                   class="fdcp-pe-arrow-chip"
-                  style="position:relative;display:inline-flex;align-items:center;gap:18px;padding:18px 24px 18px 28px;background-color:#ffffff;color:#1A0024;border-radius:999px;font-weight:700;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;overflow:hidden;box-shadow:0 18px 40px -15px rgba(255,61,154,0.55);flex-shrink:0;text-decoration:none;">
-                  <!-- Shimmer sheen -->
-                  <span aria-hidden="true" class="fdcp-pe-sheen"
-                        style="position:absolute;top:0;left:-60%;width:45%;height:100%;background-image:linear-gradient(110deg,transparent 0%,rgba(255,204,0,0.55) 50%,transparent 100%);transform:translateX(0);transition:transform 0.9s cubic-bezier(.2,.7,.2,1);pointer-events:none;"></span>
-                  <span id="fdcp-pe-chip-label" style="position:relative;">Visit Highlights Gallery</span>
-                  <span class="fdcp-pe-arrow" style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background-color:#E200A9;background-image:linear-gradient(135deg,#E200A9 0%,#580076 100%);color:#fff;line-height:0;transition:transform 0.4s cubic-bezier(.2,.7,.2,1);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
+                  style="display:inline-flex;align-items:center;gap:12px;padding:12px 20px;background-color:#580076;color:#ffffff;border-radius:9999px;font-weight:600;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;flex-shrink:0;">
+                  <span id="fdcp-pe-chip-label">Visit Highlights Gallery</span>
+                  <span class="fdcp-pe-arrow" style="display:inline-flex;align-items:center;justify-content:center;line-height:0;transition:transform 0.3s cubic-bezier(.2,.7,.2,1);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
                   </span>
                 </a>
-              </div>
-            </div>
-
-            <!-- Marquee strip -->
-            <div aria-hidden="true" style="position:relative;background-color:#0B0010;border-top:1px solid rgba(255,255,255,0.06);overflow:hidden;">
-              <div class="fdcp-pe-marquee-track"
-                  style="display:flex;width:max-content;padding:14px 0;font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.32em;text-transform:uppercase;color:rgba(255,255,255,0.55);white-space:nowrap;">
-                <span style="padding:0 22px;">Event Highlights</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">Photo Gallery</span><span style="padding:0 22px;color:#FFCC00;">★</span><span style="padding:0 22px;">Behind the Reels</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">Festivals</span><span style="padding:0 22px;color:#FFCC00;">★</span><span style="padding:0 22px;">Cinematheque Activities</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">International Highlights</span><span style="padding:0 22px;color:#FFCC00;">★</span><span style="padding:0 22px;">Event Highlights</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">Photo Gallery</span><span style="padding:0 22px;color:#FFCC00;">★</span><span style="padding:0 22px;">Behind the Reels</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">Festivals</span><span style="padding:0 22px;color:#FFCC00;">★</span><span style="padding:0 22px;">Cinematheque Activities</span><span style="padding:0 22px;color:#FF3D9A;">★</span><span style="padding:0 22px;">International Highlights</span><span style="padding:0 22px;color:#FFCC00;">★</span>
               </div>
             </div>
           </div>
@@ -814,6 +782,15 @@
         });
         photosGrid.style.display = "flex";
         mediaWrap.style.display = "";
+      }
+
+      // Hide the Post-Event Highlights CTA when this event already has its
+      // own video or photos — the CTA's job is to redirect to the gallery
+      // for events that haven't published media yet. Idempotent: re-render
+      // (cache → live) recomputes from mediaWrap, which was reset above.
+      var peCard = document.querySelector(".fdcp-pe-card[data-href]");
+      if (peCard) {
+        peCard.style.display = mediaWrap.style.display === "none" ? "" : "none";
       }
 
       // Remarks: only render a "Visit the FDCPchannel" button if it contains
