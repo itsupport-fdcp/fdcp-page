@@ -22,3 +22,7 @@ desktop.ini
 
 # Local data not meant for the repo
 schedule.json
+.playwright-mcp
+.tmp
+.agents
+
