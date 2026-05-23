@@ -1715,8 +1715,54 @@
     }
   }
 
+  // runs before the Sheet fetch — thumbnails paint immediately on page load
+  function initHighlightsGalleryCTA() {
+    var framesHost = document.getElementById("fdcp-hg-frames");
+    if (framesHost) {
+      var html = HIGHLIGHTS_THUMBS.map(function (t) {
+        var safeSrc = String(t.src || "").replace(/"/g, "&quot;");
+        var safeCap = String(t.caption || "").replace(/[<>&"]/g, function (ch) {
+          return ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", "\"":"&quot;" })[ch];
+        });
+        return ''
+          + '<div class="fdcp-hg-frame" style="position:relative;aspect-ratio:4/3;'
+          +   'border-radius:10px;overflow:hidden;background-color:#EFE9F4;'
+          +   'border:1px solid #ECE6F4;">'
+          +   '<img src="' + safeSrc + '" alt="" loading="lazy" width="320" height="240" '
+          +     'style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;"'
+          +     ' onerror="this.style.display=&quot;none&quot;;this.parentNode.style.backgroundColor=&quot;#EFE9F4&quot;">'
+          +   '<div class="fdcp-hg-caption" aria-hidden="true" '
+          +     'style="position:absolute;left:0;right:0;bottom:0;padding:8px 12px;'
+          +     'background-color:rgba(31,10,42,0.72);'
+          +     'color:#ffffff;font-family:\'Oswald\',\'Bebas Neue\',\'Arial Narrow\',sans-serif;'
+          +     'font-size:10.5px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;line-height:1.2;'
+          +     'transform:translateY(100%);opacity:0;transition:transform 0.3s cubic-bezier(.2,.7,.2,1),opacity 0.3s ease;">'
+          +     safeCap
+          +   '</div>'
+          + '</div>';
+      }).join("");
+      framesHost.innerHTML = html;
+    }
+
+    // role="link" + JS click/keydown — safe in Drupal (no block-level a wrapping)
+    var cards = document.querySelectorAll(".fdcp-hg-card[data-href]");
+    cards.forEach(function (card) {
+      card.addEventListener("click", function (e) {
+        if (e.target.closest("a")) return;
+        window.open(card.getAttribute("data-href"), "_blank", "noopener");
+      });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          window.open(card.getAttribute("data-href"), "_blank", "noopener");
+        }
+      });
+    });
+  }
+
   function init() {
     applyBaseStyles();
+    initHighlightsGalleryCTA();
 
     loadState();
     syncChipActiveState();
