@@ -13,6 +13,8 @@
     .fdcp-gal-root {
       font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100% !important;
     }
     .fdcp-gal-root * { box-sizing: border-box !important; }
 
@@ -628,13 +630,17 @@
 
     /* ============ EVENT PHOTOS (placeholder) ============ */
     .fdcp-photos-block { margin-top: 40px !important; }
-    .fdcp-photos-block + .fdcp-photos-block { margin-top: 60px !important; }
+    .fdcp-photos-block + .fdcp-photos-block {
+      margin-top: 48px !important;
+      padding-top: 48px !important;
+      border-top: 1px solid #e5e7eb !important;
+    }
     .fdcp-photos-header {
       display: flex !important;
       justify-content: space-between !important;
-      align-items: flex-start !important;
+      align-items: center !important;
       gap: 40px !important;
-      margin-bottom: 20px !important;
+      margin-bottom: 14px !important;
       flex-wrap: wrap !important;
     }
     .fdcp-photos-controls { margin-top: 4px !important; }
@@ -1378,10 +1384,10 @@
     }
   </style>
 
-  <div class="fdcp-gal-root">
+  <div class="fdcp-gal-root" style="width:100%;max-width:100%;overflow-x:hidden;">
 
     <!-- ============ HERO ============ -->
-    <div class="relative w-full" style="height:18rem;">
+    <div class="relative w-full" style="position:relative;width:100%;height:18rem;overflow:hidden;">
       <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg"
           class="absolute inset-0 object-cover w-full h-full" alt="">
       <div class="absolute inset-0 z-10" style="background:linear-gradient(120deg,rgba(88,0,118,0.78) 0%,rgba(226,0,169,0.55) 100%);"></div>
@@ -3456,12 +3462,12 @@
 
       return ''
         + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '">'
-        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin-bottom:20px;flex-wrap:wrap;">'
+        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:center;gap:40px;margin-bottom:14px;flex-wrap:wrap;">'
         +     '<div class="fdcp-photos-info" style="flex:1 1 320px;min-width:0;">'
-        +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 10px;">' + escapeAttr(e.title) + '</h3>'
+        +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
         +       '<p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:0;">' + desc + '</p>'
         +     '</div>'
-        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0;">'
+        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:row;align-items:center;gap:10px;flex-shrink:0;">'
         +       '<button type="button" class="fdcp-view-all-btn" style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:8px 28px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.20);">View all</button>'
         +       '<div class="fdcp-actions-row" style="display:flex;align-items:center;gap:10px;">'
         +         '<button type="button" class="fdcp-arrow-circle is-prev" aria-label="Previous photos" style="width:38px;height:38px;border-radius:9999px;background:#fff;border:1.5px solid #1f2937;color:#1f2937;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;line-height:1;">'
@@ -4037,7 +4043,7 @@
     //   1. Section title (Photo Gallery) + search/filter chips
     //   2. Photo carousel
     //   3. View-all + prev/next arrows
-    //   4. Event name (h3) + description (both pushed to the bottom)
+    //   4. Event name (h3) + description (both placed above the grid)
     // On desktop the original DOM layout is restored.
     function reorderPhotosForMobile() {
       var isMobile = window.innerWidth <= 992;
@@ -4046,48 +4052,55 @@
         var eventName  = block.querySelector(".fdcp-photos-event");
         var desc       = block.querySelector(".fdcp-photos-desc");
         var controls   = block.querySelector(".fdcp-photos-controls");
+        var header     = block.querySelector(".fdcp-photos-header");
         var viewAllBtn = block.querySelector(".fdcp-view-all-btn");
         var actionsRow = block.querySelector(".fdcp-actions-row");
         var grid       = block.querySelector(".fdcp-photos-grid");
         if (!grid) return;
 
         if (isMobile) {
-          // Move arrows row to AFTER the grid
+          // Move event name ABOVE the grid
+          if (eventName && eventName.parentNode !== block) {
+            block.insertBefore(eventName, grid);
+            eventName.style.marginTop = "0";
+            eventName.style.marginBottom = "4px";
+            eventName.style.textAlign = "center";
+          }
+          // Move description above the grid (right after event name)
+          if (desc && desc.parentNode !== block) {
+            block.insertBefore(desc, grid);
+            desc.style.marginTop = "0";
+            desc.style.marginBottom = "16px";
+            desc.style.maxWidth = "100%";
+            desc.style.width = "100%";
+            desc.style.textAlign = "center";
+            desc.style.padding = "0 4px";
+          }
+          // Hide the now-empty header so it leaves no gap
+          if (header) header.style.display = "none";
+          // Move arrows row AFTER the grid
           if (actionsRow && actionsRow.parentNode !== block) {
             block.appendChild(actionsRow);
             actionsRow.style.marginTop = "20px";
             actionsRow.style.width = "100%";
             actionsRow.style.justifyContent = "center";
           }
-          // Move View all button after arrows
+          // Move View all button after arrows, centered via auto margins
           if (viewAllBtn && viewAllBtn.parentNode !== block) {
             block.appendChild(viewAllBtn);
             viewAllBtn.style.marginTop = "10px";
-            viewAllBtn.style.alignSelf = "center";
+            viewAllBtn.style.marginLeft = "auto";
+            viewAllBtn.style.marginRight = "auto";
             viewAllBtn.style.display = "block";
           }
-          // Move event name below controls
-          if (eventName && eventName.parentNode !== block) {
-            block.appendChild(eventName);
-            eventName.style.marginTop = "22px";
-            eventName.style.marginBottom = "4px";
-            eventName.style.textAlign = "center";
-          }
-          // Move description to the very end (under event name)
-          if (desc && desc.parentNode !== block) {
-            block.appendChild(desc);
-            desc.style.marginTop = "0";
-            desc.style.maxWidth = "100%";
-            desc.style.width = "100%";
-            desc.style.textAlign = "center";
-            desc.style.padding = "0 4px";
-          }
         } else {
-          // Restore desktop: View all first, arrows after — both back into controls.
+          // Restore desktop: show header, View all first, arrows after — both back into controls.
+          if (header) header.style.display = "";
           if (viewAllBtn && controls && viewAllBtn.parentNode !== controls) {
             controls.insertBefore(viewAllBtn, controls.firstChild);
             viewAllBtn.style.marginTop = "";
-            viewAllBtn.style.alignSelf = "";
+            viewAllBtn.style.marginLeft = "";
+            viewAllBtn.style.marginRight = "";
             viewAllBtn.style.display = "";
           }
           if (actionsRow && controls && actionsRow.parentNode !== controls) {
@@ -4106,6 +4119,7 @@
           if (desc && info && desc.parentNode !== info) {
             info.appendChild(desc);
             desc.style.marginTop = "";
+            desc.style.marginBottom = "";
             desc.style.maxWidth = "";
             desc.style.width = "";
             desc.style.textAlign = "";
@@ -4154,13 +4168,17 @@
           "scroll-snap-align:start;";
       });
 
-      // Photos header — flex row that wraps on narrow screens
+      // Photos header — hidden on mobile (elements are reordered by reorderPhotosForMobile),
+      // flex row on desktop.
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-header"), function (el) {
         var stack = w <= 992;
-        el.style.cssText =
-          "display:flex;" +
-          (stack ? "flex-direction:column;align-items:stretch;gap:20px;" : "justify-content:space-between;align-items:flex-start;gap:40px;") +
-          "margin-bottom:20px;flex-wrap:wrap;";
+        if (stack) {
+          el.style.display = "none";
+        } else {
+          el.style.cssText =
+            "display:flex;justify-content:space-between;align-items:flex-start;gap:40px;" +
+            "margin-bottom:20px;flex-wrap:wrap;";
+        }
       });
 
       // Photo controls — center on mobile (≤992px), right-align on desktop.
