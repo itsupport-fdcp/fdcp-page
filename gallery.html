@@ -81,22 +81,19 @@
       scroll-behavior: smooth !important;
       padding: 4px 4px 14px !important;
       scrollbar-width: thin !important;
-      scrollbar-color: #580076 rgba(245, 242, 255, 0.6) !important;
+      scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
     }
     #fdcp-stories-track::-webkit-scrollbar {
       height: 6px !important;
       width: 6px !important;
     }
-    #fdcp-stories-track::-webkit-scrollbar-track {
-      background: rgba(245, 242, 255, 0.6) !important;
-      border-radius: 9999px !important;
-    }
+    #fdcp-stories-track::-webkit-scrollbar-track { background: transparent !important; }
     #fdcp-stories-track::-webkit-scrollbar-thumb {
-      background: linear-gradient(90deg, #580076 0%, #E200A9 100%) !important;
+      background: rgba(0, 0, 0, 0.18) !important;
       border-radius: 9999px !important;
     }
     #fdcp-stories-track::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(90deg, #6a0090 0%, #ff14bd 100%) !important;
+      background: rgba(0, 0, 0, 0.32) !important;
     }
 
     .fdcp-story-card {
@@ -244,6 +241,20 @@
       overflow-y: auto !important;
       color: #fff !important;
       -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+    }
+    .fdcp-focus-sidebar::-webkit-scrollbar {
+      width: 6px !important;
+      height: 6px !important;
+    }
+    .fdcp-focus-sidebar::-webkit-scrollbar-track { background: transparent !important; }
+    .fdcp-focus-sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border-radius: 9999px !important;
+    }
+    .fdcp-focus-sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.38) !important;
     }
     .fdcp-focus-sidebar-title {
       font-size: 22px !important;
@@ -802,23 +813,20 @@
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       scrollbar-width: thin !important;
-      scrollbar-color: #580076 rgba(245, 242, 255, 0.6) !important;
+      scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
       padding: 2px 2px 10px !important;
     }
     .fdcp-photos-grid::-webkit-scrollbar {
       height: 6px !important;
       width: 6px !important;
     }
-    .fdcp-photos-grid::-webkit-scrollbar-track {
-      background: rgba(245, 242, 255, 0.6) !important;
-      border-radius: 9999px !important;
-    }
+    .fdcp-photos-grid::-webkit-scrollbar-track { background: transparent !important; }
     .fdcp-photos-grid::-webkit-scrollbar-thumb {
-      background: linear-gradient(90deg, #580076 0%, #E200A9 100%) !important;
+      background: rgba(0, 0, 0, 0.18) !important;
       border-radius: 9999px !important;
     }
     .fdcp-photos-grid::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(90deg, #6a0090 0%, #ff14bd 100%) !important;
+      background: rgba(0, 0, 0, 0.32) !important;
     }
     .fdcp-photo-card {
       position: relative !important;
@@ -1496,7 +1504,7 @@
         </div>
 
         <div id="fdcp-stories-track" role="list" aria-label="Event stories"
-            style="display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 4px 24px;">
+            style="display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;">
           <!-- cards injected by JS -->
         </div>
       </div>
@@ -1586,7 +1594,7 @@
 
       <!-- Sidebar: all stories, click to switch -->
       <aside class="fdcp-focus-sidebar"
-            style="flex:0 0 300px;background:rgba(0,0,0,0.45);border-radius:16px;padding:56px 12px 16px;overflow-y:auto;color:#fff;">
+            style="flex:0 0 300px;background:rgba(0,0,0,0.45);border-radius:16px;padding:56px 12px 16px;overflow-y:auto;color:#fff;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;">
         <h2 class="fdcp-focus-sidebar-title"
             style="font-size:22px;font-weight:800;color:#fff;margin:0 0 14px;padding:0 8px;">FDCP Stories</h2>
         <div id="fdcp-focus-story-list" class="fdcp-focus-story-list"
@@ -3554,7 +3562,7 @@
         +       '</div>'
         +     '</div>'
         +   '</div>'
-        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#580076 rgba(245,242,255,0.6);padding:2px 2px 10px;">'
+        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;padding:2px 2px 10px;">'
         +     cards
         +   '</div>'
         + '</div>';
@@ -4317,10 +4325,33 @@
       }
     }
 
+    // Inject scrollbar styles at runtime. Drupal strips the document <style>
+    // block in block context, which kills ::-webkit-scrollbar pseudo-elements
+    // (they can't be inline). A JS-appended <style> survives because the
+    // filter runs on stored markup, not on runtime DOM. Idempotent.
+    function ensureScrollbarStyles() {
+      if (document.getElementById("fdcp-scrollbar-styles")) return;
+      var s = document.createElement("style");
+      s.id = "fdcp-scrollbar-styles";
+      s.textContent =
+        "#fdcp-stories-track,.fdcp-photos-grid{scrollbar-width:thin !important;scrollbar-color:rgba(0,0,0,0.18) transparent !important;}" +
+        "#fdcp-stories-track::-webkit-scrollbar,.fdcp-photos-grid::-webkit-scrollbar{height:6px !important;width:6px !important;}" +
+        "#fdcp-stories-track::-webkit-scrollbar-track,.fdcp-photos-grid::-webkit-scrollbar-track{background:transparent !important;}" +
+        "#fdcp-stories-track::-webkit-scrollbar-thumb,.fdcp-photos-grid::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18) !important;border-radius:9999px !important;}" +
+        "#fdcp-stories-track::-webkit-scrollbar-thumb:hover,.fdcp-photos-grid::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.32) !important;}" +
+        ".fdcp-focus-sidebar{scrollbar-width:thin !important;scrollbar-color:rgba(255,255,255,0.2) transparent !important;}" +
+        ".fdcp-focus-sidebar::-webkit-scrollbar{width:6px !important;height:6px !important;}" +
+        ".fdcp-focus-sidebar::-webkit-scrollbar-track{background:transparent !important;}" +
+        ".fdcp-focus-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2) !important;border-radius:9999px !important;}" +
+        ".fdcp-focus-sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.38) !important;}";
+      document.head.appendChild(s);
+    }
+
     // Drupal block-context filters can strip the <style> block entirely.
     // Re-assert the layout-critical rules on every host element so the page
     // still renders correctly (gutters, grids, controls) when CSS is gone.
     function applyBaseStyles() {
+      ensureScrollbarStyles();
       // Section shells — guarantee left/right gutters and centered max-width
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-gal-shell"), function (el) {
         el.style.cssText = "max-width:1280px;margin:0 auto;padding:0 24px;";
@@ -4333,7 +4364,7 @@
           "display:flex;flex-wrap:nowrap;gap:16px;width:100%;" +
           "overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;" +
           "scroll-behavior:smooth;scrollbar-width:thin;" +
-          "scrollbar-color:#580076 rgba(245,242,255,0.6);padding:2px 2px 10px;";
+          "scrollbar-color:rgba(0,0,0,0.18) transparent;padding:2px 2px 10px;";
       });
 
       // Photo cards — fixed width per breakpoint so they slide cleanly
