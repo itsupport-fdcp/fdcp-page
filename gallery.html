@@ -646,12 +646,11 @@
       display: flex !important;
       justify-content: space-between !important;
       align-items: flex-start !important;
-      gap: 40px !important;
+      gap: 24px !important;
       margin-bottom: 14px !important;
-      flex-wrap: wrap !important;
     }
-    .fdcp-photos-controls { margin-left: auto !important; }
-    .fdcp-photos-info { flex: 1 1 320px !important; min-width: 0 !important; }
+    .fdcp-photos-controls { flex-shrink: 0 !important; }
+    .fdcp-photos-info { flex: 1 1 0 !important; min-width: 0 !important; }
     .fdcp-photos-title {
       font-size: 36px !important;
       font-weight: 800 !important;
@@ -3469,8 +3468,8 @@
 
       return ''
         + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '" style="margin-top:40px;padding-bottom:40px;">'
-        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin-bottom:14px;flex-wrap:wrap;">'
-        +     '<div class="fdcp-photos-info" style="flex:1 1 320px;min-width:0;">'
+        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:14px;">'
+        +     '<div class="fdcp-photos-info" style="flex:1 1 0;min-width:0;">'
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
         +       '<p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:0;">' + desc + '</p>'
         +     '</div>'
@@ -4200,8 +4199,7 @@
           el.style.display = "none";
         } else {
           el.style.cssText =
-            "display:flex;justify-content:space-between;align-items:flex-start;gap:40px;" +
-            "margin-bottom:20px;flex-wrap:wrap;";
+            "display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:14px;";
         }
       });
 
@@ -4226,7 +4224,7 @@
           el.style.width = "100%";
           el.style.display = "block";
         } else {
-          el.style.flex = "1 1 320px";
+          el.style.flex = "1 1 0";
           el.style.width = "";
           el.style.display = "";
         }
@@ -4242,6 +4240,32 @@
           el.style.display = "";
         }
       });
+
+      // Main search toolbar: collapse to a full-width column on mobile so the
+      // search input never overflows the viewport.
+      var toolbar = document.querySelector(".fdcp-photos-toolbar");
+      if (toolbar) {
+        toolbar.style.cssText = photoStack
+          ? "display:flex;flex-direction:column;align-items:stretch;gap:16px;margin-bottom:32px;width:100%;box-sizing:border-box;"
+          : "display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin-bottom:48px;flex-wrap:wrap;width:100%;";
+      }
+      var toolbarControls = document.querySelector(".fdcp-photos-toolbar-controls");
+      if (toolbarControls) {
+        toolbarControls.style.cssText = photoStack
+          ? "display:flex;align-items:center;gap:12px;width:100%;min-width:0;box-sizing:border-box;"
+          : "display:flex;align-items:center;gap:12px;flex:0 0 420px;min-width:0;";
+      }
+      var searchWrap = document.querySelector(".fdcp-search-wrap");
+      if (searchWrap) {
+        searchWrap.style.cssText =
+          "position:relative;display:flex;align-items:center;flex:1 1 auto;width:100%;min-width:0;box-sizing:border-box;";
+      }
+      var searchInput = document.getElementById("fdcp-photo-search");
+      if (searchInput) {
+        searchInput.style.width = "100%";
+        searchInput.style.minWidth = "0";
+        searchInput.style.boxSizing = "border-box";
+      }
 
       // Gradient buttons — Drupal can strip linear-gradient() from inline styles.
       // Force background-color so the pill is never invisible white-on-white.
