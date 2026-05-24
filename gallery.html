@@ -654,6 +654,53 @@
       box-shadow: 0 10px 24px rgba(88, 0, 118, 0.32) !important;
     }
 
+    /* ============ VIDEO DESCRIPTION STRIP ============ */
+    #fdcp-video-desc {
+      text-align: center !important;
+      margin: 20px auto 0 !important;
+      max-width: 68% !important;
+      transition: opacity 220ms ease !important;
+    }
+    #fdcp-video-desc.is-fading { opacity: 0 !important; }
+    .fdcp-vd-counter {
+      display: inline-block !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.1em !important;
+      text-transform: uppercase !important;
+      color: #E200A9 !important;
+      background: rgba(226, 0, 169, 0.08) !important;
+      border-radius: 9999px !important;
+      padding: 3px 12px !important;
+      margin-bottom: 10px !important;
+    }
+    .fdcp-vd-title {
+      font-size: 22px !important;
+      font-weight: 800 !important;
+      margin: 0 0 4px !important;
+      background-color: #580076 !important;
+      background-image: linear-gradient(90deg, #580076 0%, #E200A9 100%) !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      color: #580076 !important;
+    }
+    .fdcp-vd-date {
+      font-size: 12px !important;
+      color: #6b7280 !important;
+      margin: 0 0 10px !important;
+    }
+    .fdcp-vd-text {
+      font-size: 14px !important;
+      color: #374151 !important;
+      line-height: 1.6 !important;
+      margin: 0 !important;
+    }
+    @media (max-width: 768px) {
+      #fdcp-video-desc { max-width: 100% !important; }
+      .fdcp-vd-title { font-size: 18px !important; }
+    }
+
     /* ============ EVENT PHOTOS (placeholder) ============ */
     .fdcp-photos-block {
       margin-top: 40px !important;
@@ -1539,6 +1586,18 @@
           </div>
         </div>
 
+        <div id="fdcp-video-desc"
+             style="text-align:center;margin:20px auto 0;max-width:68%;transition:opacity 220ms ease;">
+          <div class="fdcp-vd-counter" id="fdcp-vd-counter"
+               style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#E200A9;background:rgba(226,0,169,0.08);border-radius:9999px;padding:3px 12px;margin-bottom:10px;">—</div>
+          <p class="fdcp-vd-title" id="fdcp-vd-title"
+             style="font-size:22px;font-weight:800;margin:0 0 4px;background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#580076;">—</p>
+          <p class="fdcp-vd-date" id="fdcp-vd-date"
+             style="font-size:12px;color:#6b7280;margin:0 0 10px;">—</p>
+          <p class="fdcp-vd-text" id="fdcp-vd-text"
+             style="font-size:14px;color:#374151;line-height:1.6;margin:0;"></p>
+        </div>
+
         <div class="fdcp-view-all-wrap" style="margin-top:28px;display:flex;justify-content:center;width:100%;">
           <button type="button" class="fdcp-view-all-btn"
                   style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:10px 36px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.25);">View all</button>
@@ -2115,7 +2174,7 @@
         "Event": "PPP 2026 Opening Night",
         "Start time/Date": "8/12/2026 18:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480, " +
@@ -2141,7 +2200,7 @@
         "Event": "Cinematheque Spotlight — March",
         "Start time/Date": "3/30/2026 19:30",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)": "TBA",
         "Descriptions": "Featured short film of the week.",
         "Descriptions_html": "Featured short film of the week."
@@ -2201,7 +2260,7 @@
         "Event": "Sine Kabataan 2026",
         "Start time/Date": "4/10/2026 14:00",
         "Event Poster": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8",
-        "Video Link": "https://www.youtube.com/watch?v=HH9Jy9ye6dQ",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704558556_1402337848606239_7656643794134414785_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGznZbtGwoYvZ9nAFJF_m6lA-2bCUOCWRED7ZsJQ4JZEYv9SYGhyQAyk1axqcTcKTFuJzurxLjeBuSBQ_arZxsy&_nc_ohc=_EMF9NhDRqUQ7kNvwGFACPT&_nc_oc=Adrn8r0BmZrQuLy746MpRgLbwWelIxGG_RHadAHeVhKf76twTxiIHM4NCz6CDr8EpxU&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7eP1hkRfzjrRiv66ZJ1z0AWyTHgGX2sqB2KQywnfVLCQ&oe=6A17A048, " +
           "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/701234645_1400837215422969_910024190249438787_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=104&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFxJvhXnTuOa-6lNhPnNDTajZw2uMoz-X2NnDa4yjP5fYm3ktTRTJmYxSrP446urVG_yJkrApW_Yo4Kqxu97l2n&_nc_ohc=57phCSO0rrEQ7kNvwEoF0Te&_nc_oc=AdoRr-MadZ6wIplaVy8bqVhBKw5W6PY6Jk68Ar7e3DchSHA427ojYQpfhU3WQtF3vAo&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af6v_5OSZABrhDvebvf7pJhqBlfjVmuB_ycJ6_5XkgIY1g&oe=6A177D68, " +
@@ -2226,7 +2285,7 @@
         "Event": "Script Development Lab — Q1",
         "Start time/Date": "3/15/2026 09:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745968_1402339035272787_6237206099700062114_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeF7Bp50N68LL1xNY4OfvhuwgGUFa57OqTOAZQVrns6pMzIkCtGToQaPHzvCeTIl6Bvt7RS3MF52rj8mopsLlA11&_nc_ohc=A0dYT_A8HWEQ7kNvwH8fZLw&_nc_oc=AdoHv-XLbtSmRbbrAtoRaVObCQVULk7UKdCvA0fPCwsULMgZL_0FV6SmXVdWzrwFTVE&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af6ZAT0vzIv2Ixb0gCKBr-cEV8D6_zJN01sK9mDGcJTl7w&oe=6A17994B",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745968_1402339035272787_6237206099700062114_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeF7Bp50N68LL1xNY4OfvhuwgGUFa57OqTOAZQVrns6pMzIkCtGToQaPHzvCeTIl6Bvt7RS3MF52rj8mopsLlA11&_nc_ohc=A0dYT_A8HWEQ7kNvwH8fZLw&_nc_oc=AdoHv-XLbtSmRbbrAtoRaVObCQVULk7UKdCvA0fPCwsULMgZL_0FV6SmXVdWzrwFTVE&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af6ZAT0vzIv2Ixb0gCKBr-cEV8D6_zJN01sK9mDGcJTl7w&oe=6A17994B, " +
           "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/701234645_1400837215422969_910024190249438787_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=104&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFxJvhXnTuOa-6lNhPnNDTajZw2uMoz-X2NnDa4yjP5fYm3ktTRTJmYxSrP446urVG_yJkrApW_Yo4Kqxu97l2n&_nc_ohc=57phCSO0rrEQ7kNvwEoF0Te&_nc_oc=AdoRr-MadZ6wIplaVy8bqVhBKw5W6PY6Jk68Ar7e3DchSHA427ojYQpfhU3WQtF3vAo&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af6v_5OSZABrhDvebvf7pJhqBlfjVmuB_ycJ6_5XkgIY1g&oe=6A177D68",
@@ -2249,7 +2308,7 @@
         "Event": "Gawad Urian Ceremony 2026",
         "Start time/Date": "2/28/2026 19:00",
         "Event Poster": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701172323_1400837422089615_7455776713854255628_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEf9FoCbR_BjO9UJmRTdrYfbh49Nr893PtuHj02vz3c-wiUkm8EsPP9iMljEX3Scg5suueKaHf4r-ccQJJ2O2xV&_nc_ohc=MQcLG04gqHQQ7kNvwEyRzNA&_nc_oc=AdrUknCoJW1fbkMa_jWXjjLcB7FUtW_dt4UmIHXPwD_eUJf7q0rBftx2hl5DHGl6v24&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af67tdyPuNn2YQHP9VLQIVqPs3hJzK-ZYeH7M-OxqT7V2g&oe=6A178B61",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701172323_1400837422089615_7455776713854255628_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEf9FoCbR_BjO9UJmRTdrYfbh49Nr893PtuHj02vz3c-wiUkm8EsPP9iMljEX3Scg5suueKaHf4r-ccQJJ2O2xV&_nc_ohc=MQcLG04gqHQQ7kNvwEyRzNA&_nc_oc=AdrUknCoJW1fbkMa_jWXjjLcB7FUtW_dt4UmIHXPwD_eUJf7q0rBftx2hl5DHGl6v24&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af67tdyPuNn2YQHP9VLQIVqPs3hJzK-ZYeH7M-OxqT7V2g&oe=6A178B61, " +
@@ -2273,7 +2332,7 @@
         "Event": "Digital Distribution Summit 2026",
         "Start time/Date": "2/14/2026 09:00",
         "Event Poster": "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/702118551_1402338258606198_7456584163380400405_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=103&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHtSDxdXkXHzsuJhDER5B5lWOwZVcsyAhZY7BlVyzICFtL1VBKm83KgxKVr7rawp6NV1XwXCOcE2V9VJ5WlI2aT&_nc_ohc=tg7IaN2cjbUQ7kNvwEWcoEP&_nc_oc=AdqXoCgEg9Z5KnQHSyWt0fXba4EYXbqBf-_gohRVFc5anywP_PLkQRFsIqPzvwWFieM&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5WCo-CJj2F3ZkGbnNFmxDWilS0yGZzlpyBk-ghmgMq1A&oe=6A17A422",
-        "Video Link": "https://www.youtube.com/watch?v=VwmNBYaRadk",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/702118551_1402338258606198_7456584163380400405_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=103&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHtSDxdXkXHzsuJhDER5B5lWOwZVcsyAhZY7BlVyzICFtL1VBKm83KgxKVr7rawp6NV1XwXCOcE2V9VJ5WlI2aT&_nc_ohc=tg7IaN2cjbUQ7kNvwEWcoEP&_nc_oc=AdqXoCgEg9Z5KnQHSyWt0fXba4EYXbqBf-_gohRVFc5anywP_PLkQRFsIqPzvwWFieM&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5WCo-CJj2F3ZkGbnNFmxDWilS0yGZzlpyBk-ghmgMq1A&oe=6A17A422, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8, " +
@@ -2298,7 +2357,7 @@
         "Event": "Reel to Real — January Screening",
         "Start time/Date": "1/18/2026 19:00",
         "Event Poster": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79",
@@ -2321,7 +2380,7 @@
         "Event": "PPP 2025 Closing Ceremony",
         "Start time/Date": "12/28/2025 19:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701172323_1400837422089615_7455776713854255628_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEf9FoCbR_BjO9UJmRTdrYfbh49Nr893PtuHj02vz3c-wiUkm8EsPP9iMljEX3Scg5suueKaHf4r-ccQJJ2O2xV&_nc_ohc=MQcLG04gqHQQ7kNvwEyRzNA&_nc_oc=AdrUknCoJW1fbkMa_jWXjjLcB7FUtW_dt4UmIHXPwD_eUJf7q0rBftx2hl5DHGl6v24&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af67tdyPuNn2YQHP9VLQIVqPs3hJzK-ZYeH7M-OxqT7V2g&oe=6A178B61, " +
@@ -2345,7 +2404,7 @@
         "Event": "Sine Pamilya Year-End Screening",
         "Start time/Date": "12/08/2025 10:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/702545583_1402339441939413_9157546009593092763_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGWossBscjdu0U2BtK9NOB_bVynbicKDPJtXKduJwoM8tgLwpj_tFo90ZjGnlHrSMLnRlT9yp-N2sGpd1RBMHdz&_nc_ohc=8BL-B4d4-IQQ7kNvwFWNa5c&_nc_oc=AdpRiCUPmcvtRPMtZgB_yjaoZer5NkfWXbymbenFAVziMz31Iv2qLcAHuVF6QGA5Bu4&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=XJwAeOqah7ytceBj0W8zPw&_nc_ss=7b2a8&oh=00_Af7KgJdblRIv4UdhlRsk7X5d-ur1AydWJpJKtl08l-tzGw&oe=6A179363",
-        "Video Link": "https://www.youtube.com/watch?v=Uu0Vfa_dRTo",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/702545583_1402339441939413_9157546009593092763_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGWossBscjdu0U2BtK9NOB_bVynbicKDPJtXKduJwoM8tgLwpj_tFo90ZjGnlHrSMLnRlT9yp-N2sGpd1RBMHdz&_nc_ohc=8BL-B4d4-IQQ7kNvwFWNa5c&_nc_oc=AdpRiCUPmcvtRPMtZgB_yjaoZer5NkfWXbymbenFAVziMz31Iv2qLcAHuVF6QGA5Bu4&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=XJwAeOqah7ytceBj0W8zPw&_nc_ss=7b2a8&oh=00_Af7KgJdblRIv4UdhlRsk7X5d-ur1AydWJpJKtl08l-tzGw&oe=6A179363, " +
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
@@ -2369,7 +2428,7 @@
         "Event": "Cinematheque Iloilo Anniversary",
         "Start time/Date": "11/10/2025 17:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF, " +
@@ -2392,7 +2451,7 @@
         "Event": "Women in Film Symposium 2025",
         "Start time/Date": "10/12/2025 09:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8, " +
@@ -2404,7 +2463,7 @@
         "Event": "Cinemalaya 2025 Opening Night",
         "Start time/Date": "9/20/2025 19:30",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
-        "Video Link": "https://www.youtube.com/watch?v=uLnPGDwMlhM",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3, " +
@@ -2429,7 +2488,7 @@
         "Event": "Cinematheque Manila Retrospective",
         "Start time/Date": "8/30/2025 18:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703136424_1402337468606277_7115864811107298867_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGxwtSYTibtPduROk1CqIq_e3KVq1XI5Mt7cpWrVcjky8tiSqSgvmjYD5GAUNjJx_95hgOlq-vJfb4rjoj35YyF&_nc_ohc=6Z0_5B9W4-AQ7kNvwE_ezl0&_nc_oc=Adq0hjSUQhSr-01j27D-s0Oq8GpS4Weuh2bHl5Blo4uic6OeuD_LtGgD7Z3twiUk6zk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7DH5MhmbgzO-LWUTDFCmXWTdlgDmdIAJD34xZdQVM0NQ&oe=6A17B065",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703136424_1402337468606277_7115864811107298867_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGxwtSYTibtPduROk1CqIq_e3KVq1XI5Mt7cpWrVcjky8tiSqSgvmjYD5GAUNjJx_95hgOlq-vJfb4rjoj35YyF&_nc_ohc=6Z0_5B9W4-AQ7kNvwE_ezl0&_nc_oc=Adq0hjSUQhSr-01j27D-s0Oq8GpS4Weuh2bHl5Blo4uic6OeuD_LtGgD7Z3twiUk6zk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7DH5MhmbgzO-LWUTDFCmXWTdlgDmdIAJD34xZdQVM0NQ&oe=6A17B065, " +
           "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/701234645_1400837215422969_910024190249438787_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=104&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFxJvhXnTuOa-6lNhPnNDTajZw2uMoz-X2NnDa4yjP5fYm3ktTRTJmYxSrP446urVG_yJkrApW_Yo4Kqxu97l2n&_nc_ohc=57phCSO0rrEQ7kNvwEoF0Te&_nc_oc=AdoRr-MadZ6wIplaVy8bqVhBKw5W6PY6Jk68Ar7e3DchSHA427ojYQpfhU3WQtF3vAo&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af6v_5OSZABrhDvebvf7pJhqBlfjVmuB_ycJ6_5XkgIY1g&oe=6A177D68, " +
@@ -2452,7 +2511,7 @@
         "Event": "Reel to Real — July Screening",
         "Start time/Date": "7/19/2025 19:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79, " +
@@ -2477,7 +2536,7 @@
         "Event": "Philippine Cinema at Cannes 2025",
         "Start time/Date": "5/20/2025 20:00",
         "Event Poster": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701245908_1400835312089826_3900200200417846946_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHYQ_H3EhXVSI3r2F_trmT-wxGx8_cvA7jDEbHz9y8DuBNKpEuek9bWJwbwAcLolDA4Gv4hpkbf9qilBU_hOkar&_nc_ohc=Jssrd--oU7wQ7kNvwHPqkzb&_nc_oc=AdoyGuUQk7lYLr6kN0ALE1yoqOq6Z1G7zui0gdQ4OkrdvPN4eRjxWkpOXaNS5XntX1g&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af7zm7ZDkIny4ncCrCPUq1Up6Lw59KFBPQkN-GxiKuxpFQ&oe=6A17A01D",
-        "Video Link": "https://www.youtube.com/watch?v=L0Hzj4-PvyE",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701245908_1400835312089826_3900200200417846946_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHYQ_H3EhXVSI3r2F_trmT-wxGx8_cvA7jDEbHz9y8DuBNKpEuek9bWJwbwAcLolDA4Gv4hpkbf9qilBU_hOkar&_nc_ohc=Jssrd--oU7wQ7kNvwHPqkzb&_nc_oc=AdoyGuUQk7lYLr6kN0ALE1yoqOq6Z1G7zui0gdQ4OkrdvPN4eRjxWkpOXaNS5XntX1g&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af7zm7ZDkIny4ncCrCPUq1Up6Lw59KFBPQkN-GxiKuxpFQ&oe=6A17A01D, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701307093_1399966618843362_5848885894722363720_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHDvZ2ivxaaBXvb98VWfqT_9uOoo7rtgMb246ijuu2Axjrpj9pDkhdziAH4JutA5cctR1xu1UPb-KgBfXbcsnba&_nc_ohc=_mtAUe_6Wx8Q7kNvwEaSv02&_nc_oc=AdpnNvZLatoZXJjRKsgg9Mzh2_MoxgyqHKZa8KUSJtzzRJQvsJ1lZaa1RJVBD1BVn8U&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af4X2toxIuqaqlROZ2bZPIkXSjEeDAfE5x_Rpz8iK88rOg&oe=6A1788D1",
@@ -2500,7 +2559,7 @@
         "Event": "Reel to Real — April Screening",
         "Start time/Date": "4/26/2025 19:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79",
@@ -2523,7 +2582,7 @@
         "Event": "FDCP Abroad — Tokyo Screening",
         "Start time/Date": "3/22/2025 18:00",
         "Event Poster": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701307093_1399966618843362_5848885894722363720_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHDvZ2ivxaaBXvb98VWfqT_9uOoo7rtgMb246ijuu2Axjrpj9pDkhdziAH4JutA5cctR1xu1UPb-KgBfXbcsnba&_nc_ohc=_mtAUe_6Wx8Q7kNvwEaSv02&_nc_oc=AdpnNvZLatoZXJjRKsgg9Mzh2_MoxgyqHKZa8KUSJtzzRJQvsJ1lZaa1RJVBD1BVn8U&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af4X2toxIuqaqlROZ2bZPIkXSjEeDAfE5x_Rpz8iK88rOg&oe=6A1788D1",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701307093_1399966618843362_5848885894722363720_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHDvZ2ivxaaBXvb98VWfqT_9uOoo7rtgMb246ijuu2Axjrpj9pDkhdziAH4JutA5cctR1xu1UPb-KgBfXbcsnba&_nc_ohc=_mtAUe_6Wx8Q7kNvwEaSv02&_nc_oc=AdpnNvZLatoZXJjRKsgg9Mzh2_MoxgyqHKZa8KUSJtzzRJQvsJ1lZaa1RJVBD1BVn8U&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af4X2toxIuqaqlROZ2bZPIkXSjEeDAfE5x_Rpz8iK88rOg&oe=6A1788D1, " +
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/701385739_1399966188843405_7974920951808937378_n.jpg?stp=c256.0.1536.1536a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEWtWvqURLIQiL-lnX02SqfELXrAm_m6KcQtesCb-bop_eyUJ_okKNXxyQt6bnk2YdwEC3R28UI9HqSTDD5fA9q&_nc_ohc=QFsTGEQjmzYQ7kNvwG_THWa&_nc_oc=Adoo51UX8fjLvUiCUDmRT0aV2Aoib3rnMZQCSknVVer5AOmuMWiwn5Kv0yLu7ZMTqfM&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=8Cj907dBy8WDWSVcxQNBbA&_nc_ss=7b2a8&oh=00_Af5lx8dp7Ptlw_SEmGF3b2wk70zVjIJdinCI0n_Eh-lIYQ&oe=6A179C9B",
@@ -2569,7 +2628,7 @@
         "Event": "Industry Roadmap Forum 2025",
         "Start time/Date": "1/15/2025 09:00",
         "Event Poster": "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/702118551_1402338258606198_7456584163380400405_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=103&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHtSDxdXkXHzsuJhDER5B5lWOwZVcsyAhZY7BlVyzICFtL1VBKm83KgxKVr7rawp6NV1XwXCOcE2V9VJ5WlI2aT&_nc_ohc=tg7IaN2cjbUQ7kNvwEWcoEP&_nc_oc=AdqXoCgEg9Z5KnQHSyWt0fXba4EYXbqBf-_gohRVFc5anywP_PLkQRFsIqPzvwWFieM&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5WCo-CJj2F3ZkGbnNFmxDWilS0yGZzlpyBk-ghmgMq1A&oe=6A17A422",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/702118551_1402338258606198_7456584163380400405_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=103&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHtSDxdXkXHzsuJhDER5B5lWOwZVcsyAhZY7BlVyzICFtL1VBKm83KgxKVr7rawp6NV1XwXCOcE2V9VJ5WlI2aT&_nc_ohc=tg7IaN2cjbUQ7kNvwEWcoEP&_nc_oc=AdqXoCgEg9Z5KnQHSyWt0fXba4EYXbqBf-_gohRVFc5anywP_PLkQRFsIqPzvwWFieM&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5WCo-CJj2F3ZkGbnNFmxDWilS0yGZzlpyBk-ghmgMq1A&oe=6A17A422, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8",
@@ -2592,7 +2651,7 @@
         "Event": "PPP 2024 Opening Night",
         "Start time/Date": "11/20/2024 19:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3, " +
@@ -2615,7 +2674,7 @@
         "Event": "Film Lab Completion Showcase 2024",
         "Start time/Date": "9/12/2024 14:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703136424_1402337468606277_7115864811107298867_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGxwtSYTibtPduROk1CqIq_e3KVq1XI5Mt7cpWrVcjky8tiSqSgvmjYD5GAUNjJx_95hgOlq-vJfb4rjoj35YyF&_nc_ohc=6Z0_5B9W4-AQ7kNvwE_ezl0&_nc_oc=Adq0hjSUQhSr-01j27D-s0Oq8GpS4Weuh2bHl5Blo4uic6OeuD_LtGgD7Z3twiUk6zk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7DH5MhmbgzO-LWUTDFCmXWTdlgDmdIAJD34xZdQVM0NQ&oe=6A17B065",
-        "Video Link": "https://www.youtube.com/watch?v=OLl8SqX69kU",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703136424_1402337468606277_7115864811107298867_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGxwtSYTibtPduROk1CqIq_e3KVq1XI5Mt7cpWrVcjky8tiSqSgvmjYD5GAUNjJx_95hgOlq-vJfb4rjoj35YyF&_nc_ohc=6Z0_5B9W4-AQ7kNvwE_ezl0&_nc_oc=Adq0hjSUQhSr-01j27D-s0Oq8GpS4Weuh2bHl5Blo4uic6OeuD_LtGgD7Z3twiUk6zk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7DH5MhmbgzO-LWUTDFCmXWTdlgDmdIAJD34xZdQVM0NQ&oe=6A17B065, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/702637658_1402337448606279_6349819876640321912_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGQY5zNMSP4y9hnzqtBdx78CE7j0uiE7r8ITuPS6ITuv1icUcjxNO-Q2QfNX0F6swjmb0etAGYQ49-gR3-DAsES&_nc_ohc=KL26UEV29yQQ7kNvwFcg_VQ&_nc_oc=Adpd-_xyKPT8zxZHVnscBNPnR5uuNSchAYldPxIixyfEFOJFuUIj5g8Y-uwRtQGdRO0&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7KfbPFSPh7cb625H84SeozMOZVFe06jXmtt_aVIsdAMQ&oe=6A17A6E2, " +
@@ -2649,7 +2708,7 @@
         "Event": "Reel to Real — June 2024",
         "Start time/Date": "6/22/2024 19:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702176937_1402339121939445_822209189291120366_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeG_ZF3OKqJX3gtoznNDz9u0vt-YnasLFwG-35idqwsXAa18Ry36YNTDsKq0Ytqf-cL62LGTmz7uxl7jc6TyoKPd&_nc_ohc=1f6LZKqeY_YQ7kNvwGZHhsd&_nc_oc=AdpUBeGO0Nd3_gfOlmEJyu8SRDbfVub-1XcVY6aVVVe6I3NDPIrFAv955ATcFS2GDCA&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af6JG64ctAdxYqQriyriYqL1Lv2hE375JYW9VRgemK9LnQ&oe=6A17A43F",
@@ -2672,7 +2731,7 @@
         "Event": "Women in Film — May 2024",
         "Start time/Date": "5/18/2024 14:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8",
@@ -2694,7 +2753,7 @@
         "Event": "Cinematheque Negros First Year",
         "Start time/Date": "3/10/2024 16:00",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF",
-        "Video Link": "https://www.youtube.com/watch?v=wkbAYNIs194",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3, " +
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF, " +
@@ -2717,7 +2776,7 @@
         "Event": "Reel to Real — January 2024",
         "Start time/Date": "1/20/2024 19:00",
         "Event Poster": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
-        "Video Link": "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9, " +
           "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79",
@@ -2740,7 +2799,7 @@
         "Event": "Cinemalaya 2023 Opening Night",
         "Start time/Date": "11/04/2023 19:30",
         "Event Poster": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480",
-        "Video Link": "https://www.youtube.com/watch?v=ElteToEQJk0",
+        "Video Link": "https://www.youtube.com/watch?v=GM8n6VqDNRc",
         "Photo Links Comma Seperated (Post Events)":
           "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480, " +
           "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9",
@@ -3337,6 +3396,7 @@
         if (arrowPrev) arrowPrev.style.display = "none";
         if (arrowNext) arrowNext.style.display = "none";
         if (viewAllWrap) viewAllWrap.style.display = "none";
+        updateVideoDesc();
         return;
       }
 
@@ -3377,6 +3437,7 @@
                 '</div>';
       }
       track.innerHTML = html;
+      updateVideoDesc();
 
       Array.prototype.forEach.call(track.querySelectorAll("[data-video-step]"), function (el) {
         el.addEventListener("click", function () { stepVideo(parseInt(el.dataset.videoStep, 10)); });
@@ -3481,6 +3542,62 @@
       if (modal) modal.addEventListener("click", function (e) {
         if (e.target === modal) closeVideoFocus();
       });
+    }
+
+    function updateVideoDesc() {
+      var wrap    = document.getElementById("fdcp-video-desc");
+      var counter = document.getElementById("fdcp-vd-counter");
+      var title   = document.getElementById("fdcp-vd-title");
+      var date    = document.getElementById("fdcp-vd-date");
+      var text    = document.getElementById("fdcp-vd-text");
+      if (!wrap) return;
+
+      var n = FEATURED_VIDEOS.length;
+      if (!n) {
+        wrap.style.display = "none";
+        return;
+      }
+      wrap.style.display = "";
+
+      var ev = FEATURED_VIDEOS[VIDEO_INDEX];
+
+      // Fade out, swap content, fade back in.
+      wrap.classList.add("is-fading");
+      wrap.style.opacity = "0";
+      setTimeout(function () {
+        if (counter) {
+          counter.textContent = (VIDEO_INDEX + 1) + " of " + n;
+          counter.style.cssText =
+            "display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.1em;" +
+            "text-transform:uppercase;color:#E200A9;background:rgba(226,0,169,0.08);" +
+            "border-radius:9999px;padding:3px 12px;margin-bottom:10px;";
+        }
+        if (title) {
+          title.textContent = ev.title;
+          title.style.cssText =
+            "font-size:22px;font-weight:800;margin:0 0 4px;" +
+            "background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);" +
+            "-webkit-background-clip:text;background-clip:text;" +
+            "-webkit-text-fill-color:transparent;color:#580076;";
+        }
+        if (date) {
+          date.textContent = ev.date
+            ? ev.date.toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })
+            : "";
+          date.style.cssText = "font-size:12px;color:#6b7280;margin:0 0 10px;";
+        }
+        if (text) {
+          var desc = (ev.descHTML || "").trim();
+          if (desc) {
+            text.innerHTML = desc;
+          } else {
+            text.textContent = (ev.descText || "").trim();
+          }
+          text.style.cssText = "font-size:14px;color:#374151;line-height:1.6;margin:0;";
+        }
+        wrap.classList.remove("is-fading");
+        wrap.style.opacity = "1";
+      }, 140);
     }
 
     function stepVideo(delta) {
