@@ -3344,9 +3344,12 @@
       if (VIDEO_INDEX >= n) VIDEO_INDEX = 0;
 
       // Restore visibility of controls (a previous render may have hidden them).
-      if (arrowPrev) arrowPrev.style.display = "";
-      if (arrowNext) arrowNext.style.display = "";
-      if (viewAllWrap) viewAllWrap.style.display = "";
+      // Must use "flex" not "" — Drupal strips the <style> block, so wiping
+      // inline display would left-align the View all button (wrap loses
+      // justify-content:center) and uncenter the arrow SVGs.
+      if (arrowPrev) arrowPrev.style.display = "flex";
+      if (arrowNext) arrowNext.style.display = "flex";
+      if (viewAllWrap) viewAllWrap.style.display = "flex";
 
       // Edge case #7 — single video. Hide side cards entirely on desktop too
       // so we don't show three copies of the same thumbnail.
