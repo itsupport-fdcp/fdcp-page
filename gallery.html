@@ -1,5 +1,85 @@
   <!-- FDCP Gallery — paste into a Drupal Basic Page (Full HTML). -->
 
+  <!--
+  ============================================================================
+  FILE MAP — gallery.html (~4,829 lines). Search the markers below to jump.
+  ============================================================================
+
+  STYLES  <style> block, lines 12–1517
+    21    /* ============ SECTION SHELL ============ */
+    75    /* ============ STORIES ============ */
+    184   /* ============ FOCUS MODE / LIGHTBOX ============ */
+    235     /* ----- LEFT SIDEBAR (stories list) ----- */
+    324     /* ----- CENTER STAGE (arrows + portrait frame) ----- */
+    531   /* ============ FEATURED VIDEOS (3-card carousel) ============ */
+    657   /* ============ VIDEO DESCRIPTION STRIP ============ */
+    704   /* ============ EVENT PHOTOS (placeholder) ============ */
+    915   /* ============ PHOTO LIGHTBOX (FB-style — no segment bars) ============ */
+    1042  /* ============ VIDEO FOCUS MODAL (YouTube fullscreen-style) ============ */
+    1155  /* ============ VIDEO GRID MODAL (thumbnails of every video) ============ */
+    1298  /* ============ PHOTO GRID MODAL (thumbnails of every photo in a block) ============ */
+    1421  /* ============ RESPONSIVE ============ */
+
+  MARKUP  <body> region, lines 1519–1827
+    1519  HERO
+    1533  STORIES
+    1552  FEATURED VIDEOS (placeholder, 3-card carousel)
+    1600  EVENT PHOTOS (data-driven, newest event first)
+    1634  FOCUS MODE (Facebook-style stories viewer)
+    1703  PHOTO LIGHTBOX (FB-style — title + prev/next + counter)
+    1748  VIDEO FOCUS MODAL (YouTube fullscreen + prev/next)
+    1781  VIDEO GRID MODAL (all videos as clickable thumbnails)
+    1804  PHOTO GRID MODAL (all photos in a block as thumbnails)
+
+  SCRIPT  IIFE, lines 1828–4829
+    1829  CONFIG (SHEET_SRC, CACHE_KEY, USE_MOCK_DATA, …)
+    1839  HELPERS (slugify, cellToText, sanitizeRichHTML, parseGvizHTML,
+                   parseSheetDate, normalizeVideo, parsePhotoLinks,
+                   normalizePoster, hash + cache, fetchLive,
+                   loadEventsSWR, attachFocusRevalidate)
+    2046  ALGORITHM (debounce, dedupBySlug, buildMediaEvents,
+                     selectMediaFeeds, applyPhotoFilter)
+    2138  MEDIA STATE (module-scoped state vars)
+    2145  MOCK DATA (USE_MOCK_DATA payload)
+    2849  DATA LOADER (onMediaData, loadMediaFeeds)
+    2883  STORIES DATA (parseStoriesSheet)
+    3020  STORY CARDS (escapeAttr, renderStoryCards)
+    3074  FOCUS MODE (activeStory/Asset, renderProgress/StoryList/
+                      Header/Media, syncArrowState, gotoAsset,
+                      openFocus, closeFocus, wireFocusControls)
+    3333  FEATURED VIDEOS CAROUSEL (videoThumbForEvent,
+                      videoCardThumbHTML, videoEmbedHTMLForEvent,
+                      emptyMediaCard, renderVideosCarousel)
+    3496  VIDEO FOCUS MODAL (renderVideoFocus, openVideoFocus,
+                      stepVideoFocus, closeVideoFocus,
+                      wireVideoFocusControls, updateVideoDesc,
+                      stepVideo, wireVideosControls)
+    3655  PHOTO SEARCH (wirePhotoSearch)
+    3679  PHOTO BLOCKS (blockHTMLForEvent, renderPhotoEmptyState,
+                      renderPhotoPagination, renderPhotoSection)
+    3877  PHOTO LIGHTBOX (renderPhotoLB, stepPhotoLB,
+                      openPhotoLightbox, closePhotoLightbox,
+                      wirePhotoCards, refreshAllPhotoArrowStates,
+                      wirePhotoBlockControls)
+    4144  PHOTO GRID MODAL (renderPhotoGrid, openPhotoGrid,
+                      closePhotoGrid, wirePhotoGridControls)
+    4245  VIDEO GRID MODAL (renderVideoGrid, openVideoGrid,
+                      closeVideoGrid, wireVideoGridControls,
+                      wireVideosViewAll, wirePhotoLightboxControls,
+                      escapeStackingContext, reorderPhotosForMobile)
+    4474  BOOT (killTopSpacing, ensureScrollbarStyles,
+                  applyBaseStyles, init)
+
+  Drupal constraints: see ../CLAUDE.md before editing. Highlights —
+    • Inline style="..." on body markup is mandatory (block filters strip <style>)
+    • !important in <style> protects against theme cascade — keep it
+    • Per-element style application in JS (setProperty / setAttribute / cssText)
+      is intentional belt-and-braces — do not "DRY" it away
+    • Use plain <div> (Drupal unwraps <section>/<nav>/<article>/<aside>)
+    • Bump CACHE_KEY version when sheet row schema changes
+  ============================================================================
+  -->
+
   <!-- LOCAL-PREVIEW ONLY — delete before pasting into Drupal. -->
   <meta charset="utf-8">
   <script src="https://cdn.tailwindcss.com"></script>
