@@ -3468,7 +3468,7 @@
       var desc = e.descHTML || escapeAttr(e.descText || "");
 
       return ''
-        + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '">'
+        + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '" style="margin-top:40px;padding-bottom:40px;">'
         +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:center;gap:40px;margin-bottom:14px;flex-wrap:wrap;">'
         +     '<div class="fdcp-photos-info" style="flex:1 1 320px;min-width:0;">'
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
@@ -3613,6 +3613,23 @@
         (FILTER_STATE.page + 1) * PAGE_SIZE
       );
       host.innerHTML = pageEvents.map(blockHTMLForEvent).join("");
+
+      // Inline dividers between blocks — class-based rules get stripped by
+      // Drupal's filter, so assert the separator + bottom gap per block.
+      var isMobileSep = window.innerWidth <= 992;
+      var sepPad = isMobileSep ? 28 : 40;
+      Array.prototype.forEach.call(
+        host.querySelectorAll(".fdcp-photos-block"),
+        function (blk, i) {
+          var css = "margin-top:" + (i === 0 ? 40 : 0) + "px;" +
+                    "padding-bottom:" + sepPad + "px;";
+          if (i > 0) {
+            css += "padding-top:" + sepPad + "px;" +
+                   "border-top:1px solid #e5e7eb;";
+          }
+          blk.setAttribute("style", css);
+        }
+      );
 
       // Re-apply per-block layout + brand-style guards on the freshly rendered DOM.
       if (typeof applyBaseStyles === "function") applyBaseStyles();
