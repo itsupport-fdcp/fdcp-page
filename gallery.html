@@ -629,11 +629,18 @@
     }
 
     /* ============ EVENT PHOTOS (placeholder) ============ */
-    .fdcp-photos-block { margin-top: 40px !important; }
+    .fdcp-photos-block {
+      margin-top: 40px !important;
+      padding-bottom: 40px !important;
+    }
     .fdcp-photos-block + .fdcp-photos-block {
-      margin-top: 48px !important;
-      padding-top: 48px !important;
+      margin-top: 0 !important;
+      padding-top: 40px !important;
       border-top: 1px solid #e5e7eb !important;
+    }
+    @media (max-width: 992px) {
+      .fdcp-photos-block { padding-bottom: 28px !important; }
+      .fdcp-photos-block + .fdcp-photos-block { padding-top: 28px !important; }
     }
     .fdcp-photos-header {
       display: flex !important;
