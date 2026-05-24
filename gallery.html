@@ -649,7 +649,7 @@
       gap: 24px !important;
       margin-bottom: 14px !important;
     }
-    .fdcp-photos-controls { flex-shrink: 0 !important; }
+    .fdcp-photos-controls { flex-shrink: 0 !important; margin-left: auto !important; }
     .fdcp-photos-info { flex: 1 1 0 !important; min-width: 0 !important; }
     .fdcp-photos-title {
       font-size: 36px !important;
@@ -684,10 +684,11 @@
     }
     .fdcp-photos-controls {
       display: flex !important;
-      flex-direction: column !important;
-      align-items: flex-end !important;
-      gap: 14px !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 12px !important;
       flex-shrink: 0 !important;
+      margin-left: auto !important;
     }
     /* Actions row stays right-aligned on desktop so every photo block lines up. */
     .fdcp-actions-row {
@@ -743,7 +744,7 @@
       transition: opacity 180ms ease, transform 180ms ease !important;
       font-family: inherit !important;
     }
-    .fdcp-arrow-circle:hover { opacity: 0.85 !important; transform: translateY(-1px) !important; }
+    .fdcp-arrow-circle:hover:not(:disabled) { opacity: 0.85 !important; transform: translateY(-1px) !important; }
     .fdcp-arrow-circle.is-prev {
       background: #ffffff !important;
       border: 1.5px solid #1f2937 !important;
@@ -754,6 +755,26 @@
       background-image: linear-gradient(90deg, #580076 0%, #E200A9 100%) !important;
       border: 0 !important;
       color: #ffffff !important;
+    }
+    /* Disabled state — soft grey, no hover lift, not clickable. JS also
+       writes these as inline styles so they survive Drupal stripping. */
+    .fdcp-arrow-circle:disabled,
+    .fdcp-arrow-circle[aria-disabled="true"] {
+      cursor: not-allowed !important;
+      opacity: 0.4 !important;
+      transform: none !important;
+    }
+    .fdcp-arrow-circle.is-prev:disabled,
+    .fdcp-arrow-circle.is-prev[aria-disabled="true"] {
+      background: #f3f4f6 !important;
+      border-color: #d1d5db !important;
+      color: #9ca3af !important;
+    }
+    .fdcp-arrow-circle.is-next:disabled,
+    .fdcp-arrow-circle.is-next[aria-disabled="true"] {
+      background-color: #d1d5db !important;
+      background-image: none !important;
+      color: #9ca3af !important;
     }
     /* Photos: horizontal scroll-snap carousel (not a vertical grid) */
     .fdcp-photos-grid {
@@ -3492,7 +3513,7 @@
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
         +       '<p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:0;">' + desc + '</p>'
         +     '</div>'
-        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:row;align-items:center;gap:10px;flex-shrink:0;margin-left:auto;">'
+        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:row;align-items:center;gap:12px;flex-shrink:0;margin-left:auto;">'
         +       '<button type="button" class="fdcp-view-all-btn" style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:8px 28px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.20);">View all</button>'
         +       '<div class="fdcp-actions-row" style="display:flex;align-items:center;gap:10px;">'
         +         '<button type="button" class="fdcp-arrow-circle is-prev" aria-label="Previous photos" style="width:38px;height:38px;border-radius:9999px;background:#fff;border:1.5px solid #1f2937;color:#1f2937;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;line-height:1;">'
@@ -3793,6 +3814,17 @@
       });
     }
 
+    // Re-check every photo block's prev/next disabled state. Called from
+    // wirePhotoBlockControls (per render) and from the global resize handler
+    // so a wider viewport that no longer overflows correctly disables both
+    // arrows.
+    function refreshAllPhotoArrowStates() {
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-block"), function (block) {
+        var fn = block.__fdcpUpdateArrows;
+        if (typeof fn === "function") fn();
+      });
+    }
+
     // Per-block controls: prev/next scroll the carousel, View all opens the
     // photo-grid modal (thumbnails of every photo in that block). Clicking
     // a thumbnail inside the grid opens the FB-style fullscreen lightbox.
@@ -3813,15 +3845,88 @@
           return card ? card.getBoundingClientRect().width + gap : 320;
         };
 
+        // Disable/enable prev/next when the carousel reaches either end.
+        // Inline styles (not just class swaps) so the visual state survives
+        // Drupal's filter stripping the <style> block.
+        var setArrowDisabled = function (btn, disabled) {
+          if (!btn) return;
+          if (disabled) {
+            btn.setAttribute("disabled", "");
+            btn.setAttribute("aria-disabled", "true");
+            btn.style.setProperty("cursor", "not-allowed", "important");
+            btn.style.setProperty("opacity", "0.4", "important");
+            if (btn.classList.contains("is-prev")) {
+              btn.style.setProperty("background", "#f3f4f6", "important");
+              btn.style.setProperty("background-image", "none", "important");
+              btn.style.setProperty("border-color", "#d1d5db", "important");
+              btn.style.setProperty("color", "#9ca3af", "important");
+            } else {
+              btn.style.setProperty("background-color", "#d1d5db", "important");
+              btn.style.setProperty("background-image", "none", "important");
+              btn.style.setProperty("color", "#9ca3af", "important");
+            }
+          } else {
+            btn.removeAttribute("disabled");
+            btn.removeAttribute("aria-disabled");
+            btn.style.removeProperty("cursor");
+            btn.style.removeProperty("opacity");
+            if (btn.classList.contains("is-prev")) {
+              btn.style.setProperty("background", "#ffffff", "important");
+              btn.style.setProperty("background-image", "none", "important");
+              btn.style.setProperty("border-color", "#1f2937", "important");
+              btn.style.setProperty("color", "#1f2937", "important");
+            } else {
+              btn.style.setProperty("background-color", "#580076", "important");
+              btn.style.setProperty(
+                "background-image",
+                "linear-gradient(90deg,#580076 0%,#E200A9 100%)",
+                "important"
+              );
+              btn.style.setProperty("color", "#ffffff", "important");
+            }
+          }
+        };
+
+        var updateArrowStates = function () {
+          if (!grid) return;
+          // 1px tolerance for fractional scroll positions.
+          var atStart = grid.scrollLeft <= 1;
+          var atEnd   = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+          var noOverflow = grid.scrollWidth <= grid.clientWidth + 1;
+          setArrowDisabled(prevBtn, atStart || noOverflow);
+          setArrowDisabled(nextBtn, atEnd || noOverflow);
+        };
+
         if (grid && prevBtn) {
           prevBtn.addEventListener("click", function () {
+            if (prevBtn.hasAttribute("disabled")) return;
             grid.scrollBy({ left: -step(), behavior: "smooth" });
           });
         }
         if (grid && nextBtn) {
           nextBtn.addEventListener("click", function () {
+            if (nextBtn.hasAttribute("disabled")) return;
             grid.scrollBy({ left: step(), behavior: "smooth" });
           });
+        }
+
+        // Stash the per-block updater so the global resize handler can
+        // re-evaluate every block without each one owning its own resize listener.
+        block.__fdcpUpdateArrows = updateArrowStates;
+
+        if (grid) {
+          grid.addEventListener("scroll", updateArrowStates, { passive: true });
+          // Initial + post-image-load passes — images change scrollWidth as
+          // they finish loading, which can flip an over-cautious "at end".
+          updateArrowStates();
+          Array.prototype.forEach.call(grid.querySelectorAll("img"), function (img) {
+            if (img.complete) return;
+            img.addEventListener("load",  updateArrowStates, { once: true });
+            img.addEventListener("error", updateArrowStates, { once: true });
+          });
+          // Defer a second pass so layout has settled.
+          setTimeout(updateArrowStates, 50);
+          setTimeout(updateArrowStates, 300);
         }
 
         if (viewAllBtn && cards.length) {
@@ -4223,12 +4328,19 @@
       });
 
       // Photo controls — center on mobile (≤992px), right-align on desktop.
-      // Same treatment for both photo blocks so they line up consistently.
+      // Desktop layout: [View all] [<] [>] in a single row, pinned to the right
+      // edge of the header via margin-left:auto. Same treatment for every
+      // photo block so they line up consistently.
       var photoStack = w <= 992;
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-controls"), function (el) {
-        el.style.alignItems = photoStack ? "center" : "flex-end";
+        el.style.setProperty("display", "flex", "important");
+        el.style.setProperty("flex-direction", "row", "important");
+        el.style.setProperty("align-items", "center", "important");
+        el.style.setProperty("flex-shrink", "0", "important");
         el.style.width = photoStack ? "100%" : "";
-        el.style.gap = photoStack ? "12px" : "14px";
+        el.style.gap = photoStack ? "12px" : "12px";
+        el.style.setProperty("margin-left", photoStack ? "0" : "auto", "important");
+        el.style.setProperty("justify-content", photoStack ? "center" : "flex-end", "important");
       });
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-actions-row"), function (el) {
         el.style.justifyContent = photoStack ? "center" : "flex-end";
@@ -4295,6 +4407,9 @@
         el.style.setProperty("color", "#fff", "important");
       });
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-arrow-circle.is-next"), function (el) {
+        // Don't repaint disabled-state arrows back to purple — the per-block
+        // wirePhotoBlockControls owns the active/disabled colors.
+        if (el.hasAttribute("disabled")) return;
         el.style.setProperty("background-color", "#580076", "important");
         el.style.setProperty("background-image",
           "linear-gradient(90deg,#580076 0%,#E200A9 100%)", "important");
@@ -4459,6 +4574,7 @@
       var lastPhotoStack = window.innerWidth <= 992;
       window.addEventListener("resize", function () {
         applyBaseStyles();
+        refreshAllPhotoArrowStates();
         var nowIsMobile = window.innerWidth <= 768;
         if (nowIsMobile !== lastIsMobile) {
           lastIsMobile = nowIsMobile;
