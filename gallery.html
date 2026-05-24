@@ -627,14 +627,14 @@
     }
 
     /* ============ EVENT PHOTOS (placeholder) ============ */
-    .fdcp-photos-block { margin-top: 0 !important; }
+    .fdcp-photos-block { margin-top: 40px !important; }
     .fdcp-photos-block + .fdcp-photos-block { margin-top: 60px !important; }
     .fdcp-photos-header {
       display: flex !important;
       justify-content: space-between !important;
       align-items: flex-start !important;
       gap: 40px !important;
-      margin-top: 24px !important;
+      margin-bottom: 20px !important;
       flex-wrap: wrap !important;
     }
     .fdcp-photos-controls { margin-top: 4px !important; }
@@ -3456,17 +3456,14 @@
 
       return ''
         + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '">'
-        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 12px;">'
-        +     cards
-        +   '</div>'
-        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin-top:24px;flex-wrap:wrap;">'
+        +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:40px;margin-bottom:20px;flex-wrap:wrap;">'
         +     '<div class="fdcp-photos-info" style="flex:1 1 320px;min-width:0;">'
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 10px;">' + escapeAttr(e.title) + '</h3>'
         +       '<p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:0;">' + desc + '</p>'
         +     '</div>'
-        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex-shrink:0;">'
-        +       '<div class="fdcp-actions-row" style="display:flex;align-items:center;gap:12px;">'
-        +         '<button type="button" class="fdcp-view-all-btn" style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:8px 28px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.20);">View all</button>'
+        +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0;">'
+        +       '<button type="button" class="fdcp-view-all-btn" style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:8px 28px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.20);">View all</button>'
+        +       '<div class="fdcp-actions-row" style="display:flex;align-items:center;gap:10px;">'
         +         '<button type="button" class="fdcp-arrow-circle is-prev" aria-label="Previous photos" style="width:38px;height:38px;border-radius:9999px;background:#fff;border:1.5px solid #1f2937;color:#1f2937;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;line-height:1;">'
         +           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>'
         +         '</button>'
@@ -3475,6 +3472,9 @@
         +         '</button>'
         +       '</div>'
         +     '</div>'
+        +   '</div>'
+        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 2px 12px;">'
+        +     cards
         +   '</div>'
         + '</div>';
     }
@@ -4046,19 +4046,27 @@
         var eventName  = block.querySelector(".fdcp-photos-event");
         var desc       = block.querySelector(".fdcp-photos-desc");
         var controls   = block.querySelector(".fdcp-photos-controls");
+        var viewAllBtn = block.querySelector(".fdcp-view-all-btn");
         var actionsRow = block.querySelector(".fdcp-actions-row");
         var grid       = block.querySelector(".fdcp-photos-grid");
         if (!grid) return;
 
         if (isMobile) {
-          // Move actions row to AFTER the grid
+          // Move arrows row to AFTER the grid
           if (actionsRow && actionsRow.parentNode !== block) {
             block.appendChild(actionsRow);
             actionsRow.style.marginTop = "20px";
             actionsRow.style.width = "100%";
             actionsRow.style.justifyContent = "center";
           }
-          // Move event name to the bottom (above the description)
+          // Move View all button after arrows
+          if (viewAllBtn && viewAllBtn.parentNode !== block) {
+            block.appendChild(viewAllBtn);
+            viewAllBtn.style.marginTop = "10px";
+            viewAllBtn.style.alignSelf = "center";
+            viewAllBtn.style.display = "block";
+          }
+          // Move event name below controls
           if (eventName && eventName.parentNode !== block) {
             block.appendChild(eventName);
             eventName.style.marginTop = "22px";
@@ -4075,14 +4083,20 @@
             desc.style.padding = "0 4px";
           }
         } else {
-          // Restore desktop layout: actions back into controls; event name and
-          // description back into the info column in their original order
-          // (event name first, then description).
+          // Restore desktop: View all first, arrows after — both back into controls.
+          if (viewAllBtn && controls && viewAllBtn.parentNode !== controls) {
+            controls.insertBefore(viewAllBtn, controls.firstChild);
+            viewAllBtn.style.marginTop = "";
+            viewAllBtn.style.alignSelf = "";
+            viewAllBtn.style.display = "";
+          }
           if (actionsRow && controls && actionsRow.parentNode !== controls) {
             controls.appendChild(actionsRow);
             actionsRow.style.marginTop = "";
             actionsRow.style.width = "";
+            actionsRow.style.justifyContent = "";
           }
+          // Restore event name and description back into info column.
           if (eventName && info && eventName.parentNode !== info) {
             info.appendChild(eventName);
             eventName.style.marginTop = "";
@@ -4146,7 +4160,7 @@
         el.style.cssText =
           "display:flex;" +
           (stack ? "flex-direction:column;align-items:stretch;gap:20px;" : "justify-content:space-between;align-items:flex-start;gap:40px;") +
-          "margin-top:24px;flex-wrap:wrap;";
+          "margin-bottom:20px;flex-wrap:wrap;";
       });
 
       // Photo controls — center on mobile (≤992px), right-align on desktop.
