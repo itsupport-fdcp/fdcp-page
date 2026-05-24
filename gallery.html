@@ -1342,8 +1342,27 @@
         width: 100% !important;
       }
       .fdcp-actions-row { justify-content: center !important; width: 100% !important; }
-      .fdcp-photos-toolbar-controls { flex: 1 1 100% !important; max-width: none !important; }
-      .fdcp-search-wrap { flex: 1 1 100% !important; max-width: none !important; width: 100% !important; }
+      .fdcp-photos-toolbar {
+        flex-direction: column !important;
+        gap: 16px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .fdcp-photos-toolbar-controls {
+        flex: 1 1 100% !important;
+        max-width: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .fdcp-search-wrap {
+        flex: 1 1 100% !important;
+        max-width: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .fdcp-search-input { box-sizing: border-box !important; min-width: 0 !important; }
     }
     @media (max-width: 768px) {
       .fdcp-gal-shell { padding: 0 16px !important; }
@@ -1481,15 +1500,15 @@
             <p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:6px 0 0;">Photographs from recent FDCP events, sorted newest first.</p>
           </div>
           <div class="fdcp-photos-toolbar-controls"
-              style="display:flex;align-items:center;gap:12px;flex:0 0 420px;min-width:0;">
-            <div class="fdcp-search-wrap" style="position:relative;display:flex;align-items:center;flex:1 1 auto;width:100%;">
+              style="display:flex;align-items:center;gap:12px;flex:0 0 420px;min-width:0;width:100%;box-sizing:border-box;">
+            <div class="fdcp-search-wrap" style="position:relative;display:flex;align-items:center;flex:1 1 auto;width:100%;min-width:0;box-sizing:border-box;">
               <span class="fdcp-search-icon" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#6b7280;pointer-events:none;display:flex;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </span>
               <input id="fdcp-photo-search" class="fdcp-search-input" type="search"
                     placeholder="Search photos by event or caption"
                     autocomplete="off" aria-label="Search photos"
-                    style="width:100%;padding:8px 16px 8px 38px;border:1px solid #E5E7EB;border-radius:9999px;font-size:13px;color:#374151;outline:none;background:#fff;">
+                    style="width:100%;min-width:0;box-sizing:border-box;padding:8px 16px 8px 38px;border:1px solid #E5E7EB;border-radius:9999px;font-size:13px;color:#374151;outline:none;background:#fff;">
             </div>
           </div>
         </div>
