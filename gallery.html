@@ -2154,6 +2154,39 @@
     // Shape mirrors parseGvizHTML output exactly. When the sheet goes live,
     // flip USE_MOCK_DATA to false and these rows are bypassed entirely — the
     // algorithm above runs unchanged on the live feed.
+    var MOCK_YOUTUBE_LINKS = [
+      "https://www.youtube.com/watch?v=Kscy1aJ5Fic",
+      "https://www.youtube.com/watch?v=Vb50CyP2b6Y",
+      "https://www.youtube.com/watch?v=vULBJYusDW0",
+      "https://www.youtube.com/watch?v=QC77MWS2OQ4",
+      "https://www.youtube.com/watch?v=12M_5nSoyWk",
+      "https://www.youtube.com/watch?v=MTAoBp6NxGM",
+      "https://www.youtube.com/watch?v=NUmyv0flWdE",
+      "https://www.youtube.com/watch?v=zRc7xFpnGg8",
+      "https://www.youtube.com/watch?v=IEk1_xNErC4",
+      "https://www.youtube.com/watch?v=K7LIzjaEYKY",
+      "https://www.youtube.com/watch?v=tPNlXpTD3nA",
+      "https://www.youtube.com/watch?v=Iugt4Q3EGFE",
+      "https://www.youtube.com/watch?v=OsmqXEsUe08",
+      "https://www.youtube.com/watch?v=ch2zNG0r7iE",
+      "https://www.youtube.com/watch?v=itbPeXwPYlE",
+      "https://www.youtube.com/watch?v=ElteToEQJk0",
+      "https://www.youtube.com/watch?v=F2IPXL7MZQw",
+      "https://www.youtube.com/watch?v=pTV0Hgi8kFI",
+      "https://www.youtube.com/watch?v=IXU2h2gd35w",
+      "https://www.youtube.com/watch?v=viy7Qhftpxs",
+      "https://www.youtube.com/watch?v=dAJsSH3qJvA",
+      "https://www.youtube.com/watch?v=mDh1rhmc2jM",
+      "https://www.youtube.com/watch?v=6ffejAaqraU",
+      "https://www.youtube.com/watch?v=yejwsH3HpAU",
+      "https://www.youtube.com/watch?v=Yxz69-8rLfI",
+      "https://www.youtube.com/watch?v=CMXnlUWroTE",
+      "https://www.youtube.com/watch?v=Hki5UWnSWp8",
+      "https://www.youtube.com/watch?v=ZM9F9dwu27w",
+      "https://www.youtube.com/watch?v=I3bwfkB9qW4",
+      "https://www.youtube.com/watch?v=wkbAYNIs194"
+    ];
+
     var MOCK_ROWS = [
       // [Newest, both photos AND S3 video] — should win both top spots.
       {
@@ -2807,6 +2840,19 @@
         "Descriptions_html": "Opening night of Cinemalaya 2023 at the Cultural Center of the Philippines."
       }
     ];
+
+    // Mock-only: load the FDCP channel links into unique mock events so the
+    // existing Featured Videos feed exercises real YouTube embeds/thumbnails.
+    (function applyMockYoutubeLinks() {
+      var used = {};
+      var linkIdx = 0;
+      for (var i = 0; i < MOCK_ROWS.length && linkIdx < MOCK_YOUTUBE_LINKS.length; i++) {
+        var id = slugify(MOCK_ROWS[i]["Event"] || "");
+        if (!id || used[id]) continue;
+        MOCK_ROWS[i]["Video Link"] = MOCK_YOUTUBE_LINKS[linkIdx++];
+        used[id] = 1;
+      }
+    }());
 
     // ============ DATA LOADER ============
     // Called on every data update (cache paint + live revalidation). Render
