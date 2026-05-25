@@ -1,4 +1,56 @@
-  <!-- FDCP Gallery — paste into a Drupal Basic Page (Full HTML). -->
+  <title>FDCP Gallery — Stories, Featured Videos & Event Photos | Film Development Council of the Philippines</title>
+  <meta name="description" content="Explore the FDCP Gallery — a visual archive of Film Development Council of the Philippines events, screenings, and milestones in Philippine cinema. Browse FDCP Stories, featured videos, and post-event photo galleries.">
+  <meta name="keywords" content="FDCP, FDCP Gallery, Film Development Council of the Philippines, Philippine cinema, Filipino films, FDCP events, FDCP photos, FDCP videos, FDCP Stories, Cinematheque, Pista ng Pelikulang Pilipino, PPP, Cinemalaya, Reel to Real, Sine Kabataan, Philippine film festival">
+  <meta name="author" content="Film Development Council of the Philippines">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#580076">
+  <link rel="canonical" href="https://fdcp.ph/gallery">
+
+  <!-- Open Graph (Facebook, LinkedIn, Messenger link previews) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Film Development Council of the Philippines">
+  <meta property="og:title" content="FDCP Gallery — Stories, Featured Videos & Event Photos">
+  <meta property="og:description" content="A visual archive of FDCP events, screenings, and milestones in Philippine cinema. Browse FDCP Stories, featured videos, and post-event photo galleries.">
+  <meta property="og:url" content="https://fdcp.ph/gallery">
+  <meta property="og:image" content="https://fdcp.ph/sites/default/files/2025-12/upcoming-events-bg_0.jpg">
+  <meta property="og:image:alt" content="FDCP Gallery — visual archive of Philippine cinema events">
+  <meta property="og:locale" content="en_PH">
+
+  <!-- Twitter / X card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FDCP Gallery — Stories, Featured Videos & Event Photos">
+  <meta name="twitter:description" content="A visual archive of FDCP events, screenings, and milestones in Philippine cinema.">
+  <meta name="twitter:image" content="https://fdcp.ph/sites/default/files/2025-12/upcoming-events-bg_0.jpg">
+
+  <!-- Schema.org JSON-LD — helps Google show a rich result for the gallery -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "FDCP Gallery",
+    "description": "A visual archive of FDCP events, screenings, and milestones in Philippine cinema. Browse FDCP Stories, featured videos, and post-event photo galleries.",
+    "url": "https://fdcp.ph/gallery",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Film Development Council of the Philippines",
+      "url": "https://fdcp.ph"
+    },
+    "publisher": {
+      "@type": "GovernmentOrganization",
+      "name": "Film Development Council of the Philippines",
+      "alternateName": "FDCP",
+      "url": "https://fdcp.ph",
+      "logo": "https://fdcp.ph/sites/default/files/fdcp-logo.png"
+    },
+    "about": [
+      "Philippine cinema",
+      "Filipino films",
+      "Film festivals",
+      "Cinematheque"
+    ]
+  }
+  </script>
+  <!--  END SEO / SOCIAL META  ======================================== -->
 
   <!-- LOCAL-PREVIEW ONLY — delete before pasting into Drupal. -->
   <meta charset="utf-8">
@@ -18,7 +70,7 @@
     }
     .fdcp-gal-root * { box-sizing: border-box !important; }
 
-    /* ============ SECTION SHELL ============ */
+    /*  SECTION SHELL  */
     .fdcp-gal-shell {
       max-width: 1280px !important;
       margin: 0 auto !important;
@@ -72,7 +124,7 @@
       background: #F59E0B !important;
     }
 
-    /* ============ STORIES ============ */
+    /*  STORIES  */
     #fdcp-stories-track {
       display: flex !important;
       gap: 14px !important;
@@ -82,7 +134,18 @@
       padding: 4px 4px 14px !important;
       scrollbar-width: thin !important;
       scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
+      cursor: grab !important;
+      touch-action: pan-y !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
     }
+    #fdcp-stories-track.is-dragging {
+      cursor: grabbing !important;
+      scroll-snap-type: none !important;
+      scroll-behavior: auto !important;
+    }
+    #fdcp-stories-track.is-dragging .fdcp-story-card { scroll-snap-align: none !important; }
+    #fdcp-stories-track .fdcp-story-cover { -webkit-user-drag: none !important; user-select: none !important; }
     #fdcp-stories-track::-webkit-scrollbar {
       height: 6px !important;
       width: 6px !important;
@@ -181,7 +244,7 @@
       letter-spacing: 0.08em !important;
     }
 
-    /* ============ FOCUS MODE / LIGHTBOX ============ */
+    /*  FOCUS MODE / LIGHTBOX  */
     /* z-index max so Drupal nav never overlays. JS also re-parents to body. */
     #fdcp-focus, #fdcp-photo-lightbox {
       position: fixed !important;
@@ -321,7 +384,7 @@
       color: rgba(255,255,255,0.6) !important;
     }
 
-    /* ----- CENTER STAGE (arrows + portrait frame) ----- */
+    /* CENTER STAGE (arrows + portrait frame) */
     .fdcp-focus-stage {
       flex: 1 1 auto !important;
       display: flex !important;
@@ -528,7 +591,7 @@
       .fdcp-focus-caption { bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
     }
 
-    /* ============ FEATURED VIDEOS (3-card carousel) ============ */
+    /*  FEATURED VIDEOS (3-card carousel)  */
     .fdcp-videos-wrap { text-align: center !important; }
     .fdcp-videos-title {
       font-size: 34px !important;
@@ -654,7 +717,7 @@
       box-shadow: 0 10px 24px rgba(88, 0, 118, 0.32) !important;
     }
 
-    /* ============ VIDEO DESCRIPTION STRIP ============ */
+    /*  VIDEO DESCRIPTION STRIP  */
     #fdcp-video-desc {
       text-align: center !important;
       margin: 20px auto 0 !important;
@@ -701,7 +764,7 @@
       .fdcp-vd-title { font-size: 18px !important; }
     }
 
-    /* ============ EVENT PHOTOS (placeholder) ============ */
+    /*  EVENT PHOTOS (placeholder)  */
     .fdcp-photos-block {
       margin-top: 40px !important;
       padding-bottom: 40px !important;
@@ -862,7 +925,18 @@
       scrollbar-width: thin !important;
       scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
       padding: 2px 2px 10px !important;
+      cursor: grab !important;
+      touch-action: pan-y !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
     }
+    .fdcp-photos-grid.is-dragging {
+      cursor: grabbing !important;
+      scroll-snap-type: none !important;
+      scroll-behavior: auto !important;
+    }
+    .fdcp-photos-grid.is-dragging .fdcp-photo-card { scroll-snap-align: none !important; }
+    .fdcp-photos-grid .fdcp-photo-card img { -webkit-user-drag: none !important; user-select: none !important; }
     .fdcp-photos-grid::-webkit-scrollbar {
       height: 6px !important;
       width: 6px !important;
@@ -912,7 +986,7 @@
     }
     .fdcp-photo-card:hover .fdcp-photo-scrim { opacity: 1 !important; }
 
-    /* ============ PHOTO LIGHTBOX (FB-style — no segment bars) ============ */
+    /*  PHOTO LIGHTBOX (FB-style — no segment bars)  */
     .fdcp-lb-stage {
       position: relative !important;
       width: 100% !important;
@@ -1039,7 +1113,7 @@
       min-height: 20px !important;
     }
 
-    /* ============ VIDEO FOCUS MODAL (YouTube fullscreen-style) ============ */
+    /*  VIDEO FOCUS MODAL (YouTube fullscreen-style)  */
     #fdcp-video-focus {
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -1152,7 +1226,7 @@
       .fdcp-vf-title { font-size: 14px !important; }
     }
 
-    /* ============ VIDEO GRID MODAL (thumbnails of every video) ============ */
+    /*  VIDEO GRID MODAL (thumbnails of every video)  */
     #fdcp-video-grid {
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -1295,7 +1369,7 @@
       .fdcp-vg-play-icon { width: 40px !important; height: 40px !important; }
     }
 
-    /* ============ PHOTO GRID MODAL (thumbnails of every photo in a block) ============ */
+    /*  PHOTO GRID MODAL (thumbnails of every photo in a block)  */
     #fdcp-photo-grid {
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -1418,7 +1492,7 @@
       .fdcp-pg-caption { font-size: 11px !important; padding: 8px 10px 10px !important; }
     }
 
-    /* ============ RESPONSIVE ============ */
+    /*  RESPONSIVE  */
     @media (min-width: 1024px) {
       .fdcp-gal-h2 { font-size: 40px !important; }
       .fdcp-videos-title { font-size: 40px !important; }
@@ -1516,7 +1590,7 @@
 
   <div class="fdcp-gal-root" style="width:100%;max-width:100%;overflow-x:hidden;">
 
-    <!-- ============ HERO ============ -->
+    <!--  HERO  -->
     <div class="relative w-full" style="position:relative;width:100%;height:18rem;overflow:hidden;">
       <img src="/sites/default/files/2025-12/upcoming-events-bg_0.jpg"
           class="absolute inset-0 object-cover w-full h-full" alt="">
@@ -1530,7 +1604,7 @@
       </div>
     </div>
 
-    <!-- ============ STORIES ============ -->
+    <!--  STORIES  -->
     <div style="background:#fff;padding:48px 0 24px;">
       <div class="fdcp-gal-shell" style="max-width:1280px;margin:0 auto;padding:0 24px;">
         <div class="fdcp-gal-section-head"
@@ -1549,7 +1623,7 @@
       </div>
     </div>
 
-    <!-- ============ FEATURED VIDEOS (placeholder, 3-card carousel) ============ -->
+    <!--  FEATURED VIDEOS (placeholder, 3-card carousel)  -->
     <div style="background:#fff;padding:48px 0 56px;">
       <div class="fdcp-gal-shell" style="max-width:1280px;margin:0 auto;padding:0 24px;">
         <div class="fdcp-videos-wrap" style="text-align:center;">
@@ -1597,7 +1671,7 @@
       </div>
     </div>
 
-    <!-- ============ EVENT PHOTOS (data-driven, newest event first) ============ -->
+    <!--  EVENT PHOTOS (data-driven, newest event first)  -->
     <div style="background:#FAFAFC;padding:64px 0 80px;">
       <div class="fdcp-gal-shell" style="max-width:1280px;margin:0 auto;padding:0 24px;">
 
@@ -1631,7 +1705,7 @@
 
   </div>
 
-  <!-- ============ FOCUS MODE (Facebook-style stories viewer) ============ -->
+  <!--  FOCUS MODE (Facebook-style stories viewer)  -->
   <div id="fdcp-focus" role="dialog" aria-modal="true" aria-labelledby="fdcp-focus-title-el"
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;padding:16px;box-sizing:border-box;">
 
@@ -1700,7 +1774,7 @@
     </div>
   </div>
 
-  <!-- ============ PHOTO LIGHTBOX (FB-style — title + prev/next + counter, no segments) ============ -->
+  <!--  PHOTO LIGHTBOX (FB-style — title + prev/next + counter, no segments)  -->
   <div id="fdcp-photo-lightbox" role="dialog" aria-modal="true" aria-labelledby="fdcp-lb-title"
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
     <div class="fdcp-lb-stage"
@@ -1745,7 +1819,7 @@
     </div>
   </div>
 
-  <!-- ============ VIDEO FOCUS MODAL (YouTube fullscreen + prev/next between videos) ============ -->
+  <!--  VIDEO FOCUS MODAL (YouTube fullscreen + prev/next between videos)  -->
   <div id="fdcp-video-focus" role="dialog" aria-modal="true" aria-labelledby="fdcp-vf-title"
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
 
@@ -1778,7 +1852,7 @@
     </div>
   </div>
 
-  <!-- ============ VIDEO GRID MODAL (all videos as clickable thumbnails) ============ -->
+  <!--  VIDEO GRID MODAL (all videos as clickable thumbnails)  -->
   <div id="fdcp-video-grid" role="dialog" aria-modal="true" aria-labelledby="fdcp-vg-title"
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
     <div class="fdcp-vg-stage"
@@ -1801,7 +1875,7 @@
     </div>
   </div>
 
-  <!-- ============ PHOTO GRID MODAL (all photos in a block as thumbnails) ============ -->
+  <!--  PHOTO GRID MODAL (all photos in a block as thumbnails)  -->
   <div id="fdcp-photo-grid" role="dialog" aria-modal="true" aria-labelledby="fdcp-pg-title"
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
     <div class="fdcp-pg-stage"
@@ -1826,7 +1900,7 @@
 
   <script>
   (function () {
-    // ============ CONFIG ============
+    //  CONFIG 
     // Single source of truth for the live feed shape. Same SHEET_SRC + CACHE_KEY
     // as event-details.html / upcoming-events.html / the homepage snippet, so
     // the same localStorage cache is shared across all pages.
@@ -1836,7 +1910,7 @@
     var REVALIDATE_MIN_GAP = 60 * 1000;
     var lastFetchAt        = 0;
 
-    // ============ HELPERS (mirror event-details.html — keep in sync) ============
+    //  HELPERS (mirror event-details.html — keep in sync) 
 
     function slugify(s) {
       return String(s || "")
@@ -2043,7 +2117,7 @@
       });
     }
 
-    // ============ ALGORITHM ============
+    //  ALGORITHM 
     // Latest-first selection of events that carry post-event media. Single
     // sorted pool is split into two feeds: featuredVideos (events with a
     // playable Video Link) and photoEvents (events with Photo Links populated).
@@ -2135,14 +2209,14 @@
       });
     }
 
-    // ============ MEDIA STATE ============
+    //  MEDIA STATE 
     // Populated by onMediaData. Renderers in stage 2 and stage 3 consume these.
     var FEATURED_VIDEOS = [];
     var PHOTO_EVENTS    = [];
     var FILTER_STATE    = { query: "", page: 0 };
     var PAGE_SIZE       = 5;   // photo blocks per page
 
-    // ============ MOCK DATA ============
+    //  MOCK DATA 
     // Shape mirrors parseGvizHTML output exactly. When the sheet goes live,
     // flip USE_MOCK_DATA to false and these rows are bypassed entirely — the
     // algorithm above runs unchanged on the live feed.
@@ -2280,7 +2354,7 @@
         "Descriptions_html": ""
       },
 
-      // ── PAGINATION FILLER (remove once live sheet is wired) ──────────────────
+      //  PAGINATION FILLER (remove once live sheet is wired) 
       {
         "Event": "Sine Kabataan 2026",
         "Start time/Date": "4/10/2026 14:00",
@@ -2846,7 +2920,7 @@
       }
     }());
 
-    // ============ DATA LOADER ============
+    //  DATA LOADER 
     // Called on every data update (cache paint + live revalidation). Render
     // functions in stage 2 and stage 3 will be invoked from here. For now we
     // just populate state and emit a console summary so the algorithm output
@@ -2880,7 +2954,7 @@
       }
     }
 
-    // ============ STORIES DATA ============
+    //  STORIES DATA 
     // Mock rows mirror the Google Sheet shape exactly:
     //   GroupTitle | Captions | Media Links (newline or CSV) | IsActive (Show/Hide)
     // The parser below converts each sheet row into a render-ready story.
@@ -3017,7 +3091,7 @@
 
     var STORIES = parseStoriesSheet(STORIES_SHEET);
 
-    // ============ STORY CARDS ============
+    //  STORY CARDS 
 
     function escapeAttr(s) {
       return String(s == null ? "" : s).replace(/[<>&"]/g, function (ch) {
@@ -3069,9 +3143,89 @@
           openFocus(parseInt(btn.dataset.storyIndex, 10), 0);
         });
       });
+
+      enableDragScroll(track);
     }
 
-    // ============ FOCUS MODE ============
+    // Click-and-drag horizontal scroll for the stories track.
+    // Suppresses the card click if the user actually dragged.
+    function enableDragScroll(track) {
+      if (!track || track.__fdcpDragBound) return;
+      track.__fdcpDragBound = true;
+
+      var DRAG_THRESHOLD = 5; // px before we treat the gesture as a drag
+      var isDown = false;
+      var didDrag = false;
+      var startX = 0;
+      var startScroll = 0;
+      var activePointerId = null;
+      var prevUserSelect = "";
+
+      track.style.cursor = "grab";
+      track.style.touchAction = "pan-y";
+
+      track.addEventListener("pointerdown", function (e) {
+        // Only react to primary button / touch / pen
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        isDown = true;
+        didDrag = false;
+        activePointerId = e.pointerId;
+        startX = e.clientX;
+        startScroll = track.scrollLeft;
+
+        // Capture immediately so we never miss a move event, even if the
+        // pointer leaves the track mid-gesture.
+        try { track.setPointerCapture(e.pointerId); } catch (_) {}
+
+        prevUserSelect = document.body.style.userSelect;
+        document.body.style.userSelect = "none";
+      });
+
+      track.addEventListener("pointermove", function (e) {
+        if (!isDown || e.pointerId !== activePointerId) return;
+        var dx = e.clientX - startX;
+        if (!didDrag) {
+          if (Math.abs(dx) <= DRAG_THRESHOLD) return;
+          didDrag = true;
+          // Toggle the class so the !important CSS rules (scroll-snap-type:none,
+          // scroll-behavior:auto, scroll-snap-align:none) actually take effect.
+          // Inline style cannot override the !important rules set on the track.
+          track.classList.add("is-dragging");
+        }
+        e.preventDefault();
+        track.scrollLeft = startScroll - dx;
+      });
+
+      function endDrag(e) {
+        if (!isDown) return;
+        if (e && e.pointerId !== activePointerId && e.type !== "pointercancel") return;
+        isDown = false;
+        try { track.releasePointerCapture(activePointerId); } catch (_) {}
+        activePointerId = null;
+        track.classList.remove("is-dragging");
+        document.body.style.userSelect = prevUserSelect;
+        // Keep didDrag true until the click event fires & we swallow it
+        if (didDrag) {
+          setTimeout(function () { didDrag = false; }, 0);
+        }
+      }
+
+      track.addEventListener("pointerup", endDrag);
+      track.addEventListener("pointercancel", endDrag);
+
+      // Swallow the click that follows a drag so cards don't open focus mode
+      track.addEventListener("click", function (e) {
+        if (didDrag) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      // Prevent native image dragging from hijacking the gesture
+      track.addEventListener("dragstart", function (e) { e.preventDefault(); });
+    }
+
+    //  FOCUS MODE 
 
     var FOCUS_STATE = {
       storyIndex: -1,
@@ -3330,7 +3484,7 @@
       }
     }
 
-    // ============ FEATURED VIDEOS CAROUSEL ============
+    //  FEATURED VIDEOS CAROUSEL 
     // Data-driven from FEATURED_VIDEOS (populated by onMediaData). Main slot
     // is always the newest video event; side slots cycle through the rest.
     var VIDEO_INDEX = 0;
@@ -3493,7 +3647,7 @@
       }
     }
 
-    // ============ VIDEO FOCUS MODAL ============
+    //  VIDEO FOCUS MODAL 
 
     var VF_KEY_HANDLER = null;
     var VF_LAST_FOCUS = null;
@@ -3652,7 +3806,7 @@
       if (next) next.addEventListener("click", function () { stepVideo(1); });
     }
 
-    // ============ PHOTO SEARCH (live) ============
+    //  PHOTO SEARCH (live) 
     // Single text input that substring-matches against event title + each
     // photo's alt/caption. Each keystroke (debounced 150 ms) resets page=0
     // and re-renders the photo section.
@@ -3676,7 +3830,7 @@
       });
     }
 
-    // ============ PHOTO BLOCKS (one block per event, paginated) ============
+    //  PHOTO BLOCKS (one block per event, paginated) 
 
     // Inline-styled pagination buttons. Matches upcoming-events.html's pattern
     // — class-based theming alone fails when Drupal strips the <style> block,
@@ -3734,6 +3888,44 @@
         escapeAttr(label) + '</div>';
     }
 
+    // Measure any fixed/sticky element pinned to the top of the viewport so
+    // pagination scrolls don't park the target underneath the site header.
+    // Drupal themes vary, so we scan common header selectors and pick the
+    // tallest one that is actually anchored at the top.
+    function getStickyHeaderHeight() {
+      var sel = "header, .header, .navbar, .site-header, .fixed-header, " +
+                "[role='banner'], .region-header, .toolbar, #toolbar-bar, " +
+                "#admin-menu, #admin-toolbar";
+      var maxH = 0;
+      Array.prototype.forEach.call(document.querySelectorAll(sel), function (el) {
+        var cs = getComputedStyle(el);
+        if (cs.position !== "fixed" && cs.position !== "sticky") return;
+        var r = el.getBoundingClientRect();
+        if (r.top <= 8 && r.height > 0) maxH = Math.max(maxH, r.height);
+      });
+      return maxH;
+    }
+
+    // Scroll so the "Photo Gallery" title is the first thing visible below
+    // the site header — used after pagination so users can see the section
+    // heading, not the middle of a photo block. Adds extra padding above the
+    // title so the bold gradient h2 + search input both clear the sticky nav.
+    function scrollToPhotoSectionTop() {
+      var target = document.querySelector(".fdcp-photos-toolbar") ||
+                   document.querySelector(".fdcp-photos-title") ||
+                   document.getElementById("fdcp-photo-blocks-host");
+      if (!target) return;
+      var rect = target.getBoundingClientRect();
+      var headerH = getStickyHeaderHeight();
+      // Fallback: if no sticky header is detected, still reserve ~80px so the
+      // browser's URL bar (mobile) doesn't crop the title. Plus 40px of
+      // breathing room above the heading.
+      var safeHeader = headerH > 0 ? headerH : 80;
+      var top = window.pageYOffset + rect.top - safeHeader - 40;
+      if (top < 0) top = 0;
+      window.scrollTo({ top: top, behavior: "smooth" });
+    }
+
     function renderPhotoPagination(totalPages, current) {
       var host = document.getElementById("fdcp-photo-pagination");
       if (!host) return;
@@ -3789,10 +3981,7 @@
           if (!isNaN(p) && p !== FILTER_STATE.page) {
             FILTER_STATE.page = p;
             renderPhotoSection();
-            var anchor = document.getElementById("fdcp-photo-blocks-host");
-            if (anchor && anchor.scrollIntoView) {
-              anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
+            scrollToPhotoSectionTop();
           }
         });
       });
@@ -3802,10 +3991,7 @@
           var d = parseInt(btn.dataset.pageStep, 10);
           FILTER_STATE.page = Math.max(0, Math.min(totalPages - 1, FILTER_STATE.page + d));
           renderPhotoSection();
-          var anchor = document.getElementById("fdcp-photo-blocks-host");
-          if (anchor && anchor.scrollIntoView) {
-            anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+          scrollToPhotoSectionTop();
         });
       });
     }
@@ -3874,7 +4060,7 @@
       renderPhotoPagination(totalPages, FILTER_STATE.page);
     }
 
-    // ============ PHOTO LIGHTBOX (FB-style — for event-photo cards) ============
+    //  PHOTO LIGHTBOX (FB-style — for event-photo cards) 
 
     var PHOTO_LB = {
       items: [],
@@ -4138,10 +4324,15 @@
             openPhotoGrid(items, title);
           });
         }
+
+        // Click-and-drag scroll for the photo carousel. The shared helper
+        // swallows the post-drag click so cards don't open the lightbox after
+        // a drag.
+        if (grid) enableDragScroll(grid);
       });
     }
 
-    // ============ PHOTO GRID MODAL (View-all thumbnail grid for a block) ============
+    //  PHOTO GRID MODAL (View-all thumbnail grid for a block) 
     var PG_ITEMS = [];
     var PG_TITLE = "";
     var PG_KEY_HANDLER = null;
@@ -4242,7 +4433,7 @@
       });
     }
 
-    // ============ VIDEO GRID MODAL (all videos as thumbnails) ============
+    //  VIDEO GRID MODAL (all videos as thumbnails) 
     var VG_KEY_HANDLER = null;
     var VG_LAST_FOCUS = null;
 
@@ -4471,7 +4662,7 @@
       });
     }
 
-    // ============ BOOT ============
+    // BOOT 
 
     function killTopSpacing(startEl) {
       var el = startEl, hops = 0;
