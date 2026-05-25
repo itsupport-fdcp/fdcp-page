@@ -129,22 +129,17 @@
       display: flex !important;
       gap: 14px !important;
       overflow-x: auto !important;
-      scroll-snap-type: x mandatory !important;
-      scroll-behavior: smooth !important;
       padding: 4px 4px 14px !important;
       scrollbar-width: thin !important;
       scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
       cursor: grab !important;
-      touch-action: pan-y !important;
+      -webkit-overflow-scrolling: touch !important;
       user-select: none !important;
       -webkit-user-select: none !important;
     }
     #fdcp-stories-track.is-dragging {
       cursor: grabbing !important;
-      scroll-snap-type: none !important;
-      scroll-behavior: auto !important;
     }
-    #fdcp-stories-track.is-dragging .fdcp-story-card { scroll-snap-align: none !important; }
     #fdcp-stories-track .fdcp-story-cover { -webkit-user-drag: none !important; user-select: none !important; }
     #fdcp-stories-track::-webkit-scrollbar {
       height: 6px !important;
@@ -167,7 +162,6 @@
       overflow: hidden !important;
       cursor: pointer !important;
       background: #1a1a1a !important;
-      scroll-snap-align: start !important;
       border: 0 !important;
       padding: 0 !important;
       text-align: left !important;
@@ -912,7 +906,7 @@
       background-image: none !important;
       color: #9ca3af !important;
     }
-    /* Photos: horizontal scroll-snap carousel (not a vertical grid) */
+    /* Photos: horizontal scrolling carousel (one row, slide sideways) */
     .fdcp-photos-grid {
       display: flex !important;
       flex-wrap: nowrap !important;
@@ -920,8 +914,6 @@
       width: 100% !important;
       overflow-x: auto !important;
       overflow-y: hidden !important;
-      scroll-snap-type: x mandatory !important;
-      scroll-behavior: smooth !important;
       scrollbar-width: thin !important;
       scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
       padding: 2px 2px 10px !important;
@@ -932,10 +924,7 @@
     }
     .fdcp-photos-grid.is-dragging {
       cursor: grabbing !important;
-      scroll-snap-type: none !important;
-      scroll-behavior: auto !important;
     }
-    .fdcp-photos-grid.is-dragging .fdcp-photo-card { scroll-snap-align: none !important; }
     .fdcp-photos-grid .fdcp-photo-card img { -webkit-user-drag: none !important; user-select: none !important; }
     .fdcp-photos-grid::-webkit-scrollbar {
       height: 6px !important;
@@ -957,7 +946,6 @@
       overflow: hidden !important;
       background: #F5F2FF !important;
       cursor: pointer !important;
-      scroll-snap-align: start !important;
       transition: transform 200ms ease, box-shadow 200ms ease !important;
     }
     .fdcp-photo-card:hover {
@@ -1586,6 +1574,18 @@
     @media (max-width: 480px) {
       .fdcp-photo-card { flex: 0 0 84vw !important; }
     }
+
+    /* Back button: sits just below the fixed site header on mobile,
+       overlays the hero at 30% depth on desktop (matches other pages). */
+    #fdcp-gal-back-wrap {
+      position: absolute !important;
+      z-index: 30 !important;
+      top: 88px !important;
+      left: 20px !important;
+    }
+    @media (min-width: 1024px) {
+      #fdcp-gal-back-wrap { top: 30% !important; left: 4.5rem !important; }
+    }
   </style>
 
   <div class="fdcp-gal-root" style="width:100%;max-width:100%;overflow-x:hidden;">
@@ -1596,7 +1596,7 @@
           class="absolute inset-0 object-cover w-full h-full" alt="">
       <div class="absolute inset-0 z-10" style="background:linear-gradient(120deg,rgba(88,0,118,0.78) 0%,rgba(226,0,169,0.55) 100%);"></div>
 
-      <div class="absolute top-[8rem] left-10 lg:top-[30%] lg:left-[4.5rem] z-20"><a href="/"><svg width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"></path></svg>&nbsp;</a></div>
+      <div id="fdcp-gal-back-wrap" style="position:absolute;z-index:30;top:88px;left:20px;"><a href="#" aria-label="Go back" onclick="event.preventDefault(); if (history.length > 1) { history.back(); } else { window.location.href = '/'; }"><svg width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"></path></svg>&nbsp;</a></div>
 
       <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-6">
         <h1 class="font-bold uppercase leading-none" style="font-size:clamp(34px,5vw,56px);letter-spacing:0.5px;">FDCP Gallery</h1>
@@ -1617,7 +1617,7 @@
         </div>
 
         <div id="fdcp-stories-track" role="list" aria-label="Event stories"
-            style="display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;">
+            style="display:flex;gap:14px;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;">
           <!-- cards injected by JS -->
         </div>
       </div>
@@ -3109,7 +3109,7 @@
           + '<button type="button" class="fdcp-story-card" data-story-index="' + i + '"'
           +   ' aria-label="Open story: ' + escapeAttr(s.title) + ' (' + assetCount + ' items)"'
           +   ' style="flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;'
-          +          'cursor:pointer;background:#1a1a1a;scroll-snap-align:start;border:0;padding:0;'
+          +          'cursor:pointer;background:#1a1a1a;border:0;padding:0;'
           +          'text-align:left;color:#fff;box-shadow:0 4px 14px rgba(15,15,15,0.10);">'
           +   '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
           +     ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">'
@@ -3162,10 +3162,11 @@
       var prevUserSelect = "";
 
       track.style.cursor = "grab";
-      track.style.touchAction = "pan-y";
+      track.style.touchAction = "auto";
 
       track.addEventListener("pointerdown", function (e) {
-        // Only react to primary button / touch / pen
+        // Let native touch scroll (with momentum) handle mobile; JS drag handles mouse only
+        if (e.pointerType === "touch") return;
         if (e.pointerType === "mouse" && e.button !== 0) return;
         isDown = true;
         didDrag = false;
@@ -3874,7 +3875,7 @@
         +       '</div>'
         +     '</div>'
         +   '</div>'
-        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;padding:2px 2px 10px;">'
+        +   '<div class="fdcp-photos-grid" style="display:flex;flex-wrap:nowrap;gap:16px;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;padding:2px 2px 10px;">'
         +     cards
         +   '</div>'
         + '</div>';
@@ -4281,13 +4282,13 @@
         if (grid && prevBtn) {
           prevBtn.addEventListener("click", function () {
             if (prevBtn.hasAttribute("disabled")) return;
-            grid.scrollBy({ left: -step(), behavior: "smooth" });
+            grid.scrollBy({ left: -step(), behavior: "instant" });
           });
         }
         if (grid && nextBtn) {
           nextBtn.addEventListener("click", function () {
             if (nextBtn.hasAttribute("disabled")) return;
-            grid.scrollBy({ left: step(), behavior: "smooth" });
+            grid.scrollBy({ left: step(), behavior: "instant" });
           });
         }
 
@@ -4711,8 +4712,8 @@
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-grid"), function (el) {
         el.style.cssText =
           "display:flex;flex-wrap:nowrap;gap:16px;width:100%;" +
-          "overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;" +
-          "scroll-behavior:smooth;scrollbar-width:thin;" +
+          "overflow-x:auto;overflow-y:hidden;" +
+          "scrollbar-width:thin;" +
           "scrollbar-color:rgba(0,0,0,0.18) transparent;padding:2px 2px 10px;";
       });
 
@@ -4721,8 +4722,7 @@
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photo-card"), function (el) {
         el.style.cssText =
           "position:relative;flex:0 0 " + cardW + ";aspect-ratio:1.55/1;" +
-          "border-radius:18px;overflow:hidden;background:#F5F2FF;cursor:pointer;" +
-          "scroll-snap-align:start;";
+          "border-radius:18px;overflow:hidden;background:#F5F2FF;cursor:pointer;";
       });
 
       // Photos header — hidden on mobile (elements are reordered by reorderPhotosForMobile),

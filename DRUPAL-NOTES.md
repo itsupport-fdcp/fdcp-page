@@ -226,6 +226,22 @@ document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
 });
 ```
 
+### CTA buttons and dates use Poppins
+
+All pill-style CTA buttons (arrow chips, "Visit Gallery" links, etc.) and event date spans (`#fdcp-event-date`) must set `font-family:'Poppins',sans-serif` inline. Drupal's Tailwind theme inherits a different body font, so omitting it lets the browser fall through to the theme's default.
+
+```html
+<!-- CTA button -->
+<a href="..." style="...;font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;...">
+  Label
+</a>
+
+<!-- Event date -->
+<span id="fdcp-event-date" style="font-family:'Poppins',sans-serif;font-weight:600;...">—</span>
+```
+
+---
+
 ### Gradient text needs a solid color fallback
 
 `background-clip:text; -webkit-text-fill-color:transparent;` has been

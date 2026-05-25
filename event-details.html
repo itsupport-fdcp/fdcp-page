@@ -36,7 +36,7 @@
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
               </svg>
-              <span id="fdcp-event-date" style="font-family:'Oswald','Bebas Neue','Arial Narrow',sans-serif;font-weight:600;font-size:20px;letter-spacing:0.05em;text-transform:uppercase;color:#580076;line-height:1;">—</span>
+              <span id="fdcp-event-date" style="font-family:'Poppins',sans-serif;font-weight:600;font-size:20px;letter-spacing:0.05em;text-transform:uppercase;color:#580076;line-height:1;">—</span>
             </div>
             <p id="fdcp-event-time" class="text-xs"></p>
             <p id="fdcp-event-location" class="text-sm text-gray-600" style="display:none">
@@ -133,9 +133,9 @@
                   Photo recaps, behind-the-scenes reels, and stories from past FDCP screenings, festivals, and forums — all archived in one place.
                 </p>
 
-                <a href="https://fdcp.ph/gallery" target="_blank" rel="noopener"
+                <a href="https://fdcp.ph/gallery"
                   class="fdcp-pe-arrow-chip"
-                  style="display:inline-flex;align-items:center;gap:12px;padding:12px 20px;background-color:#580076;color:#ffffff;border-radius:9999px;font-weight:600;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;flex-shrink:0;">
+                  style="display:inline-flex;align-items:center;gap:12px;padding:12px 20px;background-color:#580076;color:#ffffff;border-radius:9999px;font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;flex-shrink:0;">
                   <span id="fdcp-pe-chip-label">Visit Highlights Gallery</span>
                   <span class="fdcp-pe-arrow" style="display:inline-flex;align-items:center;justify-content:center;line-height:0;transition:transform 0.3s cubic-bezier(.2,.7,.2,1);">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;">
@@ -157,12 +157,12 @@
               cards.forEach(function (card) {
                 card.addEventListener('click', function (e) {
                   if (e.target.closest('a')) return;
-                  window.open(card.getAttribute('data-href'), '_blank', 'noopener');
+                  window.location.href = card.getAttribute('data-href');
                 });
                 card.addEventListener('keydown', function (e) {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    window.open(card.getAttribute('data-href'), '_blank', 'noopener');
+                    window.location.href = card.getAttribute('data-href');
                   }
                 });
               });
