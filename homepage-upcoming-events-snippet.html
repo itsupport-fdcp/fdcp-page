@@ -22,6 +22,25 @@
 
 <style>
   .fdcp-home-card:hover { box-shadow: 0 6px 18px rgba(88,0,118,0.15) !important; transform: translateY(-1px); }
+  /* Thin scrollbar for the events list container */
+  [class*="68svh"] { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+  [class*="68svh"]::-webkit-scrollbar { width: 4px; }
+  [class*="68svh"]::-webkit-scrollbar-track { background: transparent; }
+  [class*="68svh"]::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+  /* Bump the events scroll panel a little so the 4th card isn't clipped.
+     Drupal renders Tailwind class `lg:h-[68svh]` on the container; the
+     attribute selector lets us override without depending on Tailwind's
+     arbitrary-value class surviving purge. */
+  @media (min-width: 1024px) {
+    [class*="68svh"] { height: 80svh !important; }
+  }
+  /* Mobile: hide the right-side "no event" panel (live date/time + the two
+     rotated image cards). The wrap carries data-fdcp-default; hide it and
+     collapse the now-empty panel padding so it leaves no vertical gap. */
+  @media (max-width: 1023px) {
+    [data-fdcp-default] { display: none !important; }
+    [data-fdcp-panel-empty] { padding: 0 !important; min-height: 0 !important; }
+  }
 </style>
 
 <script>
@@ -43,7 +62,15 @@
   // bumps the schema for the CSV→HTML migration.
   var CACHE_KEY = "fdcp.events.v4";
   var REVALIDATE_MIN_GAP = 60 * 1000;
-  var MAX_HOME_CARDS = 8;                 // safety cap for the homepage strip
+  var MAX_HOME_CARDS = 8;                 // safety cap for the homepage strip (desktop)
+  var MAX_HOME_CARDS_MOBILE = 5;          // tighter cap on mobile to avoid long scroll
+  // Fallback images for the right-side featured panel when no Drupal event
+  // is present. Both are landscape Unsplash photos; object-fit:cover fills
+  // the portrait panel without gaps regardless of aspect ratio.
+  var DEFAULT_IMGS = [
+    "https://images.unsplash.com/photo-1762009366274-a12dff67cee3?fm=jpg&q=80&w=900&auto=format&fit=crop",
+    "https://plus.unsplash.com/premium_photo-1731621691001-49f2b0b6d37d?fm=jpg&q=80&w=900&auto=format&fit=crop"
+  ];
   // ======================================================================
 
   var MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
@@ -51,13 +78,13 @@
   // Card markup as a string so Drupal's HTML filter can't strip it
   // (it does strip the children of real <template> elements).
   var CARD_HTML = [
-    '<a class="fdcp-home-card" href="#" style="display:grid;grid-template-columns:80px 1fr;gap:16px;padding:14px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:box-shadow .2s ease, transform .2s ease;">',
-      '<div style="background:#F5F2FF;border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">',
+    '<a class="fdcp-home-card" href="#" style="display:grid;grid-template-columns:96px 1fr auto;gap:20px;align-items:center;padding:20px;min-height:160px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:box-shadow .2s ease, transform .2s ease;">',
+      '<div style="background:#F5F2FF;border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;align-self:stretch;">',
         '<span data-field="month" style="background:#580076;color:#fff;font-weight:700;font-size:11px;letter-spacing:.05em;padding:2px 0;border-radius:9999px;width:100%;line-height:1.2;">—</span>',
         '<span data-field="day" style="font-weight:800;font-size:34px;line-height:1;margin-top:6px;background:linear-gradient(180deg,#580076 0%,#E200A9 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;">—</span>',
         '<span data-field="year" style="color:#E200A9;font-size:12px;line-height:1.2;margin-top:2px;">—</span>',
       '</div>',
-      '<div style="display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;">',
+      '<div style="display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0;">',
         '<h3 data-field="title" style="font-weight:700;font-size:16px;line-height:1.25;margin:0;color:#111827;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">—</h3>',
         '<p data-field="description" style="font-size:12px;line-height:1.4;color:#6b7280;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line;"></p>',
         '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#536471;margin-top:2px;">',
@@ -71,6 +98,10 @@
           '</span>',
         '</div>',
       '</div>',
+      // View Details CTA — Tailwind classes (the site has Tailwind) plus an
+      // inline-style fallback so Drupal text-format filters can\'t strip the
+      // visual treatment. gsap-fade-up triggers the existing entry animation.
+      '<span class="gsap-fade-up inline-block bg-gradient-to-r from-[#CC8500] to-[#FFCC00] text-black w-max rounded-full px-10 py-2 mx-auto" style="display:inline-block;background:linear-gradient(to right,#CC8500,#FFCC00);color:#000;width:max-content;border-radius:9999px;padding:8px 40px;font-weight:600;font-size:13px;white-space:nowrap;text-align:center;align-self:center;">View Details</span>',
     '</a>'
   ].join("");
 
@@ -216,6 +247,8 @@
   }
 
   var lastFetchAt = 0;
+  var liveClockTimer = null;
+  var homeEventsAnimated = false;
 
   function readCache() {
     try {
@@ -280,28 +313,177 @@
   }
 
   function findHomeContainer() {
-    // The homepage section uses <a href="/upcoming-events"> as the heading link.
-    // The events list is the next sibling <div> of the link's flex wrapper.
+    // Primary: walk from the "Upcoming Events" heading link.
+    // DOM structure (Drupal homepage):
+    //   <div class="flex items-center gap-4 group ...">
+    //     <a href="/upcoming-events">...</a>
+    //   </div>
+    //   <div class="flex flex-col gap-5 overflow-y-auto lg:h-[68svh] ...">  ← target
+    //     [event cards]
+    //   </div>
     var link = document.querySelector('a[href="/upcoming-events"]');
-    if (!link) return null;
-
-    // Walk up to the wrapper that holds the title (the .group element), then
-    // find the next sibling div that contains the events list.
-    var wrap = link.closest('.group') || link.parentElement;
-    if (!wrap || !wrap.parentElement) return null;
-
-    var sibling = wrap.nextElementSibling;
-    while (sibling) {
-      // The list container is a flex column with overflow-y-auto.
-      var cls = sibling.className || "";
-      if (sibling.tagName === "DIV" &&
-          /overflow-y-auto/.test(cls) &&
-          /flex/.test(cls)) {
-        return sibling;
+    if (link) {
+      var wrap = link.closest('.group') || link.parentElement;
+      if (wrap && wrap.parentElement) {
+        var sibling = wrap.nextElementSibling;
+        while (sibling) {
+          var cls = sibling.className || "";
+          if (sibling.tagName === "DIV" &&
+              /overflow-y-auto/.test(cls) &&
+              /flex/.test(cls)) {
+            return sibling;
+          }
+          sibling = sibling.nextElementSibling;
+        }
       }
-      sibling = sibling.nextElementSibling;
+    }
+    // Fallback: match by the unique viewport-height class on this container.
+    return document.querySelector('[class*="68svh"]') || null;
+  }
+
+  // Walk the DOM to find the right-side featured image panel.
+  // Tries two layouts: panel as direct sibling of the event list,
+  // or panel as sibling of the column that wraps heading + list.
+  function findFeaturedPanel() {
+    var container = findHomeContainer();
+    if (!container) return null;
+    var ns = container.nextElementSibling;
+    if (ns && ns.tagName === "DIV") return ns;
+    var col = container.parentElement;
+    if (col) {
+      ns = col.nextElementSibling;
+      if (ns && ns.tagName === "DIV") return ns;
     }
     return null;
+  }
+
+  // A real Drupal event image is a file upload — its src lives under
+  // /sites/ or /files/. Theme placeholder graphics (the "no event" cards)
+  // live under /themes/, /modules/, or are inline data:/SVG. This lets us
+  // leave a genuine event display alone while still replacing the
+  // placeholder state with our default image.
+  function hasRealDrupalEventImg(panel) {
+    var imgs = panel.querySelectorAll("img");
+    for (var i = 0; i < imgs.length; i++) {
+      var src = imgs[i].getAttribute("src") || "";
+      if (/\/sites\/default\/files\//i.test(src)) return true;
+    }
+    return false;
+  }
+
+  // Rebuild the right panel as the "no event" display: today's PH date,
+  // a live PH clock (Asia/Manila, ticking every second), and two stacked
+  // image cards rotated like a hand of cards — mirrors the placeholder
+  // graphic Drupal renders, but with our own imagery and a working clock
+  // (Drupal's static "06:32:60 PM" can show :60 seconds — ours can't).
+  // Idempotent across SWR re-runs via the data-fdcp-default marker.
+  function updateFeaturedPanel() {
+    var panel = findFeaturedPanel();
+    if (!panel) return;
+
+    if (hasRealDrupalEventImg(panel)) return;          // leave real event alone
+    if (panel.querySelector("[data-fdcp-default]")) return; // already injected
+
+    panel.innerHTML = "";
+    panel.style.display = "flex";
+    panel.style.flexDirection = "column";
+    panel.style.alignItems = "center";
+    panel.style.justifyContent = "flex-start"; // pin header to the top of the panel
+    panel.style.padding = "40px 24px 24px";
+    panel.style.gap = "0";
+    panel.style.boxSizing = "border-box";
+    panel.style.overflow = "hidden";
+
+    panel.setAttribute("data-fdcp-panel-empty", "1");
+
+    var wrap = document.createElement("div");
+    wrap.setAttribute("data-fdcp-default", "1");
+    wrap.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;";
+
+    var dateEl = document.createElement("div");
+    dateEl.style.cssText =
+      "font-size:clamp(32px,3.4vw,46px);font-weight:800;color:#111;" +
+      "text-align:center;line-height:1.1;letter-spacing:-0.015em;";
+
+    var timeEl = document.createElement("div");
+    timeEl.style.cssText =
+      "font-size:clamp(22px,2.4vw,32px);font-weight:500;color:#333;" +
+      "text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em;";
+
+    // Two-card stack: card 1 tilts left and sits behind, card 2 tilts
+    // right and sits in front. Cover-fit lets horizontal Unsplash photos
+    // fill each portrait card with no gaps.
+    var stack = document.createElement("div");
+    stack.style.cssText = "position:relative;width:min(92%,420px);aspect-ratio:1/1.05;margin-top:36px;";
+
+    var c1 = document.createElement("img");
+    c1.src = DEFAULT_IMGS[0];
+    c1.alt = "";
+    c1.style.cssText =
+      "position:absolute;left:0;top:6%;width:66%;height:92%;" +
+      "object-fit:cover;object-position:center;border-radius:22px;" +
+      "box-shadow:0 18px 38px rgba(88,0,118,0.25);";
+
+    var c2 = document.createElement("img");
+    c2.src = DEFAULT_IMGS[1];
+    c2.alt = "";
+    c2.style.cssText =
+      "position:absolute;right:0;bottom:0;width:66%;height:92%;" +
+      "object-fit:cover;object-position:center;border-radius:22px;" +
+      "box-shadow:0 18px 38px rgba(226,0,169,0.25);";
+
+    stack.appendChild(c1);
+    stack.appendChild(c2);
+    wrap.appendChild(dateEl);
+    wrap.appendChild(timeEl);
+    wrap.appendChild(stack);
+    panel.appendChild(wrap);
+
+    // Animate the panel contents in from below when the section enters view.
+    // transform:rotate() is removed from inline styles above so GSAP can own
+    // the full transform and composite rotation + y together.
+    if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
+      gsap.registerPlugin(ScrollTrigger);
+      var panelTrigger = { trigger: panel, start: "top 85%", once: true };
+      gsap.fromTo(dateEl,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", scrollTrigger: panelTrigger }
+      );
+      gsap.fromTo(timeEl,
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, delay: 0.1, ease: "power2.out", scrollTrigger: panelTrigger }
+      );
+      gsap.fromTo(c1,
+        { y: 80, opacity: 0, rotation: -10 },
+        { y: 0, opacity: 1, rotation: -10, duration: 0.75, delay: 0.2, ease: "power2.out", scrollTrigger: panelTrigger }
+      );
+      gsap.fromTo(c2,
+        { y: 80, opacity: 0, rotation: 10 },
+        { y: 0, opacity: 1, rotation: 10, duration: 0.75, delay: 0.35, ease: "power2.out", scrollTrigger: panelTrigger }
+      );
+    } else {
+      // GSAP not available — apply final rotation via JS so the fallback still looks right
+      c1.style.transform = "rotate(-10deg)";
+      c2.style.transform = "rotate(10deg)";
+    }
+
+    // Live Asia/Manila clock. formatToParts lets us pin the exact layout
+    // ("September 12, 2025" / "06:32:59 PM") regardless of locale quirks.
+    if (liveClockTimer) clearInterval(liveClockTimer);
+    var fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Manila",
+      year: "numeric", month: "long", day: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+    });
+    function tick() {
+      var parts = fmt.formatToParts(new Date());
+      var p = {};
+      for (var i = 0; i < parts.length; i++) p[parts[i].type] = parts[i].value;
+      dateEl.textContent = p.month + " " + p.day + ", " + p.year;
+      timeEl.textContent = p.hour + ":" + p.minute + ":" + p.second + " " + p.dayPeriod;
+    }
+    tick();
+    liveClockTimer = setInterval(tick, 1000);
   }
 
   function isPlaceholderOnly(container) {
@@ -383,13 +565,15 @@
     }
 
     var today = new Date(); today.setHours(0,0,0,0);
+    var isMobile = window.matchMedia("(max-width: 1023px)").matches;
+    var cap = isMobile ? MAX_HOME_CARDS_MOBILE : MAX_HOME_CARDS;
     var upcoming = rows
       .map(function (r) { return { row: r, start: parseSheetDate(r["Start time/Date"]) }; })
       .filter(function (x) { return x.start && x.start >= today; })
       .sort(function (a, b) { return a.start - b.start; })
-      .slice(0, MAX_HOME_CARDS);
+      .slice(0, cap);
 
-    if (!upcoming.length) return; // nothing to add; leave whatever CMS rendered
+    if (!upcoming.length) { updateFeaturedPanel(); return; }
 
     // Drop any sheet-injected cards from a previous SWR pass so renamed,
     // removed, or re-ordered events refresh cleanly without leaving
@@ -405,6 +589,29 @@
     upcoming.forEach(function (x) {
       container.appendChild(buildHomeCard(x.row));
     });
+
+    // ScrollTrigger entrance: cards slide up from below when the section
+    // enters the viewport. Runs once — SWR re-runs skip re-hiding cards.
+    if (!homeEventsAnimated && typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
+      homeEventsAnimated = true;
+      gsap.registerPlugin(ScrollTrigger);
+      var cards = Array.prototype.slice.call(container.querySelectorAll("[data-fdcp-sheet-card]"));
+      gsap.set(cards, { y: 50, opacity: 0 });
+      gsap.to(cards, {
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: container,
+          start: "top 82%",
+          once: true
+        }
+      });
+    }
+
+    updateFeaturedPanel();
   }
 
   function init() {

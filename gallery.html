@@ -1219,7 +1219,7 @@
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       inset: 0 !important;
-      z-index: 2147483647 !important;
+      z-index: 2147483645 !important;
       background: rgba(10, 10, 14, 0.97) !important;
       display: none !important;
       align-items: flex-start !important;
@@ -1362,7 +1362,7 @@
       position: fixed !important;
       top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       inset: 0 !important;
-      z-index: 2147483647 !important;
+      z-index: 2147483645 !important;
       background: rgba(10, 10, 14, 0.97) !important;
       display: none !important;
       align-items: flex-start !important;
@@ -1854,7 +1854,7 @@
 
   <!--  VIDEO GRID MODAL (all videos as clickable thumbnails)  -->
   <div id="fdcp-video-grid" role="dialog" aria-modal="true" aria-labelledby="fdcp-vg-title"
-      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
+      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483645;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
     <div class="fdcp-vg-stage"
         style="position:relative;width:100%;max-width:1200px;display:flex;flex-direction:column;gap:20px;">
       <div class="fdcp-vg-header"
@@ -1877,7 +1877,7 @@
 
   <!--  PHOTO GRID MODAL (all photos in a block as thumbnails)  -->
   <div id="fdcp-photo-grid" role="dialog" aria-modal="true" aria-labelledby="fdcp-pg-title"
-      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
+      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483645;background:rgba(10,10,14,0.97);display:none;align-items:flex-start;justify-content:center;padding:32px 24px;overflow-y:auto;box-sizing:border-box;">
     <div class="fdcp-pg-stage"
         style="position:relative;width:100%;max-width:1280px;display:flex;flex-direction:column;gap:20px;">
       <div class="fdcp-pg-header"
@@ -3147,74 +3147,71 @@
       enableDragScroll(track);
     }
 
-    // Click-and-drag horizontal scroll for the stories track.
-    // Suppresses the card click if the user actually dragged.
+    // Click-and-drag horizontal scroll for the stories track and photo carousels.
+    // Uses document-level move/up listeners (no setPointerCapture) so click events
+    // always fire on the actual card target, not the track — preserving card
+    // clickability while still suppressing clicks that follow a real drag.
     function enableDragScroll(track) {
       if (!track || track.__fdcpDragBound) return;
       track.__fdcpDragBound = true;
 
-      var DRAG_THRESHOLD = 5; // px before we treat the gesture as a drag
+      var DRAG_THRESHOLD = 8; // px — slightly generous so micro-jitter isn't a drag
       var isDown = false;
       var didDrag = false;
       var startX = 0;
       var startScroll = 0;
-      var activePointerId = null;
       var prevUserSelect = "";
 
       track.style.cursor = "grab";
-      track.style.touchAction = "auto";
+      track.style.touchAction = "auto"; // native touch scroll (with momentum) on mobile
 
-      track.addEventListener("pointerdown", function (e) {
-        // Let native touch scroll (with momentum) handle mobile; JS drag handles mouse only
-        if (e.pointerType === "touch") return;
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        isDown = true;
-        didDrag = false;
-        activePointerId = e.pointerId;
-        startX = e.clientX;
-        startScroll = track.scrollLeft;
-
-        // Capture immediately so we never miss a move event, even if the
-        // pointer leaves the track mid-gesture.
-        try { track.setPointerCapture(e.pointerId); } catch (_) {}
-
-        prevUserSelect = document.body.style.userSelect;
-        document.body.style.userSelect = "none";
-      });
-
-      track.addEventListener("pointermove", function (e) {
-        if (!isDown || e.pointerId !== activePointerId) return;
+      function onMove(e) {
+        if (!isDown) return;
         var dx = e.clientX - startX;
         if (!didDrag) {
           if (Math.abs(dx) <= DRAG_THRESHOLD) return;
           didDrag = true;
-          // Toggle the class so the !important CSS rules (scroll-snap-type:none,
-          // scroll-behavior:auto, scroll-snap-align:none) actually take effect.
-          // Inline style cannot override the !important rules set on the track.
           track.classList.add("is-dragging");
+          track.style.cursor = "grabbing";
         }
         e.preventDefault();
         track.scrollLeft = startScroll - dx;
-      });
+      }
 
-      function endDrag(e) {
+      function onUp() {
         if (!isDown) return;
-        if (e && e.pointerId !== activePointerId && e.type !== "pointercancel") return;
         isDown = false;
-        try { track.releasePointerCapture(activePointerId); } catch (_) {}
-        activePointerId = null;
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup",   onUp);
+        document.removeEventListener("pointercancel", onUp);
         track.classList.remove("is-dragging");
+        track.style.cursor = "grab";
         document.body.style.userSelect = prevUserSelect;
-        // Keep didDrag true until the click event fires & we swallow it
+        // Keep didDrag true until the click event fires so we can swallow it,
+        // then clear it immediately after.
         if (didDrag) {
           setTimeout(function () { didDrag = false; }, 0);
         }
       }
 
-      track.addEventListener("pointerup", endDrag);
-      track.addEventListener("pointercancel", endDrag);
+      track.addEventListener("pointerdown", function (e) {
+        // Touch gets native momentum scroll; JS drag is mouse-only.
+        if (e.pointerType !== "mouse") return;
+        if (e.button !== 0) return;
+        isDown = true;
+        didDrag = false;
+        startX = e.clientX;
+        startScroll = track.scrollLeft;
+        prevUserSelect = document.body.style.userSelect;
+        document.body.style.userSelect = "none";
+        // Listen on document so dragging outside the track still works.
+        document.addEventListener("pointermove",   onMove);
+        document.addEventListener("pointerup",     onUp);
+        document.addEventListener("pointercancel", onUp);
+      });
 
-      // Swallow the click that follows a drag so cards don't open focus mode
+      // Swallow the click that immediately follows a drag so cards don't open.
+      // Capturing listener fires before any child card listener.
       track.addEventListener("click", function (e) {
         if (didDrag) {
           e.preventDefault();
@@ -3222,7 +3219,6 @@
         }
       }, true);
 
-      // Prevent native image dragging from hijacking the gesture
       track.addEventListener("dragstart", function (e) { e.preventDefault(); });
     }
 
@@ -3709,7 +3705,6 @@
       if (!modal) return;
       modal.classList.remove("is-open");
       modal.style.display = "none";
-      document.body.style.overflow = "";
 
       // Clear the iframe/video so audio doesn't keep playing in the background.
       var frame = document.getElementById("fdcp-vf-frame");
@@ -3719,8 +3714,18 @@
         document.removeEventListener("keydown", VF_KEY_HANDLER);
         VF_KEY_HANDLER = null;
       }
-      if (VF_LAST_FOCUS && typeof VF_LAST_FOCUS.focus === "function") {
-        try { VF_LAST_FOCUS.focus(); } catch (e) {}
+
+      // If the video grid is still open (we layered the player on top), restore
+      // focus to its close button and keep body scroll locked.
+      var grid = document.getElementById("fdcp-video-grid");
+      if (grid && grid.classList.contains("is-open")) {
+        var gridClose = document.getElementById("fdcp-vg-close");
+        if (gridClose) gridClose.focus();
+      } else {
+        document.body.style.overflow = "";
+        if (VF_LAST_FOCUS && typeof VF_LAST_FOCUS.focus === "function") {
+          try { VF_LAST_FOCUS.focus(); } catch (e) {}
+        }
       }
     }
 
@@ -4150,7 +4155,6 @@
       if (!modal) return;
       modal.classList.remove("is-open");
       modal.style.display = "none";
-      document.body.style.overflow = "";
 
       var host = document.getElementById("fdcp-lb-media-host");
       if (host) host.innerHTML = "";
@@ -4159,8 +4163,18 @@
         document.removeEventListener("keydown", PHOTO_LB.keyHandler);
         PHOTO_LB.keyHandler = null;
       }
-      if (PHOTO_LB.lastFocus && typeof PHOTO_LB.lastFocus.focus === "function") {
-        try { PHOTO_LB.lastFocus.focus(); } catch (e) {}
+
+      // If the photo grid is still open (we layered the lightbox on top), restore
+      // focus to its close button and keep body scroll locked.
+      var grid = document.getElementById("fdcp-photo-grid");
+      if (grid && grid.classList.contains("is-open")) {
+        var gridClose = document.getElementById("fdcp-pg-close");
+        if (gridClose) gridClose.focus();
+      } else {
+        document.body.style.overflow = "";
+        if (PHOTO_LB.lastFocus && typeof PHOTO_LB.lastFocus.focus === "function") {
+          try { PHOTO_LB.lastFocus.focus(); } catch (e) {}
+        }
       }
     }
 
@@ -4381,7 +4395,6 @@
           var idx = parseInt(el.dataset.photoIdx, 10);
           var items = PG_ITEMS;
           var title = PG_TITLE;
-          closePhotoGrid();
           openPhotoLightbox(items, isNaN(idx) ? 0 : idx, title);
         });
       });
@@ -4485,7 +4498,6 @@
       Array.prototype.forEach.call(host.querySelectorAll("[data-video-idx]"), function (el) {
         el.addEventListener("click", function () {
           var idx = parseInt(el.dataset.videoIdx, 10);
-          closeVideoGrid();
           openVideoFocus(isNaN(idx) ? 0 : idx);
         });
       });
