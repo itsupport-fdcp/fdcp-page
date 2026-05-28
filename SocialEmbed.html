@@ -9,7 +9,7 @@
   var FB_FOLLOWERS  = "145K followers";
 
 
-  var FB_FILL_CARD  = false;
+  var FB_FILL_CARD  = true;
   var FB_MAX_SCALE  = 1.5;
   var SOCIAL_STATS_SHEET_URL = "";
 
@@ -169,11 +169,12 @@
     var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
     var available = body.clientWidth - padL - padR;
     var nativeW = 500, nativeH = 520;
-    var scale = Math.max(1, Math.min(FB_MAX_SCALE, available / nativeW));
+    var scale = Math.min(1, available / nativeW);
     var iframe = scaler.firstElementChild;
     if (iframe) iframe.style.transform = "scale(" + scale + ")";
     scaler.style.width  = (nativeW * scale) + "px";
     scaler.style.height = (nativeH * scale) + "px";
+    body.style.height   = (nativeH * scale) + "px";
   }
 
   function buildFooter() {
