@@ -1,24 +1,4 @@
-<!-- =====================================================================
-  FDCP — Homepage "Upcoming Event" Sheet Injector
-  Paste the contents of this file as a Custom Block / Full HTML region
-  placed ANYWHERE on the homepage (after the existing "Upcoming Event"
-  section is rendered by Drupal — placing it near the footer is safest).
 
-  What it does:
-    • Fetches events from the same Google Sheet used by /upcoming-events
-    • Finds the homepage's "Upcoming Event" list container by walking the
-      DOM from a[href="/upcoming-events"]
-    • If the container only contains the "No upcoming events at the moment."
-      placeholder, it is replaced with the sheet's upcoming events.
-    • If the container already has CMS-rendered cards, the sheet's events
-      are merged (sorted by start date) so both sources appear together.
-
-  Detail-page alias is configurable via DETAIL_URL below.
-===================================================================== -->
-
-<!-- Card markup is built from a JS string inside the script below.
-     We avoid <template>…</template> because Drupal's text-format filter
-     strips the children of <template> elements at render time. -->
 
 <style>
   .fdcp-home-card:hover { box-shadow: 0 6px 18px rgba(88,0,118,0.15) !important; transform: translateY(-1px); }
@@ -31,35 +11,83 @@
      Drupal renders Tailwind class `lg:h-[68svh]` on the container; the
      attribute selector lets us override without depending on Tailwind's
      arbitrary-value class surviving purge. */
-  @media (min-width: 1024px) {
+  @media (min-width: 1350px) {
     [class*="68svh"] { height: 80svh !important; }
   }
-  /* Mobile: hide the right-side "no event" panel (live date/time + the two
-     rotated image cards). The wrap carries data-fdcp-default; hide it and
-     collapse the now-empty panel padding so it leaves no vertical gap. */
+  /* True mobile only (≤1023px): hide the right-side "no event" panel
+     (live date/time + the two rotated image cards) because the layout
+     collapses to a single column. Keep it visible on laptop widths
+     1024–1349 where Drupal still renders the two-column layout. */
   @media (max-width: 1023px) {
     [data-fdcp-default] { display: none !important; }
     [data-fdcp-panel-empty] { padding: 0 !important; min-height: 0 !important; }
+    /* Breathing room between the "Upcoming Events" heading and the first
+       card — Drupal's mobile layout butts them right up against each
+       other. Targets the scroll container by its unique 68svh class. */
+    [class*="68svh"] { margin-top: 16px !important; }
+  }
+  /* Below the desktop breakpoint Drupal's fixed two-column layout keeps
+     the card column narrow enough that the original 96px / 1fr / auto
+     grid + big pill CTA overlap the description, and long descriptions
+     can bleed past the card edge. Tighten the date column, gap, and the
+     pill's padding/font; force the description to wrap so it stays in
+     bounds. minmax(0,1fr) lets the middle column actually shrink. */
+  @media (max-width: 1349px) {
+    .fdcp-home-card {
+      grid-template-columns: 56px minmax(0, 1fr) auto !important;
+      gap: 10px !important;
+      padding: 12px !important;
+      min-height: 130px !important;
+    }
+    /* Shrink the date badge so it doesn't eat the text column. */
+    .fdcp-home-card > div:first-child {
+      padding: 8px 4px !important;
+      border-radius: 10px !important;
+    }
+    .fdcp-home-card [data-field="month"] { font-size: 9px !important; }
+    .fdcp-home-card [data-field="day"]   { font-size: 22px !important; margin-top: 4px !important; }
+    .fdcp-home-card [data-field="year"]  { font-size: 10px !important; }
+    /* Smaller title / description so two lines actually fit the narrow col. */
+    .fdcp-home-card [data-field="title"] {
+      font-size: 13px !important;
+      line-height: 1.25 !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+    .fdcp-home-card [data-field="description"] {
+      font-size: 11px !important;
+      line-height: 1.4 !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+    /* Tiny CTA pill — it should not dominate the card. */
+    .fdcp-home-card > span:last-child {
+      padding: 5px 12px !important;
+      font-size: 10px !important;
+    }
+  }
+  /* True phone widths: not enough room for 3 cols at all — drop CTA below. */
+  @media (max-width: 640px) {
+    .fdcp-home-card {
+      grid-template-columns: 64px 1fr !important;
+    }
+    .fdcp-home-card > span:last-child {
+      grid-column: 1 / -1 !important;
+      width: 100% !important;
+      padding: 8px 16px !important;
+      margin: 0 !important;
+    }
   }
 </style>
 
 <script>
 (function () {
-  // === CONFIG ===========================================================
-  // Use the aggregated ALL tab so the homepage shows events from every
-  // division (AFD, FESTIVALS, etc.), matching /upcoming-events and
-  // /event-details. Fetch as HTML (not CSV) so cell formatting — bold,
-  // italic, hyperlinks — survives all the way to the detail page; the
-  // homepage strip itself only consumes plain text, which the HTML parser
-  // still emits via cellToText.
+
   var SHEET_SRC =
     "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=ALL";
   var DETAIL_URL = "/event-details";
 
-  // Stale-while-revalidate cache, shared with /upcoming-events and the
-  // detail page. localStorage so the strip paints instantly on every
-  // return visit; a background fetch silently swaps in sheet edits. v4
-  // bumps the schema for the CSV→HTML migration.
+
   var CACHE_KEY = "fdcp.events.v4";
   var REVALIDATE_MIN_GAP = 60 * 1000;
   var MAX_HOME_CARDS = 8;                 // safety cap for the homepage strip (desktop)
@@ -67,9 +95,13 @@
   // Fallback images for the right-side featured panel when no Drupal event
   // is present. Both are landscape Unsplash photos; object-fit:cover fills
   // the portrait panel without gaps regardless of aspect ratio.
+  // q=70 + auto=format lets Unsplash serve WebP/AVIF where supported,
+  // bringing each card down to roughly ~500 KB with no visible blur at
+  // the panel's display size. Width stays at 900 so it still looks crisp
+  // on Retina displays.
   var DEFAULT_IMGS = [
-    "https://images.unsplash.com/photo-1762009366274-a12dff67cee3?fm=jpg&q=80&w=900&auto=format&fit=crop",
-    "https://plus.unsplash.com/premium_photo-1731621691001-49f2b0b6d37d?fm=jpg&q=80&w=900&auto=format&fit=crop"
+    "https://images.unsplash.com/photo-1762009366274-a12dff67cee3?fm=jpg&q=70&w=900&auto=format&fit=crop",
+    "https://plus.unsplash.com/premium_photo-1731621691001-49f2b0b6d37d?fm=jpg&q=70&w=900&auto=format&fit=crop"
   ];
   // ======================================================================
 
@@ -419,6 +451,8 @@
     var c1 = document.createElement("img");
     c1.src = DEFAULT_IMGS[0];
     c1.alt = "";
+    c1.loading = "lazy";
+    c1.decoding = "async";
     c1.style.cssText =
       "position:absolute;left:0;top:6%;width:66%;height:92%;" +
       "object-fit:cover;object-position:center;border-radius:22px;" +
@@ -427,6 +461,8 @@
     var c2 = document.createElement("img");
     c2.src = DEFAULT_IMGS[1];
     c2.alt = "";
+    c2.loading = "lazy";
+    c2.decoding = "async";
     c2.style.cssText =
       "position:absolute;right:0;bottom:0;width:66%;height:92%;" +
       "object-fit:cover;object-position:center;border-radius:22px;" +
@@ -557,7 +593,7 @@
     return node;
   }
 
-  function inject(rows) {
+  function inject(rows) { 
     var container = findHomeContainer();
     if (!container) {
       console.warn("[FDCP home-events] container not found — is the homepage 'Upcoming Event' section on this page?");
@@ -565,7 +601,7 @@
     }
 
     var today = new Date(); today.setHours(0,0,0,0);
-    var isMobile = window.matchMedia("(max-width: 1023px)").matches;
+    var isMobile = window.matchMedia("(max-width: 1349px)").matches;
     var cap = isMobile ? MAX_HOME_CARDS_MOBILE : MAX_HOME_CARDS;
     var upcoming = rows
       .map(function (r) { return { row: r, start: parseSheetDate(r["Start time/Date"]) }; })
@@ -614,7 +650,26 @@
     updateFeaturedPanel();
   }
 
+  // Drupal renders the section heading as "Upcoming Event" (singular).
+  // Pluralize it in place by walking text nodes near the upcoming-events
+  // link — only touches an exact "Upcoming Event" match so it's a no-op
+  // if the CMS copy is ever updated.
+  function pluralizeHeading() {
+    var link = document.querySelector('a[href="/upcoming-events"]');
+    var scope = link ? (link.closest('section') || link.parentElement && link.parentElement.parentElement) : null;
+    if (!scope) return;
+    var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (/^\s*Upcoming Event\s*$/.test(node.nodeValue)) {
+        node.nodeValue = node.nodeValue.replace("Upcoming Event", "Upcoming Events");
+        break;
+      }
+    }
+  }
+
   function init() {
+    pluralizeHeading();
     loadEventsSWR(inject)
       .catch(function (err) { console.error("[FDCP home-events]", err); });
     attachFocusRevalidate(inject);

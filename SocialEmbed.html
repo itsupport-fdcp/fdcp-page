@@ -1,0 +1,292 @@
+
+
+<div id="fdcp-social-embed-root">&nbsp;</div>
+
+<script>
+(function () {
+
+  var FB_HANDLE     = "fdcpofficial";
+  var FB_FOLLOWERS  = "145K followers";
+
+
+  var FB_FILL_CARD  = false;
+  var FB_MAX_SCALE  = 1.5;
+  var SOCIAL_STATS_SHEET_URL = "";
+
+  // =====================================================================
+  // STYLES — plain string, injected via createElement (no markup for
+  // CKEditor to parse).
+  // =====================================================================
+  var CSS = [
+    ".fdcp-social-wrap{background:#f8f8f8;padding:112px 0 56px;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0d0d0d;}",
+    ".fdcp-social-shell{max-width:1080px;margin:0 auto;padding:0 24px;}",
+    ".fdcp-social-title{margin:0 0 36px;text-align:center;font-size:72px;font-weight:800;letter-spacing:0.04em;text-transform:none;color:#0d0d0d;}",
+
+    /* Single centered card — wider than before, capped so the FB iframe
+       (Meta limits width to 500px) sits comfortably inside with breathing
+       room. The card itself stretches up to 760px on desktop. */
+    ".fdcp-social-stage{display:flex;justify-content:center;}",
+    ".fdcp-social-card{background:#fff;border:1px solid #efefef;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 22px rgba(15,15,15,0.05);width:100%;max-width:640px;min-height:640px;}",
+    "@media (max-width:768px){.fdcp-social-title{font-size:22px;margin-bottom:24px;}.fdcp-social-wrap{padding:72px 0 40px;}.fdcp-social-card{min-height:560px;}}",
+
+    /* Header */
+    ".fdcp-social-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f1f1f1;background:#fff;border-radius:14px 14px 0 0;}",
+    ".fdcp-social-head-left{display:flex;align-items:center;gap:10px;min-width:0;}",
+    ".fdcp-social-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 36px;background:#1877F2;}",
+    ".fdcp-social-avatar svg{width:18px;height:18px;display:block;color:#fff;}",
+    ".fdcp-social-handle{display:flex;flex-direction:column;line-height:1.1;min-width:0;}",
+    ".fdcp-social-platform{font-size:13px;font-weight:700;color:#0d0d0d;letter-spacing:-0.01em;}",
+    ".fdcp-social-followers{font-size:11px;color:#737373;margin-top:2px;}",
+
+    /* Body — Facebook iframe is capped at 500px wide by Meta. To make
+       the FB content visually fill the card, we wrap it in a "scaler"
+       and apply CSS transform: scale() (sized in JS based on actual card
+       width). overflow:hidden keeps any sub-pixel bleed from showing. */
+    ".fdcp-social-body{position:relative;flex:none;height:520px;background:#fff;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;}",
+    ".fdcp-fb-scaler{position:relative;width:500px;height:520px;}",
+    ".fdcp-fb-scaler iframe{display:block;width:500px;height:520px;border:0;background:#fff;transform-origin:top left;}",
+
+    /* Footer */
+    ".fdcp-social-foot{border-top:1px solid #f1f1f1;padding:12px 16px;background:#fff;display:flex;align-items:center;justify-content:center;border-radius:0 0 14px 14px;}",
+    ".fdcp-social-foot-link{font-size:13px;font-weight:600;color:#1877F2;text-decoration:none;}",
+    ".fdcp-social-foot-link:hover{text-decoration:underline;color:#1877F2;}"
+  ].join("\n");
+
+  function injectStyles() {
+    if (document.getElementById("fdcp-social-embed-styles")) return;
+    var s = document.createElement("style");
+    s.id = "fdcp-social-embed-styles";
+    s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+
+  // =====================================================================
+  // ICON SVG — kept as plain string; never written to the page as raw
+  // HTML, only parsed into a node via DOMParser/importNode.
+  // =====================================================================
+  var SVG_FB_GLYPH =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">' +
+      '<path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.93.26-1.56 1.6-1.56H17V4.36c-.3-.04-1.34-.13-2.55-.13-2.52 0-4.25 1.54-4.25 4.37v2.2H7.5V14h2.7v8h3.3z"/>' +
+    '</svg>';
+
+  // =====================================================================
+  // HELPERS
+  // =====================================================================
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        var v = attrs[k];
+        if (v == null) continue;
+        if (k === "className")        node.className = v;
+        else if (k === "textContent") node.textContent = v;
+        else if (k === "style" && typeof v === "object") {
+          for (var sk in v) if (Object.prototype.hasOwnProperty.call(v, sk)) node.style[sk] = v[sk];
+        }
+        else if (k.indexOf("on") === 0 && typeof v === "function") node[k] = v;
+        else node.setAttribute(k, v);
+      }
+    }
+    if (children) {
+      if (!Array.isArray(children)) children = [children];
+      for (var i = 0; i < children.length; i++) {
+        var c = children[i];
+        if (c == null || c === false) continue;
+        node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+      }
+    }
+    return node;
+  }
+
+  function svgIcon(svgString) {
+    var doc = new DOMParser().parseFromString(svgString, "image/svg+xml");
+    var svg = doc.documentElement;
+    return document.importNode(svg, true);
+  }
+
+  function isSafeHttpsUrl(s) {
+    if (typeof s !== "string") return false;
+    var v = s.trim();
+    if (!v) return false;
+    try {
+      var u = new URL(v);
+      return u.protocol === "https:";
+    } catch (e) { return false; }
+  }
+
+  // =====================================================================
+  // CARD BUILDERS
+  // =====================================================================
+  function buildHeader() {
+    var avatar = el("div", { className: "fdcp-social-avatar" }, [svgIcon(SVG_FB_GLYPH)]);
+    var handle = el("div", { className: "fdcp-social-handle" }, [
+      el("span", { className: "fdcp-social-platform", textContent: "Facebook" }),
+      el("span", {
+        id: "fdcp-fb-followers",
+        className: "fdcp-social-followers",
+        textContent: FB_FOLLOWERS
+      })
+    ]);
+    var left = el("div", { className: "fdcp-social-head-left" }, [avatar, handle]);
+    return el("div", { className: "fdcp-social-head" }, [left]);
+  }
+
+  function buildBody() {
+    var body = el("div", { className: "fdcp-social-body" });
+    var src =
+      "https://www.facebook.com/plugins/page.php?href=" +
+      encodeURIComponent("https://www.facebook.com/" + FB_HANDLE) +
+      "&tabs=timeline&width=500&height=520&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false";
+    var iframe = el("iframe", {
+      src: src,
+      title: "Facebook timeline for " + FB_HANDLE,
+      loading: "lazy",
+      allow: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
+      allowfullscreen: "true",
+      scrolling: "no",
+      frameborder: "0",
+      width: "500",
+      height: "520"
+    });
+    var scaler = el("div", { className: "fdcp-fb-scaler" }, [iframe]);
+    body.appendChild(scaler);
+    return body;
+  }
+
+  // Resize the FB iframe via CSS transform so its visual width fills the
+  // card. We compute the scale from the body's actual width on every
+  // resize, so the layout stays correct if the homepage container
+  // changes width on different breakpoints.
+  function fitFBEmbed() {
+    if (!FB_FILL_CARD) return;
+    var scaler = document.querySelector(".fdcp-fb-scaler");
+    if (!scaler) return;
+    var body = scaler.parentElement;
+    if (!body) return;
+    var cs = (window.getComputedStyle ? getComputedStyle(body) : null);
+    var padL = cs ? parseFloat(cs.paddingLeft)  || 0 : 0;
+    var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
+    var available = body.clientWidth - padL - padR;
+    var nativeW = 500, nativeH = 520;
+    var scale = Math.max(1, Math.min(FB_MAX_SCALE, available / nativeW));
+    var iframe = scaler.firstElementChild;
+    if (iframe) iframe.style.transform = "scale(" + scale + ")";
+    scaler.style.width  = (nativeW * scale) + "px";
+    scaler.style.height = (nativeH * scale) + "px";
+  }
+
+  function buildFooter() {
+    var viewMore = el("a", {
+      className: "fdcp-social-foot-link",
+      href: "https://www.facebook.com/" + FB_HANDLE + "/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      textContent: "View More on Facebook"
+    });
+    return el("div", { className: "fdcp-social-foot" }, [viewMore]);
+  }
+
+
+  function parseGvizRows(text) {
+    try {
+      var doc = new DOMParser().parseFromString(text, "text/html");
+      var table = doc.querySelector("table");
+      if (!table || !table.rows.length) return [];
+      var headers = [];
+      for (var h = 0; h < table.rows[0].cells.length; h++) {
+        headers.push((table.rows[0].cells[h].textContent || "").trim());
+      }
+      var out = [];
+      for (var i = 1; i < table.rows.length; i++) {
+        var cells = table.rows[i].cells, obj = {};
+        for (var j = 0; j < headers.length; j++) {
+          obj[headers[j]] = cells[j] ? (cells[j].textContent || "").trim() : "";
+        }
+        out.push(obj);
+      }
+      return out;
+    } catch (e) { return []; }
+  }
+
+  function applyFollowerCount(elementId, count) {
+    var n = document.getElementById(elementId);
+    if (!n || !count) return;
+    var clean = String(count).replace(/\s*followers?\s*$/i, "").trim();
+    if (!clean) return;
+    n.textContent = clean + " followers";
+  }
+
+  function fetchSocialStats() {
+    if (!isSafeHttpsUrl(SOCIAL_STATS_SHEET_URL)) return;
+    fetch(SOCIAL_STATS_SHEET_URL + "&_=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var rows = parseGvizRows(txt);
+        rows.forEach(function (r) {
+          var keys = Object.keys(r);
+          var platform  = (r[keys[0]] || "").toLowerCase();
+          var followers = (r[keys[1]] || "").trim();
+          if (!platform || !followers) return;
+          if (platform.indexOf("face") !== -1) applyFollowerCount("fdcp-fb-followers", followers);
+        });
+      })
+      .catch(function () { /* keep the hardcoded default */ });
+  }
+
+  // =====================================================================
+  // MOUNT
+  // =====================================================================
+  function mount() {
+    injectStyles();
+
+    var root = document.getElementById("fdcp-social-embed-root");
+    if (!root) {
+      // Drupal sometimes strips empty mount divs. Recreate next to this
+      // script so the block still renders.
+      root = document.createElement("div");
+      root.id = "fdcp-social-embed-root";
+      var scripts = document.getElementsByTagName("script");
+      var here = scripts[scripts.length - 1];
+      if (here && here.parentNode) here.parentNode.insertBefore(root, here);
+      else document.body.appendChild(root);
+    }
+    root.textContent = ""; // clear &nbsp; placeholder
+
+    var title = el("h2", { className: "fdcp-social-title", textContent: "Social Updates" });
+
+    var card = el("div", { className: "fdcp-social-card" }, [
+      buildHeader(),
+      buildBody(),
+      buildFooter()
+    ]);
+
+    var stage = el("div", { className: "fdcp-social-stage" }, [card]);
+    var shell = el("div", { className: "fdcp-social-shell" }, [title, stage]);
+    var wrap  = el("section", {
+      className: "fdcp-social-wrap",
+      "aria-label": "Latest social updates from FDCP"
+    }, [shell]);
+
+    root.appendChild(wrap);
+
+    // Size the FB iframe to fill the card width; rerun on resize so the
+    // scale stays correct across breakpoints.
+    fitFBEmbed();
+    var resizeT = null;
+    window.addEventListener("resize", function () {
+      if (resizeT) clearTimeout(resizeT);
+      resizeT = setTimeout(fitFBEmbed, 120);
+    });
+
+    // Kick off the optional dynamic follower-count fetch.
+    fetchSocialStats();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount);
+  } else {
+    mount();
+  }
+})();
+</script>
