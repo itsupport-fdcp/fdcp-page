@@ -1,744 +1,762 @@
-<!-- =====================================================================
-  FDCP — Homepage "FDCP Stories" Snippet (CKEditor-proof build)
 
-  Paste this entire file into a Drupal Custom HTML block placed below
-  the homepage hero.
+  <div id="fdcp-home-stories-root">&nbsp;</div>
 
-  Why this looks unusual:
-    The visible markup is intentionally just ONE empty mount div plus a
-    single <script>. Everything else — the styles, the strip, the story
-    cards, the focus viewer modal — is built at runtime via JS using
-    document.createElement(). This means CKEditor sees no <div>, <span>
-    or <button> tags inside the script that it might try to "auto-close"
-    or wrap in <p>, which is what was previously corrupting the paste.
+  <script>
+  (function () {
+    // =====================================================================
+    // CONFIG
+    // =====================================================================
+    var SHEET_SRC =
+      "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=FDCP%20STORIES";
+    var CACHE_KEY = "fdcp.stories.v2";
+    var REVALIDATE_MIN_GAP = 60 * 1000;
 
-  Live data: FDCP STORIES tab of the same Google Sheet used by gallery.html.
-===================================================================== -->
+    // =====================================================================
+    // STYLES — kept as a plain string, injected via createElement so no
+    // HTML markup is present inside the block body for CKEditor to parse.
+    // =====================================================================
+    var CSS = [
+      ".fdcp-home-stories-wrap{background:#F8F8F8;padding:48px 0 24px;}",
+      ".fdcp-home-stories-shell{max-width:1280px;margin:0 auto;padding:0 24px;}",
+      "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
+      "#fdcp-home-stories-track.is-dragging{cursor:grabbing;}",
+      "#fdcp-home-stories-track::-webkit-scrollbar{height:6px;width:6px;}",
+      "#fdcp-home-stories-track::-webkit-scrollbar-track{background:transparent;}",
+      "#fdcp-home-stories-track::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:9999px;}",
+      "#fdcp-home-stories-track::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.32);}",
+      ".fdcp-home-story-card{flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;cursor:pointer;background:#1a1a1a;border:0;padding:0;text-align:left;color:#fff;transition:transform 220ms ease,box-shadow 220ms ease;box-shadow:0 4px 14px rgba(15,15,15,0.10);}",
+      ".fdcp-home-story-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(88,0,118,0.28);}",
+      ".fdcp-home-story-card:focus-visible{outline:3px solid #E200A9;outline-offset:3px;}",
+      ".fdcp-home-story-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform 800ms cubic-bezier(.2,.7,.2,1);-webkit-user-drag:none;user-select:none;}",
+      ".fdcp-home-story-card:hover .fdcp-home-story-cover{transform:scale(1.08);}",
+      ".fdcp-home-story-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);}",
+      ".fdcp-home-story-ring{position:absolute;top:10px;left:10px;right:10px;max-width:calc(100% - 20px);padding:4px 8px;border-radius:9999px;background:rgba(255,255,255,0.92);color:#580076;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:4px;width:max-content;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
+      ".fdcp-home-story-meta{position:absolute;left:12px;right:12px;bottom:60px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-shadow:0 1px 4px rgba(0,0,0,0.6);text-transform:uppercase;letter-spacing:0.08em;}",
+      ".fdcp-home-story-title{position:absolute;left:12px;right:12px;bottom:14px;font-size:14px;font-weight:700;line-height:1.25;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}",
+      "#fdcp-home-focus{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.94);display:none;align-items:center;justify-content:center;padding:16px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}",
+      "#fdcp-home-focus.is-open{display:flex;}",
+      ".fdcp-home-focus-top-close{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,0.10);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;transition:background 180ms ease;}",
+      ".fdcp-home-focus-top-close:hover{background:rgba(255,255,255,0.20);}",
+      ".fdcp-home-focus-layout{display:flex;width:100%;height:100%;gap:20px;position:relative;padding-top:8px;}",
+      ".fdcp-home-focus-sidebar{flex:0 0 300px;background:rgba(0,0,0,0.45);border-radius:16px;padding:56px 12px 16px;overflow-y:auto;color:#fff;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;}",
+      ".fdcp-home-focus-sidebar::-webkit-scrollbar{width:6px;height:6px;}",
+      ".fdcp-home-focus-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:9999px;}",
+      ".fdcp-home-focus-sidebar-title{font-size:22px;font-weight:800;color:#fff;margin:0 0 14px;padding:0 8px;}",
+      ".fdcp-home-focus-story-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;}",
+      ".fdcp-home-focus-story-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;cursor:pointer;background:transparent;border:0;color:#fff;width:100%;text-align:left;font-family:inherit;transition:background 180ms ease;}",
+      ".fdcp-home-focus-story-item:hover{background:rgba(255,255,255,0.08);}",
+      ".fdcp-home-focus-story-item.is-active{background:rgba(255,255,255,0.14);}",
+      ".fdcp-home-focus-story-thumb{width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;background:#1a1a1a;border:2px solid transparent;display:block;}",
+      ".fdcp-home-focus-story-item.is-active .fdcp-home-focus-story-thumb{border-color:#E200A9;}",
+      ".fdcp-home-focus-story-info{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;}",
+      ".fdcp-home-focus-story-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
+      ".fdcp-home-focus-story-meta{font-size:12px;color:rgba(255,255,255,0.6);}",
+      ".fdcp-home-focus-stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:18px;min-width:0;position:relative;}",
+      ".fdcp-home-focus-frame{position:relative;width:100%;max-width:420px;aspect-ratio:9 / 16;max-height:92vh;background:#000;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);}",
+      ".fdcp-home-focus-progress{position:absolute;top:0;left:0;right:0;display:flex;gap:4px;padding:10px 12px 8px;z-index:3;}",
+      ".fdcp-home-focus-seg{flex:1 1 0%;height:3px;border-radius:9999px;background-color:rgba(255,255,255,0.35);overflow:hidden;position:relative;}",
+      ".fdcp-home-focus-seg-fill{position:absolute;top:0;left:0;height:100%;width:0%;background-color:#fff;background-image:linear-gradient(90deg,#fff 0%,#FFD4F3 100%);border-radius:9999px;}",
+      ".fdcp-home-focus-header{position:absolute;top:26px;left:12px;right:12px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0;}",
+      ".fdcp-home-focus-titlewrap{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;}",
+      ".fdcp-home-focus-title{font-size:14px;font-weight:700;color:#fff;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,0.6);}",
+      ".fdcp-home-focus-counter{font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.06em;text-shadow:0 1px 4px rgba(0,0,0,0.6);}",
+      ".fdcp-home-focus-viewport{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}",
+      ".fdcp-home-focus-media{width:100%;height:100%;object-fit:cover;display:block;background:#000;}",
+      ".fdcp-home-focus-tap{position:absolute;top:0;bottom:0;width:20%;background:transparent;border:0;cursor:pointer;z-index:4;padding:0;}",
+      ".fdcp-home-focus-tap.prev{left:0;}",
+      ".fdcp-home-focus-tap.next{right:0;}",
+      ".fdcp-home-focus-mobilenav{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:6;gap:12px;padding:6px;background:rgba(0,0,0,0.55);border-radius:9999px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}",
+      ".fdcp-home-focus-mobilenav button{width:44px;height:44px;border-radius:9999px;background:rgba(255,255,255,0.15);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;}",
+      ".fdcp-home-focus-mobilenav button:disabled{opacity:0.3;cursor:not-allowed;}",
+      ".fdcp-home-focus-arrow{position:relative;width:44px;height:44px;border-radius:9999px;background:rgba(255,255,255,0.12);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 180ms ease,opacity 180ms ease;}",
+      ".fdcp-home-focus-arrow:hover:not(:disabled){background:rgba(255,255,255,0.24);}",
+      ".fdcp-home-focus-arrow:disabled{opacity:0.25;cursor:not-allowed;}",
+      ".fdcp-home-focus-caption{position:absolute;left:12px;right:12px;bottom:14px;z-index:3;color:#fff;font-size:13px;line-height:1.5;text-align:left;text-shadow:0 1px 8px rgba(0,0,0,0.9);margin:0;padding:8px 12px;background:rgba(0,0,0,0.35);border-radius:10px;}",
+      ".fdcp-home-focus-caption:empty{display:none;}",
+      "@media (max-width:900px){",
+      "  #fdcp-home-focus{padding:0;}",
+      "  .fdcp-home-focus-sidebar{display:none;}",
+      "  .fdcp-home-focus-layout{gap:0;padding-top:0;}",
+      "  .fdcp-home-focus-stage{gap:0;}",
+      "  .fdcp-home-focus-frame{max-width:100%;width:100%;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;aspect-ratio:auto;border-radius:0;box-shadow:none;}",
+      "  .fdcp-home-focus-stage{position:static;}",
+      "  .fdcp-home-focus-arrow{display:flex;position:fixed;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(0,0,0,0.55);z-index:8;}",
+      "  .fdcp-home-focus-arrow.is-prev{left:calc(8px + env(safe-area-inset-left,0px));}",
+      "  .fdcp-home-focus-arrow.is-next{right:calc(8px + env(safe-area-inset-right,0px));}",
+      "  .fdcp-home-focus-top-close{top:calc(48px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));right:auto;transform:none;width:44px;height:44px;background:rgba(0,0,0,0.55);z-index:9;}",
+      "  .fdcp-home-focus-progress{padding:calc(14px + env(safe-area-inset-top,0px)) 12px 8px;}",
+      "  .fdcp-home-focus-header{top:calc(56px + env(safe-area-inset-top,0px));left:calc(64px + env(safe-area-inset-left,0px));right:56px;flex-direction:column;align-items:flex-start;justify-content:center;}",
+      "  .fdcp-home-focus-counter{align-self:flex-start;}",
+      "  .fdcp-home-focus-caption{top:calc(74px + env(safe-area-inset-top,0px));bottom:auto;left:12px;right:12px;background:rgba(0,0,0,0.55);max-height:30vh;overflow-y:auto;}",
+      "  .fdcp-home-focus-mobilenav{display:none;}",
+      "}",
+      "@media (max-width:640px){",
+      "  .fdcp-home-story-card{flex:0 0 140px;height:240px;}",
+      "}"
+    ].join("\n");
 
-<div id="fdcp-home-stories-root">&nbsp;</div>
-
-<script>
-(function () {
-  // =====================================================================
-  // CONFIG
-  // =====================================================================
-  var SHEET_SRC =
-    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=FDCP%20STORIES";
-  var CACHE_KEY = "fdcp.stories.v2";
-  var REVALIDATE_MIN_GAP = 60 * 1000;
-
-  // =====================================================================
-  // STYLES — kept as a plain string, injected via createElement so no
-  // HTML markup is present inside the block body for CKEditor to parse.
-  // =====================================================================
-  var CSS = [
-    ".fdcp-home-stories-wrap{background:#fff;padding:48px 0 24px;}",
-    ".fdcp-home-stories-shell{max-width:1280px;margin:0 auto;padding:0 24px;}",
-    "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
-    "#fdcp-home-stories-track.is-dragging{cursor:grabbing;}",
-    "#fdcp-home-stories-track::-webkit-scrollbar{height:6px;width:6px;}",
-    "#fdcp-home-stories-track::-webkit-scrollbar-track{background:transparent;}",
-    "#fdcp-home-stories-track::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:9999px;}",
-    "#fdcp-home-stories-track::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.32);}",
-    ".fdcp-home-story-card{flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;cursor:pointer;background:#1a1a1a;border:0;padding:0;text-align:left;color:#fff;transition:transform 220ms ease,box-shadow 220ms ease;box-shadow:0 4px 14px rgba(15,15,15,0.10);}",
-    ".fdcp-home-story-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(88,0,118,0.28);}",
-    ".fdcp-home-story-card:focus-visible{outline:3px solid #E200A9;outline-offset:3px;}",
-    ".fdcp-home-story-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform 800ms cubic-bezier(.2,.7,.2,1);-webkit-user-drag:none;user-select:none;}",
-    ".fdcp-home-story-card:hover .fdcp-home-story-cover{transform:scale(1.08);}",
-    ".fdcp-home-story-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);}",
-    ".fdcp-home-story-ring{position:absolute;top:10px;left:10px;right:10px;max-width:calc(100% - 20px);padding:4px 8px;border-radius:9999px;background:rgba(255,255,255,0.92);color:#580076;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:4px;width:max-content;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
-    ".fdcp-home-story-meta{position:absolute;left:12px;right:12px;bottom:60px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-shadow:0 1px 4px rgba(0,0,0,0.6);text-transform:uppercase;letter-spacing:0.08em;}",
-    ".fdcp-home-story-title{position:absolute;left:12px;right:12px;bottom:14px;font-size:14px;font-weight:700;line-height:1.25;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}",
-    "#fdcp-home-focus{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.94);display:none;align-items:center;justify-content:center;padding:16px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}",
-    "#fdcp-home-focus.is-open{display:flex;}",
-    ".fdcp-home-focus-top-close{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,0.10);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;transition:background 180ms ease;}",
-    ".fdcp-home-focus-top-close:hover{background:rgba(255,255,255,0.20);}",
-    ".fdcp-home-focus-layout{display:flex;width:100%;height:100%;gap:20px;position:relative;padding-top:8px;}",
-    ".fdcp-home-focus-sidebar{flex:0 0 300px;background:rgba(0,0,0,0.45);border-radius:16px;padding:56px 12px 16px;overflow-y:auto;color:#fff;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;}",
-    ".fdcp-home-focus-sidebar::-webkit-scrollbar{width:6px;height:6px;}",
-    ".fdcp-home-focus-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:9999px;}",
-    ".fdcp-home-focus-sidebar-title{font-size:22px;font-weight:800;color:#fff;margin:0 0 14px;padding:0 8px;}",
-    ".fdcp-home-focus-story-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;}",
-    ".fdcp-home-focus-story-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;cursor:pointer;background:transparent;border:0;color:#fff;width:100%;text-align:left;font-family:inherit;transition:background 180ms ease;}",
-    ".fdcp-home-focus-story-item:hover{background:rgba(255,255,255,0.08);}",
-    ".fdcp-home-focus-story-item.is-active{background:rgba(255,255,255,0.14);}",
-    ".fdcp-home-focus-story-thumb{width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;background:#1a1a1a;border:2px solid transparent;display:block;}",
-    ".fdcp-home-focus-story-item.is-active .fdcp-home-focus-story-thumb{border-color:#E200A9;}",
-    ".fdcp-home-focus-story-info{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;}",
-    ".fdcp-home-focus-story-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
-    ".fdcp-home-focus-story-meta{font-size:12px;color:rgba(255,255,255,0.6);}",
-    ".fdcp-home-focus-stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:18px;min-width:0;position:relative;}",
-    ".fdcp-home-focus-frame{position:relative;width:100%;max-width:420px;aspect-ratio:9 / 16;max-height:92vh;background:#000;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);}",
-    ".fdcp-home-focus-progress{position:absolute;top:0;left:0;right:0;display:flex;gap:4px;padding:10px 12px 8px;z-index:3;}",
-    ".fdcp-home-focus-seg{flex:1 1 0%;height:3px;border-radius:9999px;background-color:rgba(255,255,255,0.35);overflow:hidden;position:relative;}",
-    ".fdcp-home-focus-seg-fill{position:absolute;top:0;left:0;height:100%;width:0%;background-color:#fff;background-image:linear-gradient(90deg,#fff 0%,#FFD4F3 100%);border-radius:9999px;}",
-    ".fdcp-home-focus-header{position:absolute;top:26px;left:12px;right:12px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0;}",
-    ".fdcp-home-focus-titlewrap{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;}",
-    ".fdcp-home-focus-title{font-size:14px;font-weight:700;color:#fff;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,0.6);}",
-    ".fdcp-home-focus-counter{font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.06em;text-shadow:0 1px 4px rgba(0,0,0,0.6);}",
-    ".fdcp-home-focus-viewport{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}",
-    ".fdcp-home-focus-media{width:100%;height:100%;object-fit:cover;display:block;background:#000;}",
-    ".fdcp-home-focus-tap{position:absolute;top:0;bottom:0;width:50%;background:transparent;border:0;cursor:pointer;z-index:4;padding:0;}",
-    ".fdcp-home-focus-tap.prev{left:0;}",
-    ".fdcp-home-focus-tap.next{right:0;}",
-    ".fdcp-home-focus-arrow{position:relative;width:44px;height:44px;border-radius:9999px;background:rgba(255,255,255,0.12);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 180ms ease,opacity 180ms ease;}",
-    ".fdcp-home-focus-arrow:hover:not(:disabled){background:rgba(255,255,255,0.24);}",
-    ".fdcp-home-focus-arrow:disabled{opacity:0.25;cursor:not-allowed;}",
-    ".fdcp-home-focus-caption{position:absolute;left:12px;right:12px;bottom:14px;z-index:3;color:#fff;font-size:13px;line-height:1.5;text-align:left;text-shadow:0 1px 8px rgba(0,0,0,0.9);margin:0;padding:8px 12px;background:rgba(0,0,0,0.35);border-radius:10px;}",
-    ".fdcp-home-focus-caption:empty{display:none;}",
-    "@media (max-width:900px){",
-    "  #fdcp-home-focus{padding:0;}",
-    "  .fdcp-home-focus-sidebar{display:none;}",
-    "  .fdcp-home-focus-layout{gap:0;padding-top:0;}",
-    "  .fdcp-home-focus-stage{gap:0;}",
-    "  .fdcp-home-focus-frame{max-width:100%;width:100%;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;aspect-ratio:auto;border-radius:0;box-shadow:none;}",
-    "  .fdcp-home-focus-arrow{display:none;}",
-    "  .fdcp-home-focus-top-close{top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));left:auto;}",
-    "  .fdcp-home-focus-progress{padding:calc(14px + env(safe-area-inset-top,0px)) 12px 8px;}",
-    "  .fdcp-home-focus-header{top:calc(34px + env(safe-area-inset-top,0px));}",
-    "  .fdcp-home-focus-caption{bottom:calc(14px + env(safe-area-inset-bottom,0px));}",
-    "}",
-    "@media (max-width:640px){",
-    "  .fdcp-home-story-card{flex:0 0 140px;height:240px;}",
-    "}"
-  ].join("\n");
-
-  function injectStyles() {
-    if (document.getElementById("fdcp-home-stories-styles")) return;
-    var s = document.createElement("style");
-    s.id = "fdcp-home-stories-styles";
-    s.textContent = CSS;
-    document.head.appendChild(s);
-  }
-
-  // =====================================================================
-  // STORIES DATA
-  // Live feed from the "FDCP STORIES" tab, matching gallery.html.
-  // =====================================================================
-  // =====================================================================
-  // HELPERS
-  // =====================================================================
-  // Compact createElement wrapper: el("div", { className:"x" }, [child1, child2, "text"])
-  function el(tag, attrs, children) {
-    var node = document.createElement(tag);
-    if (attrs) {
-      for (var k in attrs) {
-        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
-        var v = attrs[k];
-        if (v == null) continue;
-        if (k === "className")      node.className = v;
-        else if (k === "textContent") node.textContent = v;
-        else if (k === "style" && typeof v === "object") {
-          for (var sk in v) if (Object.prototype.hasOwnProperty.call(v, sk)) node.style[sk] = v[sk];
-        }
-        else if (k.indexOf("on") === 0 && typeof v === "function") node[k] = v;
-        else if (k === "dataset") {
-          for (var dk in v) if (Object.prototype.hasOwnProperty.call(v, dk)) node.dataset[dk] = v[dk];
-        }
-        else node.setAttribute(k, v);
-      }
+    function injectStyles() {
+      if (document.getElementById("fdcp-home-stories-styles")) return;
+      var s = document.createElement("style");
+      s.id = "fdcp-home-stories-styles";
+      s.textContent = CSS;
+      document.head.appendChild(s);
     }
-    if (children) {
-      if (!Array.isArray(children)) children = [children];
-      for (var i = 0; i < children.length; i++) {
-        var c = children[i];
-        if (c == null || c === false) continue;
-        node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-      }
-    }
-    return node;
-  }
 
-  // Inline SVG via DOMParser — safer than innerHTML inside the script
-  // because CKEditor never sees the SVG markup; it lives only in a string
-  // assigned to a JS variable.
-  function svgIcon(svgString) {
-    var doc = new DOMParser().parseFromString(svgString, "image/svg+xml");
-    var svg = doc.documentElement;
-    return document.importNode(svg, true);
-  }
-  var SVG_CLOSE = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-  var SVG_PREV  = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
-  var SVG_NEXT  = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
-
-  function slugify(s) {
-    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  }
-  function isVideo(url) {
-    return /\.(mp4|mov|webm|m4v|ogg)(\?|#|$)/i.test(url)
-        || /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
-  }
-  function cellToText(cell) {
-    if (!cell) return "";
-    var clone = cell.cloneNode(true);
-    var brs = clone.querySelectorAll("br");
-    for (var i = 0; i < brs.length; i++) {
-      brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
-    }
-    return (clone.textContent || "").trim();
-  }
-  function parseStoriesGviz(text) {
-    var doc;
-    try { doc = new DOMParser().parseFromString(text, "text/html"); }
-    catch (e) { return []; }
-    var table = doc.querySelector("table");
-    if (!table || !table.rows.length) return [];
-    var trs = table.rows;
-
-    var headerIdx = -1;
-    for (var r = 0; r < trs.length; r++) {
-      for (var c = 0; c < trs[r].cells.length; c++) {
-        if ((trs[r].cells[c].textContent || "").trim()) { headerIdx = r; break; }
-      }
-      if (headerIdx >= 0) break;
-    }
-    if (headerIdx < 0) return [];
-
-    var headers = [];
-    for (var h = 0; h < trs[headerIdx].cells.length; h++) {
-      headers.push((trs[headerIdx].cells[h].textContent || "").replace(/ /g, " ").trim().replace(/\s+/g, " ").toLowerCase());
-    }
-    function findIdx() {
-      for (var k = 0; k < headers.length; k++) {
-        for (var m = 0; m < arguments.length; m++) {
-          if (headers[k].indexOf(arguments[m]) >= 0) return k;
+    // =====================================================================
+    // STORIES DATA
+    // Live feed from the "FDCP STORIES" tab, matching gallery.html.
+    // =====================================================================
+    // =====================================================================
+    // HELPERS
+    // =====================================================================
+    // Compact createElement wrapper: el("div", { className:"x" }, [child1, child2, "text"])
+    function el(tag, attrs, children) {
+      var node = document.createElement(tag);
+      if (attrs) {
+        for (var k in attrs) {
+          if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+          var v = attrs[k];
+          if (v == null) continue;
+          if (k === "className")      node.className = v;
+          else if (k === "textContent") node.textContent = v;
+          else if (k === "style" && typeof v === "object") {
+            for (var sk in v) if (Object.prototype.hasOwnProperty.call(v, sk)) node.style[sk] = v[sk];
+          }
+          else if (k.indexOf("on") === 0 && typeof v === "function") node[k] = v;
+          else if (k === "dataset") {
+            for (var dk in v) if (Object.prototype.hasOwnProperty.call(v, dk)) node.dataset[dk] = v[dk];
+          }
+          else node.setAttribute(k, v);
         }
       }
-      return -1;
-    }
-    var iCategory = findIdx("category", "group");
-    var iCaption  = findIdx("caption");
-    var iPhoto    = findIdx("photo link");
-    var iVideo    = findIdx("video link", "youtube");
-    var iActive   = findIdx("isactive", "show/hide", "show / hide");
-
-    function cellText(row, idx) {
-      if (idx < 0 || !row.cells[idx]) return "";
-      return cellToText(row.cells[idx]).replace(/ /g, " ").trim();
+      if (children) {
+        if (!Array.isArray(children)) children = [children];
+        for (var i = 0; i < children.length; i++) {
+          var c = children[i];
+          if (c == null || c === false) continue;
+          node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+        }
+      }
+      return node;
     }
 
-    var out = [];
-    for (var i = headerIdx + 1; i < trs.length; i++) {
-      var grp   = cellText(trs[i], iCategory);
-      var cap   = cellText(trs[i], iCaption);
-      var photo = cellText(trs[i], iPhoto);
-      var vid   = cellText(trs[i], iVideo);
-      var act   = cellText(trs[i], iActive);
-      var media = [photo, vid].filter(Boolean).join("\n");
-      if (!grp && !cap && !media) continue;
-      out.push({
-        "GroupTitle":  grp,
-        "Captions":    cap,
-        "Media Links": media,
-        "IsActive":    act
-      });
+    // Inline SVG via DOMParser — safer than innerHTML inside the script
+    // because CKEditor never sees the SVG markup; it lives only in a string
+    // assigned to a JS variable.
+    function svgIcon(svgString) {
+      var doc = new DOMParser().parseFromString(svgString, "image/svg+xml");
+      var svg = doc.documentElement;
+      return document.importNode(svg, true);
     }
-    return out;
-  }
-  function hashCSV(s) {
-    var h = 0x811c9dc5;
-    for (var i = 0; i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    var SVG_CLOSE = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    var SVG_PREV  = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    var SVG_NEXT  = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+
+    function slugify(s) {
+      return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     }
-    return h.toString(16);
-  }
-  function parseStoriesSheet(rows) {
-    return (rows || [])
-      .filter(function (r) {
-        var flag = String(r["IsActive"] || "").trim().toLowerCase();
-        return flag === "" || flag === "show" || flag === "true" || flag === "yes" || flag === "1";
-      })
-      .map(function (r) {
-        var urls = String(r["Media Links"] || "")
-          .split(/[\r\n,]+/)
-          .map(function (s) { return s.trim(); })
-          .filter(function (s) { return /^https?:\/\//i.test(s); });
-        var caption = r["Captions"] || "";
-        function toAsset(u) {
-          var driveFolder = u.match(/drive\.google\.com\/drive\/folders\/([\w-]+)/i);
-          if (driveFolder) {
+    function isVideo(url) {
+      return /\.(mp4|mov|webm|m4v|ogg)(\?|#|$)/i.test(url)
+          || /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+    }
+    function cellToText(cell) {
+      if (!cell) return "";
+      var clone = cell.cloneNode(true);
+      var brs = clone.querySelectorAll("br");
+      for (var i = 0; i < brs.length; i++) {
+        brs[i].parentNode.replaceChild(document.createTextNode("\n"), brs[i]);
+      }
+      return (clone.textContent || "").trim();
+    }
+    function parseStoriesGviz(text) {
+      var doc;
+      try { doc = new DOMParser().parseFromString(text, "text/html"); }
+      catch (e) { return []; }
+      var table = doc.querySelector("table");
+      if (!table || !table.rows.length) return [];
+      var trs = table.rows;
+
+      var headerIdx = -1;
+      for (var r = 0; r < trs.length; r++) {
+        for (var c = 0; c < trs[r].cells.length; c++) {
+          if ((trs[r].cells[c].textContent || "").trim()) { headerIdx = r; break; }
+        }
+        if (headerIdx >= 0) break;
+      }
+      if (headerIdx < 0) return [];
+
+      var headers = [];
+      for (var h = 0; h < trs[headerIdx].cells.length; h++) {
+        headers.push((trs[headerIdx].cells[h].textContent || "").replace(/ /g, " ").trim().replace(/\s+/g, " ").toLowerCase());
+      }
+      function findIdx() {
+        for (var k = 0; k < headers.length; k++) {
+          for (var m = 0; m < arguments.length; m++) {
+            if (headers[k].indexOf(arguments[m]) >= 0) return k;
+          }
+        }
+        return -1;
+      }
+      var iCategory = findIdx("category", "group");
+      var iCaption  = findIdx("caption");
+      var iPhoto    = findIdx("photo link");
+      var iVideo    = findIdx("video link", "youtube");
+      var iActive   = findIdx("isactive", "show/hide", "show / hide");
+
+      function cellText(row, idx) {
+        if (idx < 0 || !row.cells[idx]) return "";
+        return cellToText(row.cells[idx]).replace(/ /g, " ").trim();
+      }
+
+      var out = [];
+      for (var i = headerIdx + 1; i < trs.length; i++) {
+        var grp   = cellText(trs[i], iCategory);
+        var cap   = cellText(trs[i], iCaption);
+        var photo = cellText(trs[i], iPhoto);
+        var vid   = cellText(trs[i], iVideo);
+        var act   = cellText(trs[i], iActive);
+        var media = [photo, vid].filter(Boolean).join("\n");
+        if (!grp && !cap && !media) continue;
+        out.push({
+          "GroupTitle":  grp,
+          "Captions":    cap,
+          "Media Links": media,
+          "IsActive":    act
+        });
+      }
+      return out;
+    }
+    function hashCSV(s) {
+      var h = 0x811c9dc5;
+      for (var i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+      }
+      return h.toString(16);
+    }
+    function parseStoriesSheet(rows) {
+      return (rows || [])
+        .filter(function (r) {
+          var flag = String(r["IsActive"] || "").trim().toLowerCase();
+          return flag === "" || flag === "show" || flag === "true" || flag === "yes" || flag === "1";
+        })
+        .map(function (r) {
+          var urls = String(r["Media Links"] || "")
+            .split(/[\r\n,]+/)
+            .map(function (s) { return s.trim(); })
+            .filter(function (s) { return /^https?:\/\//i.test(s); });
+          var caption = r["Captions"] || "";
+          function toAsset(u) {
+            var driveFolder = u.match(/drive\.google\.com\/drive\/folders\/([\w-]+)/i);
+            if (driveFolder) {
+              return {
+                type: "iframe",
+                src: "https://drive.google.com/embeddedfolderview?id=" + driveFolder[1] + "#grid",
+                thumb: "",
+                caption: caption
+              };
+            }
+            var driveFile = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
+            if (driveFile) {
+              return {
+                type: "iframe",
+                src: "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
+                thumb: "https://drive.google.com/thumbnail?id=" + driveFile[1] + "&sz=w1600",
+                caption: caption
+              };
+            }
             return {
-              type: "iframe",
-              src: "https://drive.google.com/embeddedfolderview?id=" + driveFolder[1] + "#grid",
-              thumb: "",
+              type: isVideo(u) ? "video" : "image",
+              src: u,
+              thumb: isVideo(u) ? "" : u,
               caption: caption
             };
           }
-          var driveFile = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
-          if (driveFile) {
-            return {
-              type: "iframe",
-              src: "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
-              thumb: "https://drive.google.com/thumbnail?id=" + driveFile[1] + "&sz=w1600",
-              caption: caption
-            };
+          var assets = urls.map(toAsset);
+          var cover = "";
+          for (var i = 0; i < assets.length; i++) {
+            if (assets[i].thumb) { cover = assets[i].thumb; break; }
           }
+          if (!cover && assets[0]) cover = assets[0].thumb || assets[0].src || "";
           return {
-            type: isVideo(u) ? "video" : "image",
-            src: u,
-            thumb: isVideo(u) ? "" : u,
-            caption: caption
+            id: slugify(caption) || slugify(r["GroupTitle"]),
+            title: caption,
+            eyebrow: r["GroupTitle"] || "",
+            cover: cover,
+            assets: assets
           };
-        }
-        var assets = urls.map(toAsset);
-        var cover = "";
-        for (var i = 0; i < assets.length; i++) {
-          if (assets[i].thumb) { cover = assets[i].thumb; break; }
-        }
-        if (!cover && assets[0]) cover = assets[0].thumb || assets[0].src || "";
-        return {
-          id: slugify(caption) || slugify(r["GroupTitle"]),
-          title: caption,
-          eyebrow: r["GroupTitle"] || "",
-          cover: cover,
-          assets: assets
-        };
-      })
-      .filter(function (s) { return s.assets.length > 0; });
-  }
+        })
+        .filter(function (s) { return s.assets.length > 0; });
+    }
 
-  function categoryFontSize(label) {
-    var len = String(label || "").trim().length;
-    if (len > 26) return "7px";
-    if (len > 21) return "8px";
-    if (len > 16) return "9px";
-    return "10px";
-  }
+    function categoryFontSize(label) {
+      var len = String(label || "").trim().length;
+      if (len > 26) return "7px";
+      if (len > 21) return "8px";
+      if (len > 16) return "9px";
+      return "10px";
+    }
 
-  // =====================================================================
-  // SWR CACHE
-  // =====================================================================
-  var lastFetchAt = 0;
-  function readCache() {
-    try {
-      var raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      var obj = JSON.parse(raw);
-      return (obj && obj.v === 2 && Array.isArray(obj.rows)) ? obj : null;
-    } catch (e) { return null; }
-  }
-  function writeCache(rows, hash) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ v:2, t:Date.now(), hash:hash, rows:rows })); }
-    catch (e) {}
-  }
-  function fetchLive() {
-    var url = SHEET_SRC + "&_=" + Date.now();
-    return fetch(url, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
-      .then(function (txt) {
-        lastFetchAt = Date.now();
-        return { hash: hashCSV(txt), rows: parseStoriesGviz(txt) };
-      });
-  }
-  function loadSWR(onData) {
-    var cached = readCache();
-    if (cached && cached.rows.length) onData(cached.rows);
-    return fetchLive().then(function (fresh) {
-      if (!fresh.rows.length) return;
-      if (!cached || cached.hash !== fresh.hash) {
-        onData(fresh.rows);
-        writeCache(fresh.rows, fresh.hash);
-      }
-    }).catch(function () { /* keep cache painted */ });
-  }
-  function attachFocusRevalidate(onData) {
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState !== "visible") return;
-      if (Date.now() - lastFetchAt < REVALIDATE_MIN_GAP) return;
-      fetchLive().then(function (fresh) {
+    // =====================================================================
+    // SWR CACHE
+    // =====================================================================
+    var lastFetchAt = 0;
+    function readCache() {
+      try {
+        var raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        var obj = JSON.parse(raw);
+        return (obj && obj.v === 2 && Array.isArray(obj.rows)) ? obj : null;
+      } catch (e) { return null; }
+    }
+    function writeCache(rows, hash) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ v:2, t:Date.now(), hash:hash, rows:rows })); }
+      catch (e) {}
+    }
+    function fetchLive() {
+      var url = SHEET_SRC + "&_=" + Date.now();
+      return fetch(url, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+        .then(function (txt) {
+          lastFetchAt = Date.now();
+          return { hash: hashCSV(txt), rows: parseStoriesGviz(txt) };
+        });
+    }
+    function loadSWR(onData) {
+      var cached = readCache();
+      if (cached && cached.rows.length) onData(cached.rows);
+      return fetchLive().then(function (fresh) {
         if (!fresh.rows.length) return;
-        var cached = readCache();
         if (!cached || cached.hash !== fresh.hash) {
           onData(fresh.rows);
           writeCache(fresh.rows, fresh.hash);
         }
-      }).catch(function () {});
-    });
-  }
-
-  // =====================================================================
-  // STATE
-  // =====================================================================
-  var STORIES = [];
-  var cardsAnimated = false;
-  var FOCUS = { storyIndex: -1, assetIndex: 0, lastFocus: null, keyHandler: null };
-  var modalEl = null;          // built once, appended to body
-  var trackEl = null;          // strip container
-  var refs = {};               // cached DOM refs for the modal
-
-  function activeStory() { return STORIES[FOCUS.storyIndex] || null; }
-  function activeAsset() {
-    var s = activeStory();
-    return s ? (s.assets[FOCUS.assetIndex] || null) : null;
-  }
-
-  // =====================================================================
-  // BUILD SECTION (strip)
-  // =====================================================================
-  function buildSection() {
-    var root = document.getElementById("fdcp-home-stories-root");
-    if (!root) {
-      // Drupal/CKEditor sometimes strips empty mount divs. Recreate it next
-      // to the current script tag (or fall back to body) so we still render.
-      root = document.createElement("div");
-      root.id = "fdcp-home-stories-root";
-      var scripts = document.getElementsByTagName("script");
-      var here = scripts[scripts.length - 1];
-      if (here && here.parentNode) here.parentNode.insertBefore(root, here);
-      else document.body.appendChild(root);
+      }).catch(function () { /* keep cache painted */ });
     }
-    root.textContent = ""; // clear the &nbsp; placeholder
-
-    trackEl = el("div", {
-      id: "fdcp-home-stories-track",
-      role: "list",
-      "aria-label": "Event stories"
-    });
-
-    var shell = el("div", { className: "fdcp-home-stories-shell" }, [trackEl]);
-    var wrap  = el("div", { className: "fdcp-home-stories-wrap" }, [shell]);
-
-    root.appendChild(wrap);
-  }
-
-  function renderStoryCards() {
-    if (!trackEl) return;
-    trackEl.textContent = ""; // clear
-    STORIES.forEach(function (s, i) {
-      var n = (s.assets || []).length;
-
-      var cover = el("img", { className: "fdcp-home-story-cover", src: s.cover || "", alt: "", loading: "lazy" });
-      var scrim = el("div", { className: "fdcp-home-story-scrim" });
-      var ringLabel = s.eyebrow || "Story";
-      var ring  = el("span", {
-        className: "fdcp-home-story-ring",
-        textContent: ringLabel,
-        style: { fontSize: categoryFontSize(ringLabel) }
+    function attachFocusRevalidate(onData) {
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState !== "visible") return;
+        if (Date.now() - lastFetchAt < REVALIDATE_MIN_GAP) return;
+        fetchLive().then(function (fresh) {
+          if (!fresh.rows.length) return;
+          var cached = readCache();
+          if (!cached || cached.hash !== fresh.hash) {
+            onData(fresh.rows);
+            writeCache(fresh.rows, fresh.hash);
+          }
+        }).catch(function () {});
       });
-      var meta  = el("span", { className: "fdcp-home-story-meta", textContent: n + " " + (n === 1 ? "item" : "items") });
-      var title = el("span", { className: "fdcp-home-story-title", textContent: s.title || "" });
-
-      var card = el("button", {
-        type: "button",
-        className: "fdcp-home-story-card",
-        "aria-label": "Open story: " + (s.title || "") + " (" + n + " items)",
-        dataset: { storyIndex: String(i) }
-      }, [cover, scrim, ring, meta, title]);
-
-      card.addEventListener("click", function () { openFocus(i, 0); });
-
-      trackEl.appendChild(card);
-    });
-
-    enableDragScroll(trackEl);
-    runEntranceAnimation(trackEl);
-  }
-
-  // Click-and-drag horizontal scroll
-  function enableDragScroll(track) {
-    if (!track || track.__fdcpDragBound) return;
-    track.__fdcpDragBound = true;
-    var DRAG_THRESHOLD = 8;
-    var isDown = false, didDrag = false, startX = 0, startScroll = 0, prevUserSelect = "";
-    track.style.cursor = "grab";
-    track.style.touchAction = "auto";
-
-    function onMove(e) {
-      if (!isDown) return;
-      var dx = e.clientX - startX;
-      if (!didDrag) {
-        if (Math.abs(dx) <= DRAG_THRESHOLD) return;
-        didDrag = true;
-        track.classList.add("is-dragging");
-        track.style.cursor = "grabbing";
-      }
-      e.preventDefault();
-      track.scrollLeft = startScroll - dx;
     }
-    function onUp() {
-      if (!isDown) return;
-      isDown = false;
-      document.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerup", onUp);
-      document.removeEventListener("pointercancel", onUp);
-      track.classList.remove("is-dragging");
+
+    // =====================================================================
+    // STATE
+    // =====================================================================
+    var STORIES = [];
+    var cardsAnimated = false;
+    var FOCUS = { storyIndex: -1, assetIndex: 0, lastFocus: null, keyHandler: null };
+    var modalEl = null;          // built once, appended to body
+    var trackEl = null;          // strip container
+    var refs = {};               // cached DOM refs for the modal
+
+    function activeStory() { return STORIES[FOCUS.storyIndex] || null; }
+    function activeAsset() {
+      var s = activeStory();
+      return s ? (s.assets[FOCUS.assetIndex] || null) : null;
+    }
+
+    // =====================================================================
+    // BUILD SECTION (strip)
+    // =====================================================================
+    function buildSection() {
+      var root = document.getElementById("fdcp-home-stories-root");
+      if (!root) {
+        // Drupal/CKEditor sometimes strips empty mount divs. Recreate it next
+        // to the current script tag (or fall back to body) so we still render.
+        root = document.createElement("div");
+        root.id = "fdcp-home-stories-root";
+        var scripts = document.getElementsByTagName("script");
+        var here = scripts[scripts.length - 1];
+        if (here && here.parentNode) here.parentNode.insertBefore(root, here);
+        else document.body.appendChild(root);
+      }
+      root.textContent = ""; // clear the &nbsp; placeholder
+
+      trackEl = el("div", {
+        id: "fdcp-home-stories-track",
+        role: "list",
+        "aria-label": "Event stories"
+      });
+
+      var shell = el("div", { className: "fdcp-home-stories-shell" }, [trackEl]);
+      var wrap  = el("div", { className: "fdcp-home-stories-wrap" }, [shell]);
+
+      root.appendChild(wrap);
+    }
+
+    function renderStoryCards() {
+      if (!trackEl) return;
+      trackEl.textContent = ""; // clear
+      STORIES.forEach(function (s, i) {
+        var n = (s.assets || []).length;
+
+        var cover = el("img", { className: "fdcp-home-story-cover", src: s.cover || "", alt: "", loading: "lazy" });
+        var scrim = el("div", { className: "fdcp-home-story-scrim" });
+        var ringLabel = s.eyebrow || "Story";
+        var ring  = el("span", {
+          className: "fdcp-home-story-ring",
+          textContent: ringLabel,
+          style: { fontSize: categoryFontSize(ringLabel) }
+        });
+        var meta  = el("span", { className: "fdcp-home-story-meta", textContent: n + " " + (n === 1 ? "item" : "items") });
+        var title = el("span", { className: "fdcp-home-story-title", textContent: s.title || "" });
+
+        var card = el("button", {
+          type: "button",
+          className: "fdcp-home-story-card",
+          "aria-label": "Open story: " + (s.title || "") + " (" + n + " items)",
+          dataset: { storyIndex: String(i) }
+        }, [cover, scrim, ring, meta, title]);
+
+        card.addEventListener("click", function () { openFocus(i, 0); });
+
+        trackEl.appendChild(card);
+      });
+
+      enableDragScroll(trackEl);
+      runEntranceAnimation(trackEl);
+    }
+
+    // Click-and-drag horizontal scroll
+    function enableDragScroll(track) {
+      if (!track || track.__fdcpDragBound) return;
+      track.__fdcpDragBound = true;
+      var DRAG_THRESHOLD = 8;
+      var isDown = false, didDrag = false, startX = 0, startScroll = 0, prevUserSelect = "";
       track.style.cursor = "grab";
-      document.body.style.userSelect = prevUserSelect;
-      if (didDrag) setTimeout(function () { didDrag = false; }, 0);
-    }
-    track.addEventListener("pointerdown", function (e) {
-      if (e.pointerType !== "mouse") return;
-      isDown = true; didDrag = false;
-      startX = e.clientX; startScroll = track.scrollLeft;
-      prevUserSelect = document.body.style.userSelect;
-      document.body.style.userSelect = "none";
-      document.addEventListener("pointermove", onMove);
-      document.addEventListener("pointerup", onUp);
-      document.addEventListener("pointercancel", onUp);
-    });
-    track.addEventListener("click", function (e) {
-      if (didDrag) { e.preventDefault(); e.stopPropagation(); }
-    }, true);
-  }
+      track.style.touchAction = "auto";
 
-  // =====================================================================
-  // BUILD MODAL (focus viewer)
-  // =====================================================================
-  function buildModal() {
-    if (modalEl) return;
-
-    refs.close   = el("button", { type: "button", className: "fdcp-home-focus-top-close", "aria-label": "Close stories" }, [svgIcon(SVG_CLOSE)]);
-
-    refs.list    = el("div", { id: "fdcp-home-focus-story-list", className: "fdcp-home-focus-story-list", role: "list" });
-    var sidebar  = el("aside", { className: "fdcp-home-focus-sidebar" }, [
-      el("h3", { className: "fdcp-home-focus-sidebar-title", textContent: "FDCP Stories" }),
-      refs.list
-    ]);
-
-    refs.arrowPrev = el("button", { type: "button", className: "fdcp-home-focus-arrow", "aria-label": "Previous" }, [svgIcon(SVG_PREV)]);
-    refs.arrowNext = el("button", { type: "button", className: "fdcp-home-focus-arrow", "aria-label": "Next"     }, [svgIcon(SVG_NEXT)]);
-
-    refs.progress = el("div", { className: "fdcp-home-focus-progress" });
-    refs.title    = el("h4",  { className: "fdcp-home-focus-title", textContent: "" });
-    refs.counter  = el("span",{ className: "fdcp-home-focus-counter", textContent: "" });
-    var header    = el("div", { className: "fdcp-home-focus-header" }, [
-      el("div", { className: "fdcp-home-focus-titlewrap" }, [refs.title]),
-      refs.counter
-    ]);
-    refs.viewport = el("div", { className: "fdcp-home-focus-viewport" });
-    refs.tapPrev  = el("button", { type: "button", className: "fdcp-home-focus-tap prev", "aria-label": "Previous" });
-    refs.tapNext  = el("button", { type: "button", className: "fdcp-home-focus-tap next", "aria-label": "Next" });
-    refs.caption  = el("p",   { className: "fdcp-home-focus-caption" });
-
-    var frame = el("div", { className: "fdcp-home-focus-frame" }, [
-      refs.progress, header, refs.viewport, refs.tapPrev, refs.tapNext, refs.caption
-    ]);
-
-    var stage = el("div", { className: "fdcp-home-focus-stage" }, [refs.arrowPrev, frame, refs.arrowNext]);
-    var layout = el("div", { className: "fdcp-home-focus-layout" }, [sidebar, stage]);
-
-    modalEl = el("div", {
-      id: "fdcp-home-focus",
-      role: "dialog",
-      "aria-modal": "true",
-      "aria-labelledby": ""
-    }, [refs.close, layout]);
-
-    // Wire controls
-    refs.close.addEventListener("click", closeFocus);
-    refs.tapPrev.addEventListener("click", function () { gotoAsset(-1); });
-    refs.tapNext.addEventListener("click", function () { gotoAsset(1); });
-    refs.arrowPrev.addEventListener("click", function () { gotoAsset(-1); });
-    refs.arrowNext.addEventListener("click", function () { gotoAsset(1); });
-    modalEl.addEventListener("click", function (e) { if (e.target === modalEl) closeFocus(); });
-
-    document.body.appendChild(modalEl);
-  }
-
-  // =====================================================================
-  // RENDER FOCUS VIEWER PIECES
-  // =====================================================================
-  function renderProgress() {
-    var s = activeStory();
-    if (!refs.progress || !s) return;
-    refs.progress.textContent = "";
-    for (var i = 0; i < s.assets.length; i++) {
-      var fill = el("span", { className: "fdcp-home-focus-seg-fill" });
-      if (i <= FOCUS.assetIndex) fill.style.width = "100%";
-      var seg = el("div", { className: "fdcp-home-focus-seg" }, [fill]);
-      refs.progress.appendChild(seg);
-    }
-  }
-
-  function renderStoryList() {
-    if (!refs.list) return;
-    refs.list.textContent = "";
-    STORIES.forEach(function (s, i) {
-      var active = i === FOCUS.storyIndex;
-      var n = (s.assets || []).length;
-
-      var thumb = el("img", {
-        className: "fdcp-home-focus-story-thumb",
-        src: s.cover || "", alt: "", loading: "lazy"
-      });
-      thumb.style.borderColor = active ? "#E200A9" : "transparent";
-
-      var name = el("span", { className: "fdcp-home-focus-story-name", textContent: s.title || "" });
-      var metaSpan = el("span", { className: "fdcp-home-focus-story-meta", textContent: n + " " + (n === 1 ? "item" : "items") });
-      var info = el("span", { className: "fdcp-home-focus-story-info" }, [name, metaSpan]);
-
-      var btn = el("button", {
-        type: "button",
-        className: "fdcp-home-focus-story-item" + (active ? " is-active" : ""),
-        dataset: { storyJump: String(i) }
-      }, [thumb, info]);
-
-      btn.addEventListener("click", function () {
-        if (i === FOCUS.storyIndex) return;
-        FOCUS.storyIndex = i;
-        FOCUS.assetIndex = 0;
-        renderStoryList(); renderProgress(); renderHeader(); renderMedia();
-      });
-
-      refs.list.appendChild(btn);
-    });
-  }
-
-  function renderHeader() {
-    var s = activeStory();
-    if (!s) return;
-    if (refs.title)   refs.title.textContent   = s.title || "";
-    if (refs.counter) refs.counter.textContent = (FOCUS.assetIndex + 1) + " of " + s.assets.length;
-  }
-
-  function renderMedia() {
-    var asset = activeAsset();
-    if (!refs.viewport || !asset) return;
-    refs.viewport.textContent = "";
-    var mediaEl;
-    var interactive = (asset.type === "video" || asset.type === "iframe");
-    if (asset.type === "video") {
-      mediaEl = document.createElement("video");
-      mediaEl.src = asset.src;
-      mediaEl.controls = true;
-      mediaEl.autoplay = true;
-      mediaEl.playsInline = true;
-      mediaEl.setAttribute("playsinline", "");
-    } else if (asset.type === "iframe") {
-      var src = asset.src;
-      if (/youtube\.com\/embed\//.test(src)) {
-        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1&playsinline=1&rel=0&modestbranding=1";
-      } else if (/player\.vimeo\.com/.test(src)) {
-        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
-      } else if (/drive\.google\.com\/file\/d\/[^/]+\/preview/.test(src)) {
-        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
+      function onMove(e) {
+        if (!isDown) return;
+        var dx = e.clientX - startX;
+        if (!didDrag) {
+          if (Math.abs(dx) <= DRAG_THRESHOLD) return;
+          didDrag = true;
+          track.classList.add("is-dragging");
+          track.style.cursor = "grabbing";
+        }
+        e.preventDefault();
+        track.scrollLeft = startScroll - dx;
       }
-      mediaEl = document.createElement("iframe");
-      mediaEl.src = src;
-      mediaEl.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
-      mediaEl.setAttribute("allowfullscreen", "");
-      mediaEl.style.border = "0";
-    } else {
-      mediaEl = document.createElement("img");
-      mediaEl.src = asset.src;
-      mediaEl.alt = asset.caption || (activeStory() && activeStory().title) || "";
+      function onUp() {
+        if (!isDown) return;
+        isDown = false;
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+        document.removeEventListener("pointercancel", onUp);
+        track.classList.remove("is-dragging");
+        track.style.cursor = "grab";
+        document.body.style.userSelect = prevUserSelect;
+        if (didDrag) setTimeout(function () { didDrag = false; }, 0);
+      }
+      track.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "mouse") return;
+        isDown = true; didDrag = false;
+        startX = e.clientX; startScroll = track.scrollLeft;
+        prevUserSelect = document.body.style.userSelect;
+        document.body.style.userSelect = "none";
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+        document.addEventListener("pointercancel", onUp);
+      });
+      track.addEventListener("click", function (e) {
+        if (didDrag) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
     }
-    mediaEl.className = "fdcp-home-focus-media";
-    refs.viewport.appendChild(mediaEl);
-    if (refs.tapPrev) refs.tapPrev.style.pointerEvents = interactive ? "none" : "";
-    if (refs.tapNext) refs.tapNext.style.pointerEvents = interactive ? "none" : "";
-    if (refs.caption) refs.caption.textContent = asset.caption || "";
-    syncArrowState();
-  }
 
-  function syncArrowState() {
-    var s = activeStory();
-    if (!s) return;
-    var canPrev = FOCUS.assetIndex > 0 || FOCUS.storyIndex > 0;
-    var canNext = FOCUS.assetIndex < s.assets.length - 1 || FOCUS.storyIndex < STORIES.length - 1;
-    if (refs.arrowPrev) { refs.arrowPrev.disabled = !canPrev; refs.arrowPrev.style.opacity = canPrev ? "1" : "0.25"; }
-    if (refs.arrowNext) { refs.arrowNext.disabled = !canNext; refs.arrowNext.style.opacity = canNext ? "1" : "0.25"; }
-  }
+    // =====================================================================
+    // BUILD MODAL (focus viewer)
+    // =====================================================================
+    function buildModal() {
+      if (modalEl) return;
 
-  function gotoAsset(delta) {
-    var s = activeStory();
-    if (!s) return;
-    var ni = FOCUS.assetIndex + delta;
-    if (ni < 0) {
-      if (FOCUS.storyIndex > 0) {
-        FOCUS.storyIndex -= 1;
-        FOCUS.assetIndex = STORIES[FOCUS.storyIndex].assets.length - 1;
-      } else return;
-    } else if (ni >= s.assets.length) {
-      if (FOCUS.storyIndex < STORIES.length - 1) {
-        FOCUS.storyIndex += 1;
-        FOCUS.assetIndex = 0;
-      } else return;
-    } else {
-      FOCUS.assetIndex = ni;
+      refs.close   = el("button", { type: "button", className: "fdcp-home-focus-top-close", "aria-label": "Close stories" }, [svgIcon(SVG_CLOSE)]);
+
+      refs.list    = el("div", { id: "fdcp-home-focus-story-list", className: "fdcp-home-focus-story-list", role: "list" });
+      var sidebar  = el("aside", { className: "fdcp-home-focus-sidebar" }, [
+        el("h3", { className: "fdcp-home-focus-sidebar-title", textContent: "FDCP Stories" }),
+        refs.list
+      ]);
+
+      refs.arrowPrev = el("button", { type: "button", className: "fdcp-home-focus-arrow is-prev", "aria-label": "Previous" }, [svgIcon(SVG_PREV)]);
+      refs.arrowNext = el("button", { type: "button", className: "fdcp-home-focus-arrow is-next", "aria-label": "Next"     }, [svgIcon(SVG_NEXT)]);
+
+      refs.progress = el("div", { className: "fdcp-home-focus-progress" });
+      refs.title    = el("h4",  { className: "fdcp-home-focus-title", textContent: "" });
+      refs.counter  = el("span",{ className: "fdcp-home-focus-counter", textContent: "" });
+      var header    = el("div", { className: "fdcp-home-focus-header" }, [
+        el("div", { className: "fdcp-home-focus-titlewrap" }, [refs.title]),
+        refs.counter
+      ]);
+      refs.viewport = el("div", { className: "fdcp-home-focus-viewport" });
+      refs.tapPrev  = el("button", { type: "button", className: "fdcp-home-focus-tap prev", "aria-label": "Previous" });
+      refs.tapNext  = el("button", { type: "button", className: "fdcp-home-focus-tap next", "aria-label": "Next" });
+      refs.caption  = el("p",   { className: "fdcp-home-focus-caption" });
+
+      refs.mPrev = el("button", { type: "button", "aria-label": "Previous" }, [svgIcon(SVG_PREV)]);
+      refs.mNext = el("button", { type: "button", "aria-label": "Next" }, [svgIcon(SVG_NEXT)]);
+      refs.mobileNav = el("div", { className: "fdcp-home-focus-mobilenav", "aria-label": "Story navigation" }, [refs.mPrev, refs.mNext]);
+
+      var frame = el("div", { className: "fdcp-home-focus-frame" }, [
+        refs.progress, header, refs.viewport, refs.tapPrev, refs.tapNext, refs.caption, refs.mobileNav
+      ]);
+
+      var stage = el("div", { className: "fdcp-home-focus-stage" }, [refs.arrowPrev, frame, refs.arrowNext]);
+      var layout = el("div", { className: "fdcp-home-focus-layout" }, [sidebar, stage]);
+
+      modalEl = el("div", {
+        id: "fdcp-home-focus",
+        role: "dialog",
+        "aria-modal": "true",
+        "aria-labelledby": ""
+      }, [refs.close, layout]);
+
+      // Wire controls
+      refs.close.addEventListener("click", closeFocus);
+      refs.tapPrev.addEventListener("click", function () { gotoAsset(-1); });
+      refs.tapNext.addEventListener("click", function () { gotoAsset(1); });
+      refs.arrowPrev.addEventListener("click", function () { gotoAsset(-1); });
+      refs.arrowNext.addEventListener("click", function () { gotoAsset(1); });
+      refs.mPrev.addEventListener("click", function () { gotoAsset(-1); });
+      refs.mNext.addEventListener("click", function () { gotoAsset(1); });
+      modalEl.addEventListener("click", function (e) { if (e.target === modalEl) closeFocus(); });
+
+      document.body.appendChild(modalEl);
     }
-    renderStoryList(); renderProgress(); renderHeader(); renderMedia();
-  }
 
-  function openFocus(storyIndex, assetIndex) {
-    if (storyIndex < 0 || storyIndex >= STORIES.length) return;
-    buildModal();
-    FOCUS.storyIndex = storyIndex;
-    FOCUS.assetIndex = assetIndex || 0;
-    FOCUS.lastFocus = document.activeElement;
+    // =====================================================================
+    // RENDER FOCUS VIEWER PIECES
+    // =====================================================================
+    function renderProgress() {
+      var s = activeStory();
+      if (!refs.progress || !s) return;
+      refs.progress.textContent = "";
+      for (var i = 0; i < s.assets.length; i++) {
+        var fill = el("span", { className: "fdcp-home-focus-seg-fill" });
+        if (i <= FOCUS.assetIndex) fill.style.width = "100%";
+        var seg = el("div", { className: "fdcp-home-focus-seg" }, [fill]);
+        refs.progress.appendChild(seg);
+      }
+    }
 
-    modalEl.classList.add("is-open");
-    modalEl.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    function renderStoryList() {
+      if (!refs.list) return;
+      refs.list.textContent = "";
+      STORIES.forEach(function (s, i) {
+        var active = i === FOCUS.storyIndex;
+        var n = (s.assets || []).length;
 
-    renderStoryList(); renderProgress(); renderHeader(); renderMedia();
-    if (refs.close) refs.close.focus();
+        var thumb = el("img", {
+          className: "fdcp-home-focus-story-thumb",
+          src: s.cover || "", alt: "", loading: "lazy"
+        });
+        thumb.style.borderColor = active ? "#E200A9" : "transparent";
 
-    FOCUS.keyHandler = function (e) {
-      if (e.key === "Escape")    { e.preventDefault(); closeFocus(); }
-      if (e.key === "ArrowRight"){ e.preventDefault(); gotoAsset(1); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); gotoAsset(-1); }
-    };
-    document.addEventListener("keydown", FOCUS.keyHandler);
-  }
+        var name = el("span", { className: "fdcp-home-focus-story-name", textContent: s.title || "" });
+        var metaSpan = el("span", { className: "fdcp-home-focus-story-meta", textContent: n + " " + (n === 1 ? "item" : "items") });
+        var info = el("span", { className: "fdcp-home-focus-story-info" }, [name, metaSpan]);
 
-  function closeFocus() {
-    if (!modalEl) return;
-    modalEl.classList.remove("is-open");
-    modalEl.style.display = "none";
-    document.body.style.overflow = "";
-    if (refs.viewport) {
-      var v = refs.viewport.querySelector("video");
-      if (v) { try { v.pause(); } catch (e) {} }
+        var btn = el("button", {
+          type: "button",
+          className: "fdcp-home-focus-story-item" + (active ? " is-active" : ""),
+          dataset: { storyJump: String(i) }
+        }, [thumb, info]);
+
+        btn.addEventListener("click", function () {
+          if (i === FOCUS.storyIndex) return;
+          FOCUS.storyIndex = i;
+          FOCUS.assetIndex = 0;
+          renderStoryList(); renderProgress(); renderHeader(); renderMedia();
+        });
+
+        refs.list.appendChild(btn);
+      });
+    }
+
+    function renderHeader() {
+      var s = activeStory();
+      if (!s) return;
+      if (refs.title)   refs.title.textContent   = s.title || "";
+      if (refs.counter) refs.counter.textContent = (FOCUS.assetIndex + 1) + " of " + s.assets.length;
+    }
+
+    function renderMedia() {
+      var asset = activeAsset();
+      if (!refs.viewport || !asset) return;
       refs.viewport.textContent = "";
+      var mediaEl;
+      var interactive = (asset.type === "video" || asset.type === "iframe");
+      if (asset.type === "video") {
+        mediaEl = document.createElement("video");
+        mediaEl.src = asset.src;
+        mediaEl.controls = true;
+        mediaEl.autoplay = true;
+        mediaEl.playsInline = true;
+        mediaEl.setAttribute("playsinline", "");
+      } else if (asset.type === "iframe") {
+        var src = asset.src;
+        if (/youtube\.com\/embed\//.test(src)) {
+          src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1&playsinline=1&rel=0&modestbranding=1";
+        } else if (/player\.vimeo\.com/.test(src)) {
+          src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
+        } else if (/drive\.google\.com\/file\/d\/[^/]+\/preview/.test(src)) {
+          src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
+        }
+        mediaEl = document.createElement("iframe");
+        mediaEl.src = src;
+        mediaEl.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
+        mediaEl.setAttribute("allowfullscreen", "");
+        mediaEl.style.border = "0";
+      } else {
+        mediaEl = document.createElement("img");
+        mediaEl.src = asset.src;
+        mediaEl.alt = asset.caption || (activeStory() && activeStory().title) || "";
+      }
+      mediaEl.className = "fdcp-home-focus-media";
+      refs.viewport.appendChild(mediaEl);
+      // Tap zones always navigate prev/next, even over videos/iframes. They only
+      // cover the upper part of the frame (see .fdcp-home-focus-tap CSS bottom
+      // offset), so the player's bottom control bar stays clickable underneath.
+      if (refs.tapPrev) refs.tapPrev.style.pointerEvents = "";
+      if (refs.tapNext) refs.tapNext.style.pointerEvents = "";
+      // Bottom caption removed — the story title already shows in the header,
+      // so the duplicated text at the bottom is suppressed.
+      if (refs.caption) refs.caption.textContent = "";
+      syncArrowState();
     }
-    if (FOCUS.keyHandler) {
-      document.removeEventListener("keydown", FOCUS.keyHandler);
-      FOCUS.keyHandler = null;
+
+    function syncArrowState() {
+      var s = activeStory();
+      if (!s) return;
+      var canPrev = FOCUS.assetIndex > 0 || FOCUS.storyIndex > 0;
+      var canNext = FOCUS.assetIndex < s.assets.length - 1 || FOCUS.storyIndex < STORIES.length - 1;
+      if (refs.arrowPrev) { refs.arrowPrev.disabled = !canPrev; refs.arrowPrev.style.opacity = canPrev ? "1" : "0.25"; }
+      if (refs.arrowNext) { refs.arrowNext.disabled = !canNext; refs.arrowNext.style.opacity = canNext ? "1" : "0.25"; }
+      if (refs.mPrev) refs.mPrev.disabled = !canPrev;
+      if (refs.mNext) refs.mNext.disabled = !canNext;
     }
-    if (FOCUS.lastFocus && typeof FOCUS.lastFocus.focus === "function") {
-      try { FOCUS.lastFocus.focus(); } catch (e) {}
+
+    function gotoAsset(delta) {
+      var s = activeStory();
+      if (!s) return;
+      var ni = FOCUS.assetIndex + delta;
+      if (ni < 0) {
+        if (FOCUS.storyIndex > 0) {
+          FOCUS.storyIndex -= 1;
+          FOCUS.assetIndex = STORIES[FOCUS.storyIndex].assets.length - 1;
+        } else return;
+      } else if (ni >= s.assets.length) {
+        if (FOCUS.storyIndex < STORIES.length - 1) {
+          FOCUS.storyIndex += 1;
+          FOCUS.assetIndex = 0;
+        } else return;
+      } else {
+        FOCUS.assetIndex = ni;
+      }
+      renderStoryList(); renderProgress(); renderHeader(); renderMedia();
     }
-  }
 
-  // =====================================================================
-  // GSAP ENTRANCE (optional, no-op if GSAP isn't on the page)
-  // =====================================================================
-  function runEntranceAnimation(track) {
-    if (cardsAnimated) return;
-    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
-    cardsAnimated = true;
-    gsap.registerPlugin(ScrollTrigger);
-    var cards = Array.prototype.slice.call(track.querySelectorAll(".fdcp-home-story-card"));
-    if (!cards.length) return;
-    gsap.set(cards, { y: 40, opacity: 0 });
-    gsap.to(cards, {
-      y: 0, opacity: 1, duration: 0.55, stagger: 0.08, ease: "power2.out",
-      scrollTrigger: { trigger: track, start: "top 85%", once: true }
-    });
-  }
+    function openFocus(storyIndex, assetIndex) {
+      if (storyIndex < 0 || storyIndex >= STORIES.length) return;
+      buildModal();
+      FOCUS.storyIndex = storyIndex;
+      FOCUS.assetIndex = assetIndex || 0;
+      FOCUS.lastFocus = document.activeElement;
 
-  // =====================================================================
-  // INIT
-  // =====================================================================
-  function init() {
-    injectStyles();
-    buildSection();
-    loadSWR(function (rows) {
-      STORIES = parseStoriesSheet(rows);
-      renderStoryCards();
-    });
-    attachFocusRevalidate(function (rows) {
-      STORIES = parseStoriesSheet(rows);
-      renderStoryCards();
-    });
-  }
+      modalEl.classList.add("is-open");
+      modalEl.style.display = "flex";
+      document.body.style.overflow = "hidden";
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-})();
-</script>
+      renderStoryList(); renderProgress(); renderHeader(); renderMedia();
+      if (refs.close) refs.close.focus();
+
+      FOCUS.keyHandler = function (e) {
+        if (e.key === "Escape")    { e.preventDefault(); closeFocus(); }
+        if (e.key === "ArrowRight"){ e.preventDefault(); gotoAsset(1); }
+        if (e.key === "ArrowLeft") { e.preventDefault(); gotoAsset(-1); }
+      };
+      document.addEventListener("keydown", FOCUS.keyHandler);
+    }
+
+    function closeFocus() {
+      if (!modalEl) return;
+      modalEl.classList.remove("is-open");
+      modalEl.style.display = "none";
+      document.body.style.overflow = "";
+      if (refs.viewport) {
+        var v = refs.viewport.querySelector("video");
+        if (v) { try { v.pause(); } catch (e) {} }
+        refs.viewport.textContent = "";
+      }
+      if (FOCUS.keyHandler) {
+        document.removeEventListener("keydown", FOCUS.keyHandler);
+        FOCUS.keyHandler = null;
+      }
+      if (FOCUS.lastFocus && typeof FOCUS.lastFocus.focus === "function") {
+        try { FOCUS.lastFocus.focus(); } catch (e) {}
+      }
+    }
+
+    // =====================================================================
+    // GSAP ENTRANCE (optional, no-op if GSAP isn't on the page)
+    // =====================================================================
+    function runEntranceAnimation(track) {
+      if (cardsAnimated) return;
+      if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
+      cardsAnimated = true;
+      gsap.registerPlugin(ScrollTrigger);
+      var cards = Array.prototype.slice.call(track.querySelectorAll(".fdcp-home-story-card"));
+      if (!cards.length) return;
+
+      // The track is an overflow-x:auto scroller, which also clips the y-axis.
+      // A downward y-offset (the "rise up" entrance) gets cropped at the bottom
+      // edge while animating. Temporarily pad the bottom so the offset cards stay
+      // inside the clip box, then restore once the entrance finishes.
+      var OFFSET = 40;
+      var prevPadBottom = track.style.paddingBottom;
+      track.style.paddingBottom = (14 + OFFSET) + "px";
+
+      gsap.set(cards, { y: OFFSET, opacity: 0 });
+      gsap.to(cards, {
+        y: 0, opacity: 1, duration: 0.55, stagger: 0.08, ease: "power2.out",
+        scrollTrigger: { trigger: track, start: "top 85%", once: true },
+        onComplete: function () {
+          track.style.paddingBottom = prevPadBottom || "14px";
+          gsap.set(cards, { clearProps: "transform" });
+        }
+      });
+    }
+
+    // =====================================================================
+    // INIT ng araw
+    // =====================================================================
+    function init() {
+      injectStyles();
+      buildSection();
+      loadSWR(function (rows) {
+        STORIES = parseStoriesSheet(rows);
+        renderStoryCards();
+      });
+      attachFocusRevalidate(function (rows) {
+        STORIES = parseStoriesSheet(rows);
+        renderStoryCards();
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+  </script>
