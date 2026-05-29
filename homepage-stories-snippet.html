@@ -543,7 +543,9 @@
       refs.progress.textContent = "";
       for (var i = 0; i < s.assets.length; i++) {
         var fill = el("span", { className: "fdcp-home-focus-seg-fill" });
-        if (i <= FOCUS.assetIndex) fill.style.width = "100%";
+        // Past segments full; current starts empty so the auto-advance ticker
+        // can animate it 0→100%; future segments empty.
+        if (i < FOCUS.assetIndex) fill.style.width = "100%";
         var seg = el("div", { className: "fdcp-home-focus-seg" }, [fill]);
         refs.progress.appendChild(seg);
       }
@@ -633,6 +635,85 @@
       // so the duplicated text at the bottom is suppressed.
       if (refs.caption) refs.caption.textContent = "";
       syncArrowState();
+
+      // Auto-advance: fill the current bar over the asset's duration, then step
+      // to the next asset. Photos use a fixed timer; <video> uses real playback
+      // time + the native "ended" event; cross-origin iframes fall back to a
+      // fixed timer (their playback time isn't readable across origins).
+      if (asset.type === "video") {
+        startVideoAutoAdvance(mediaEl);
+      } else if (asset.type === "iframe") {
+        startTimerAutoAdvance(IFRAME_AUTO_MS);
+      } else {
+        startTimerAutoAdvance(PHOTO_AUTO_MS);
+      }
+    }
+
+    // AUTO-ADVANCE — see clearAuto()/advanceAuto() below. clearAuto() runs at
+    // the start of every start*AutoAdvance and on close, so a stale ticker can
+    // never fire after the view changed.
+    var PHOTO_AUTO_MS  = 5000;
+    var IFRAME_AUTO_MS = 30000;
+    var AUTO = { raf: 0, timer: 0, cancel: null };
+
+    function clearAuto() {
+      if (AUTO.raf)   { cancelAnimationFrame(AUTO.raf); AUTO.raf = 0; }
+      if (AUTO.timer) { clearTimeout(AUTO.timer); AUTO.timer = 0; }
+      if (typeof AUTO.cancel === "function") { try { AUTO.cancel(); } catch (e) {} }
+      AUTO.cancel = null;
+    }
+
+    function currentSegFill() {
+      if (!refs.progress) return null;
+      var segs = refs.progress.querySelectorAll(".fdcp-home-focus-seg");
+      var seg = segs[FOCUS.assetIndex];
+      return seg ? seg.querySelector(".fdcp-home-focus-seg-fill") : null;
+    }
+
+    function setSegWidth(fill, pct) {
+      if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+    }
+
+    function startTimerAutoAdvance(ms) {
+      clearAuto();
+      var fill = currentSegFill();
+      var nowFn = (window.performance && performance.now)
+        ? function () { return performance.now(); } : function () { return Date.now(); };
+      var start = nowFn();
+      function tick() {
+        var pct = ((nowFn() - start) / ms) * 100;
+        setSegWidth(fill, pct);
+        if (pct >= 100) { AUTO.raf = 0; advanceAuto(); return; }
+        AUTO.raf = requestAnimationFrame(tick);
+      }
+      AUTO.raf = requestAnimationFrame(tick);
+    }
+
+    function startVideoAutoAdvance(video) {
+      clearAuto();
+      var fill = currentSegFill();
+      function onTime() {
+        if (video.duration && isFinite(video.duration)) {
+          setSegWidth(fill, (video.currentTime / video.duration) * 100);
+        }
+      }
+      function onEnded() { setSegWidth(fill, 100); advanceAuto(); }
+      video.addEventListener("timeupdate", onTime);
+      video.addEventListener("ended", onEnded);
+      AUTO.cancel = function () {
+        video.removeEventListener("timeupdate", onTime);
+        video.removeEventListener("ended", onEnded);
+      };
+    }
+
+    function advanceAuto() {
+      clearAuto();
+      var s = activeStory();
+      if (!s) return;
+      var atLastAsset = FOCUS.assetIndex >= s.assets.length - 1;
+      var atLastStory = FOCUS.storyIndex >= STORIES.length - 1;
+      if (atLastAsset && atLastStory) return;  // end of all stories — stop
+      gotoAsset(1);
     }
 
     function syncArrowState() {
@@ -693,6 +774,7 @@
       modalEl.classList.remove("is-open");
       modalEl.style.display = "none";
       document.body.style.overflow = "";
+      clearAuto();
       if (refs.viewport) {
         var v = refs.viewport.querySelector("video");
         if (v) { try { v.pause(); } catch (e) {} }

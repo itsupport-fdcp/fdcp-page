@@ -1608,7 +1608,7 @@
     #fdcp-gal-back-wrap {
       position: absolute !important;
       z-index: 30 !important;
-      top: 88px !important;
+      top: 60px !important;
       left: 20px !important;
     }
     @media (min-width: 1024px) {
@@ -1624,7 +1624,7 @@
           class="absolute inset-0 object-cover w-full h-full" alt="">
       <div class="absolute inset-0 z-10" style="background:linear-gradient(120deg,rgba(88,0,118,0.78) 0%,rgba(226,0,169,0.55) 100%);"></div>
 
-      <div id="fdcp-gal-back-wrap" style="position:absolute;z-index:30;top:88px;left:20px;"><a href="#" aria-label="Go back" onclick="event.preventDefault(); if (history.length > 1) { history.back(); } else { window.location.href = '/'; }"><svg width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"></path></svg>&nbsp;</a></div>
+      <div id="fdcp-gal-back-wrap" style="position:absolute;z-index:30;top:60px;left:20px;"><a href="#" aria-label="Go back" onclick="event.preventDefault(); if (history.length > 1) { history.back(); } else { window.location.href = '/'; }"><svg width="33" height="32" viewBox="0 0 33 32" fill="none"><path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="white"></path></svg>&nbsp;</a></div>
 
       <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-6">
         <h1 class="font-bold uppercase leading-none" style="font-size:clamp(34px,5vw,56px);letter-spacing:0.5px;">FDCP Highlights</h1>
@@ -2684,7 +2684,9 @@
         var cls = "";
         if (i < FOCUS_STATE.assetIndex) cls = " is-done";
         else if (i === FOCUS_STATE.assetIndex) cls = " is-current";
-        var fillW = (i <= FOCUS_STATE.assetIndex) ? "100%" : "0%";
+        // Past segments are full; the current one starts empty so the
+        // auto-advance ticker can animate it 0→100%; future segments empty.
+        var fillW = (i < FOCUS_STATE.assetIndex) ? "100%" : "0%";
         // background-color is the fallback; background-image is enhancement that
         // Drupal's HTML filter may strip — solid white keeps the bar visible.
         html += '<div class="fdcp-focus-seg' + cls + '"'
@@ -2816,6 +2818,95 @@
       if (caption) caption.textContent = "";
 
       syncArrowState();
+
+      // Auto-advance: fill the current progress bar over the asset's duration,
+      // then step to the next asset. Photos use a fixed timer; <video> uses its
+      // real playback time + the native "ended" event; cross-origin iframes
+      // (YouTube/Vimeo/Drive) can't expose playback time, so they fall back to a
+      // fixed timer.
+      if (asset.type === "video") {
+        startVideoAutoAdvance(el);
+      } else if (asset.type === "iframe") {
+        startTimerAutoAdvance(IFRAME_AUTO_MS);
+      } else {
+        startTimerAutoAdvance(PHOTO_AUTO_MS);
+      }
+    }
+
+    //  AUTO-ADVANCE
+    // Drives the current progress segment and steps to the next asset when the
+    // current one finishes. clearAuto() must run before any manual navigation
+    // or close so a stale ticker can't fire after the view changed.
+    var PHOTO_AUTO_MS  = 5000;   // photos: 5s each
+    var IFRAME_AUTO_MS = 30000;  // YouTube/Vimeo/Drive: can't read end, fall back to 30s
+    var AUTO = { raf: 0, timer: 0, cancel: null };
+
+    function clearAuto() {
+      if (AUTO.raf)   { cancelAnimationFrame(AUTO.raf); AUTO.raf = 0; }
+      if (AUTO.timer) { clearTimeout(AUTO.timer); AUTO.timer = 0; }
+      if (typeof AUTO.cancel === "function") { try { AUTO.cancel(); } catch (e) {} }
+      AUTO.cancel = null;
+    }
+
+    // The fill <span> of the segment for the asset currently playing.
+    function currentSegFill() {
+      var host = document.getElementById("fdcp-focus-progress");
+      if (!host) return null;
+      var segs = host.querySelectorAll(".fdcp-focus-seg");
+      var seg = segs[FOCUS_STATE.assetIndex];
+      return seg ? seg.querySelector(".fdcp-focus-seg-fill") : null;
+    }
+
+    function setSegWidth(fill, pct) {
+      if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+    }
+
+    // Fixed-duration auto-advance (photos + iframes). Animates the bar 0→100%
+    // over `ms`, then advances. rAF keeps it smooth and self-clears on navigation.
+    function startTimerAutoAdvance(ms) {
+      clearAuto();
+      var fill = currentSegFill();
+      var start = (window.performance && performance.now) ? performance.now() : Date.now();
+      function tick(now) {
+        var t = ((window.performance && performance.now) ? now : Date.now());
+        var pct = ((t - start) / ms) * 100;
+        setSegWidth(fill, pct);
+        if (pct >= 100) { AUTO.raf = 0; advanceAuto(); return; }
+        AUTO.raf = requestAnimationFrame(tick);
+      }
+      AUTO.raf = requestAnimationFrame(tick);
+    }
+
+    // Real-playback auto-advance for <video> files. Bar tracks currentTime;
+    // advance fires on the native "ended" event (more reliable than comparing
+    // currentTime to duration on the last frame).
+    function startVideoAutoAdvance(video) {
+      clearAuto();
+      var fill = currentSegFill();
+      function onTime() {
+        if (video.duration && isFinite(video.duration)) {
+          setSegWidth(fill, (video.currentTime / video.duration) * 100);
+        }
+      }
+      function onEnded() { setSegWidth(fill, 100); advanceAuto(); }
+      video.addEventListener("timeupdate", onTime);
+      video.addEventListener("ended", onEnded);
+      AUTO.cancel = function () {
+        video.removeEventListener("timeupdate", onTime);
+        video.removeEventListener("ended", onEnded);
+      };
+    }
+
+    // Step forward from an auto-advance. At the very last asset of the last
+    // story we stop (no wrap) and leave the final bar full.
+    function advanceAuto() {
+      clearAuto();
+      var s = activeStory();
+      if (!s) return;
+      var atLastAsset = FOCUS_STATE.assetIndex >= s.assets.length - 1;
+      var atLastStory = FOCUS_STATE.storyIndex >= STORIES.length - 1;
+      if (atLastAsset && atLastStory) return;  // end of all stories — stop
+      gotoAsset(1);
     }
 
     function syncArrowState() {
@@ -2902,6 +2993,8 @@
       modal.classList.remove("is-open");
       modal.style.display = "none";
       document.body.style.overflow = "";
+
+      clearAuto();
 
       // stop any playing video
       var host = document.getElementById("fdcp-focus-media-host");
