@@ -12,8 +12,7 @@
     or <button> tags inside the script that it might try to "auto-close"
     or wrap in <p>, which is what was previously corrupting the paste.
 
-  Live data: STORIES tab of the same Google Sheet used by events.
-    Columns: GroupTitle | Captions | Media Links (newline or CSV) | IsActive
+  Live data: FDCP STORIES tab of the same Google Sheet used by gallery.html.
 ===================================================================== -->
 
 <div id="fdcp-home-stories-root">&nbsp;</div>
@@ -24,8 +23,8 @@
   // CONFIG
   // =====================================================================
   var SHEET_SRC =
-    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=STORIES";
-  var CACHE_KEY = "fdcp.stories.v1";
+    "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=FDCP%20STORIES";
+  var CACHE_KEY = "fdcp.stories.v2";
   var REVALIDATE_MIN_GAP = 60 * 1000;
 
   // =====================================================================
@@ -47,7 +46,7 @@
     ".fdcp-home-story-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform 800ms cubic-bezier(.2,.7,.2,1);-webkit-user-drag:none;user-select:none;}",
     ".fdcp-home-story-card:hover .fdcp-home-story-cover{transform:scale(1.08);}",
     ".fdcp-home-story-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);}",
-    ".fdcp-home-story-ring{position:absolute;top:10px;left:10px;padding:4px 8px;border-radius:9999px;background:rgba(255,255,255,0.92);color:#580076;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;display:inline-flex;align-items:center;gap:4px;}",
+    ".fdcp-home-story-ring{position:absolute;top:10px;left:10px;right:10px;max-width:calc(100% - 20px);padding:4px 8px;border-radius:9999px;background:rgba(255,255,255,0.92);color:#580076;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:4px;width:max-content;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
     ".fdcp-home-story-meta{position:absolute;left:12px;right:12px;bottom:60px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.85);text-shadow:0 1px 4px rgba(0,0,0,0.6);text-transform:uppercase;letter-spacing:0.08em;}",
     ".fdcp-home-story-title{position:absolute;left:12px;right:12px;bottom:14px;font-size:14px;font-weight:700;line-height:1.25;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}",
     "#fdcp-home-focus{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.94);display:none;align-items:center;justify-content:center;padding:16px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}",
@@ -113,47 +112,9 @@
   }
 
   // =====================================================================
-  // STORIES DATA — mirrors gallery.html STORIES_SHEET exactly.
-  // Sheet shape: GroupTitle | Captions | Media Links (newline/CSV) | IsActive
-  // Rendered synchronously below; no fetch.
+  // STORIES DATA
+  // Live feed from the "FDCP STORIES" tab, matching gallery.html.
   // =====================================================================
-  var S3_REEL = "https://fdcp-images.s3.ap-southeast-1.amazonaws.com/REEL+TO+REAL+MAY+SCREENING/Untitled+design.mp4";
-  var STORIES_SHEET = [
-    { "GroupTitle": "May 2026",       "Captions": "Reel to Real: May Screening",        "IsActive": "Show",
-      "Media Links": "__S3_REEL__\nhttps://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745984_1402337155272975_6322407516427915481_n.jpg?stp=c366.0.1316.1316a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHP_dHLcQpys9G6WC5ZoxLZF6gAXMltbyUXqABcyW1vJaO6P5vV-mw8wBXsNJ2guSnM0oNDKvbFqmAK1GVIxNsl&_nc_ohc=aefaWTKV5U8Q7kNvwHwqGFr&_nc_oc=AdpapU7_567TASd7rIfLnqg3cLG4WSwyZQ7HakjPZxETD99PEEbPETF9XiENBG3Ljic&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af74kQM6ltAymwN71Wu1HOSYSy1zEbKLX_rHsBdUf6P9hg&oe=6A1799F9\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704507191_1402338005272890_2690525791989528709_n.jpg?stp=c387.0.1274.1274a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFGEu1NElJ3pfgmZ6S5Sf-7CLx17XkPwLsIvHXteQ_Au8bxUQBcKGH3Tk3gm7jwAPqHvr6Xd6DGgBL8LIWrLcY-&_nc_ohc=Fl3-Re2oj2gQ7kNvwEV16iV&_nc_oc=AdpHTzlswRUyUq9y1JIiTZbZ1eLLNu3cU6fDRkuAuaZQEF5zsGMU_yAsxDcnyx8yQ_I&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af5yk7U6O7nfXgHS6z4aa6hrZjX_yOGvNCZEbAwaejXyew&oe=6A178D79\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702176937_1402339121939445_822209189291120366_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeG_ZF3OKqJX3gtoznNDz9u0vt-YnasLFwG-35idqwsXAa18Ry36YNTDsKq0Ytqf-cL62LGTmz7uxl7jc6TyoKPd&_nc_ohc=1f6LZKqeY_YQ7kNvwGZHhsd&_nc_oc=AdpUBeGO0Nd3_gfOlmEJyu8SRDbfVub-1XcVY6aVVVe6I3NDPIrFAv955ATcFS2GDCA&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af6JG64ctAdxYqQriyriYqL1Lv2hE375JYW9VRgemK9LnQ&oe=6A17A43F\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/702545583_1402339441939413_9157546009593092763_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGWossBscjdu0U2BtK9NOB_bVynbicKDPJtXKduJwoM8tgLwpj_tFo90ZjGnlHrSMLnRlT9yp-N2sGpd1RBMHdz&_nc_ohc=8BL-B4d4-IQQ7kNvwFWNa5c&_nc_oc=AdpRiCUPmcvtRPMtZgB_yjaoZer5NkfWXbymbenFAVziMz31Iv2qLcAHuVF6QGA5Bu4&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=XJwAeOqah7ytceBj0W8zPw&_nc_ss=7b2a8&oh=00_Af7KgJdblRIv4UdhlRsk7X5d-ur1AydWJpJKtl08l-tzGw&oe=6A179363" },
-    { "GroupTitle": "Featured",       "Captions": "Pista ng Pelikulang Pilipino",       "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3\n__S3_REEL__\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF" },
-    { "GroupTitle": "Workshop",       "Captions": "Filmmaker Workshop",                 "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/702637658_1402337448606279_6349819876640321912_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGQY5zNMSP4y9hnzqtBdx78CE7j0uiE7r8ITuPS6ITuv1icUcjxNO-Q2QfNX0F6swjmb0etAGYQ49-gR3-DAsES&_nc_ohc=KL26UEV29yQQ7kNvwFcg_VQ&_nc_oc=Adpd-_xyKPT8zxZHVnscBNPnR5uuNSchAYldPxIixyfEFOJFuUIj5g8Y-uwRtQGdRO0&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7KfbPFSPh7cb625H84SeozMOZVFe06jXmtt_aVIsdAMQ&oe=6A17A6E2\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8" },
-    { "GroupTitle": "Cinematheque",   "Captions": "Cinematheque Spotlight",             "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF\n__S3_REEL__" },
-    { "GroupTitle": "Highlights",     "Captions": "Awards Night",                       "IsActive": "Show",
-      "Media Links": "https://scontent-mnl3-2.xx.fbcdn.net/v/t39.30808-6/703085362_1402339931939364_1350052845078246704_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=107&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGyu-ZfE5TyjGfqksHO80VMHHFUYmF61MkccVRiYXrUyV_H4_G1r_EBChW9RNZnLsAFeT4kPohNVefhWJvWiVad&_nc_ohc=zazvJsZZ5oMQ7kNvwE8Xwh5&_nc_oc=Adr2YEL_L1eZgiwqgSBA95Ab7Lb7tVv9Q2bh3musU5p-gleGecUWLIyO13J4Bxywb6k&_nc_zt=23&_nc_ht=scontent-mnl3-2.xx&_nc_gid=bauMjByd8YU2b0OBfhUoaw&_nc_ss=7b2a8&oh=00_Af5Faavm5e04zKCHTT6TV8Zj4O25DzB652gUPanw2xO45w&oe=6A17B3EF\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701599036_1400841282089229_5911314798229805372_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGHTfv3hmRItdvO4FnicBA98WLqYXmEJsDxYupheYQmwGK__EVsCj2T7dOis-yeU4_zlbbTQF7Q0TlyMoPpeHYT&_nc_ohc=iLKrapVP6pYQ7kNvwH1gS3Y&_nc_oc=AdqEnMFOKlInvL2hiTlD6_aAJHPmXvBpNp3DrhWkk_6xY9niznoiDtTuUBfS3oX4nJA&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af7-gb8RA05X2gDgPQB5E-F33rkalWNGU5uhm2Ujd_y_iw&oe=6A1781FF\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701172323_1400837422089615_7455776713854255628_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEf9FoCbR_BjO9UJmRTdrYfbh49Nr893PtuHj02vz3c-wiUkm8EsPP9iMljEX3Scg5suueKaHf4r-ccQJJ2O2xV&_nc_ohc=MQcLG04gqHQQ7kNvwEyRzNA&_nc_oc=AdrUknCoJW1fbkMa_jWXjjLcB7FUtW_dt4UmIHXPwD_eUJf7q0rBftx2hl5DHGl6v24&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af67tdyPuNn2YQHP9VLQIVqPs3hJzK-ZYeH7M-OxqT7V2g&oe=6A178B61" },
-    { "GroupTitle": "Production",     "Captions": "Behind the Scenes",                  "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703136424_1402337468606277_7115864811107298867_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGxwtSYTibtPduROk1CqIq_e3KVq1XI5Mt7cpWrVcjky8tiSqSgvmjYD5GAUNjJx_95hgOlq-vJfb4rjoj35YyF&_nc_ohc=6Z0_5B9W4-AQ7kNvwE_ezl0&_nc_oc=Adq0hjSUQhSr-01j27D-s0Oq8GpS4Weuh2bHl5Blo4uic6OeuD_LtGgD7Z3twiUk6zk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7DH5MhmbgzO-LWUTDFCmXWTdlgDmdIAJD34xZdQVM0NQ&oe=6A17B065\nhttps://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703745968_1402339035272787_6237206099700062114_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=102&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeF7Bp50N68LL1xNY4OfvhuwgGUFa57OqTOAZQVrns6pMzIkCtGToQaPHzvCeTIl6Bvt7RS3MF52rj8mopsLlA11&_nc_ohc=A0dYT_A8HWEQ7kNvwH8fZLw&_nc_oc=AdoHv-XLbtSmRbbrAtoRaVObCQVULk7UKdCvA0fPCwsULMgZL_0FV6SmXVdWzrwFTVE&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af6ZAT0vzIv2Ixb0gCKBr-cEV8D6_zJN01sK9mDGcJTl7w&oe=6A17994B\nhttps://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/701234645_1400837215422969_910024190249438787_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=104&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFxJvhXnTuOa-6lNhPnNDTajZw2uMoz-X2NnDa4yjP5fYm3ktTRTJmYxSrP446urVG_yJkrApW_Yo4Kqxu97l2n&_nc_ohc=57phCSO0rrEQ7kNvwEoF0Te&_nc_oc=AdoRr-MadZ6wIplaVy8bqVhBKw5W6PY6Jk68Ar7e3DchSHA427ojYQpfhU3WQtF3vAo&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af6v_5OSZABrhDvebvf7pJhqBlfjVmuB_ycJ6_5XkgIY1g&oe=6A177D68\n__S3_REEL__" },
-    { "GroupTitle": "International",  "Captions": "Philippine Cinema at Cannes",        "IsActive": "Show",
-      "Media Links": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701245908_1400835312089826_3900200200417846946_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHYQ_H3EhXVSI3r2F_trmT-wxGx8_cvA7jDEbHz9y8DuBNKpEuek9bWJwbwAcLolDA4Gv4hpkbf9qilBU_hOkar&_nc_ohc=Jssrd--oU7wQ7kNvwHPqkzb&_nc_oc=AdoyGuUQk7lYLr6kN0ALE1yoqOq6Z1G7zui0gdQ4OkrdvPN4eRjxWkpOXaNS5XntX1g&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af7zm7ZDkIny4ncCrCPUq1Up6Lw59KFBPQkN-GxiKuxpFQ&oe=6A17A01D\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701307093_1399966618843362_5848885894722363720_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHDvZ2ivxaaBXvb98VWfqT_9uOoo7rtgMb246ijuu2Axjrpj9pDkhdziAH4JutA5cctR1xu1UPb-KgBfXbcsnba&_nc_ohc=_mtAUe_6Wx8Q7kNvwEaSv02&_nc_oc=AdpnNvZLatoZXJjRKsgg9Mzh2_MoxgyqHKZa8KUSJtzzRJQvsJ1lZaa1RJVBD1BVn8U&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af4X2toxIuqaqlROZ2bZPIkXSjEeDAfE5x_Rpz8iK88rOg&oe=6A1788D1\nhttps://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/701385739_1399966188843405_7974920951808937378_n.jpg?stp=c256.0.1536.1536a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEWtWvqURLIQiL-lnX02SqfELXrAm_m6KcQtesCb-bop_eyUJ_okKNXxyQt6bnk2YdwEC3R28UI9HqSTDD5fA9q&_nc_ohc=QFsTGEQjmzYQ7kNvwG_THWa&_nc_oc=Adoo51UX8fjLvUiCUDmRT0aV2Aoib3rnMZQCSknVVer5AOmuMWiwn5Kv0yLu7ZMTqfM&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=8Cj907dBy8WDWSVcxQNBbA&_nc_ss=7b2a8&oh=00_Af5lx8dp7Ptlw_SEmGF3b2wk70zVjIJdinCI0n_Eh-lIYQ&oe=6A179C9B" },
-    { "GroupTitle": "Masterclass",    "Captions": "Film Scoring Masterclass",           "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/703076180_1402337278606296_6876052532856559078_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE22MJGg7Zdmg520UiY1WDROif3A3xuYhg6J_cDfG5iGMUTdVXb0ONYAyx2wF-N9HD_zHqyNT_Ssb4_qeLXOuhs&_nc_ohc=fruIbvgajMIQ7kNvwFqbHo4&_nc_oc=Ado1AulwYAPI6dioRJGbcM20usFxn6pyxfYq8rfYXgaTQ72Xl3pFRR_hIWuQ0idpg-E&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=hFmrhH3_uvrXywmonX0PDw&_nc_ss=7b2a8&oh=00_Af4fepNX-cWmS_HgUF5fBwWv0b6RreWVzlGusHlErbvY1g&oe=6A17AAD0\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701960462_1400838642089493_7847714172872040636_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE-maqeZq34u4dsTkjneIhLzyzIh3jG9KXPLMiHeMb0pYp72aoKOwt7605WaIrE3IWsG1za6TX6rW0zCpUoBVd8&_nc_ohc=XRLYXsZaiecQ7kNvwFlPw8y&_nc_oc=AdqlEJE8qAXkufJRWbPbGIRvlN7yWYQ5nth6GbkYb8aXYd6veApDf58FJCqvKtkrPzA&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=NLm8yLuSw82rxY_u6KTS5A&_nc_ss=7b2a8&oh=00_Af64ENnBC8bes2xS4fLnrjAklxxVMKQl8q460WAjTZlGww&oe=6A178B62\nhttps://scontent-mnl3-2.xx.fbcdn.net/v/t39.30808-6/702570445_1402338975272793_173072324728514713_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=107&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEvF97o_Q_qUd8rjceJmfpLA6vzF4wDT08Dq_MXjANPT-UyHQF4GycbRJJafj4k-JP55UVAg0AiDU5TAz6W_6tg&_nc_ohc=02Cw0DbePfYQ7kNvwGJjum8&_nc_oc=AdowuJ2eqLm6L18sMr7CNdS-ASJdSzd4SXzQLMERDpZs-TH3At2Tdxycn5yo42AfD9k&_nc_zt=23&_nc_ht=scontent-mnl3-2.xx&_nc_gid=fPcm0Lna0TyV7ls_Xxm_ng&_nc_ss=7b2a8&oh=00_Af4Iw1lFsC0XF4wV6Q89ujtRy2DOVRDTxSYRkPuHHNRaqg&oe=6A1796A4" },
-    { "GroupTitle": "FDCP Abroad",    "Captions": "FDCP Abroad — Singapore",        "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/700506892_1399963222177035_83432273243703586_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGSiNKUhhxyx7tNnklvGBOirU0sd2u1ie6tTSx3a7WJ7pWg_0dVd5crLMp16IDhdOYrnY1dbEMvBoK5I65Mr-wf&_nc_ohc=VU140S27z1IQ7kNvwEDEHaF&_nc_oc=AdrDbaW2Hq3WBY7ejK4kS63P6AfVDgjtRzPBkBrJfjzUxqGOiBNqklpQY4hcH8ybMP0&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af6fj2rktuTW0-66kbKb1W7f7iCkPJiEMywr2J5nJXLBpw&oe=6A17ABE7\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701307093_1399966618843362_5848885894722363720_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHDvZ2ivxaaBXvb98VWfqT_9uOoo7rtgMb246ijuu2Axjrpj9pDkhdziAH4JutA5cctR1xu1UPb-KgBfXbcsnba&_nc_ohc=_mtAUe_6Wx8Q7kNvwEaSv02&_nc_oc=AdpnNvZLatoZXJjRKsgg9Mzh2_MoxgyqHKZa8KUSJtzzRJQvsJ1lZaa1RJVBD1BVn8U&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af4X2toxIuqaqlROZ2bZPIkXSjEeDAfE5x_Rpz8iK88rOg&oe=6A1788D1\nhttps://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/701385739_1399966188843405_7974920951808937378_n.jpg?stp=c256.0.1536.1536a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEWtWvqURLIQiL-lnX02SqfELXrAm_m6KcQtesCb-bop_eyUJ_okKNXxyQt6bnk2YdwEC3R28UI9HqSTDD5fA9q&_nc_ohc=QFsTGEQjmzYQ7kNvwG_THWa&_nc_oc=Adoo51UX8fjLvUiCUDmRT0aV2Aoib3rnMZQCSknVVer5AOmuMWiwn5Kv0yLu7ZMTqfM&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=8Cj907dBy8WDWSVcxQNBbA&_nc_ss=7b2a8&oh=00_Af5lx8dp7Ptlw_SEmGF3b2wk70zVjIJdinCI0n_Eh-lIYQ&oe=6A179C9B" },
-    { "GroupTitle": "Cinematheque",   "Captions": "Cinematheque Grand Opening",         "IsActive": "Show",
-      "Media Links": "https://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701056335_1399963272177030_2943252214520173309_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeE4AU_I5mAsHzFndmL5nPW83_jLgjNYScrf-MuCM1hJyuIGQg50cmBfEq1TubhDmPHsLLZDbHrxEtFytIYqazWA&_nc_ohc=1wYLyGcrCHAQ7kNvwHiZyZC&_nc_oc=AdrJD2_NqNAelkUIp6vRCn3DaFVLisSJdNTcgFN-Jnr9XZsCWON6jw9tEZn-iwHvQlc&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=Sz2QVGiMx9ZstB9YRlt_aw&_nc_ss=7b2a8&oh=00_Af71PsyvcUaZ0bcPbJEo3ZAWCouso9a4ZrA9a6LhQL_sRw&oe=6A17A480\nhttps://scontent-mnl1-1.xx.fbcdn.net/v/t39.30808-6/701234646_1400835325423158_4654192188375450046_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=106&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFkCZE-SqRV4qJnj6Bfwp2503Q0eI16euzTdDR4jXp67KbcgR4xT4DniVtIYt9NJweA0sbMReLJTXFqIyWq6usC&_nc_ohc=lX47ftRMM9MQ7kNvwE7qi3J&_nc_oc=AdqZd3AATPG2jcBMV6EDzqk23oArVVQ03sUzNtPiqzOkRzrv6dIcCKJScvSfKLALqkk&_nc_zt=23&_nc_ht=scontent-mnl1-1.xx&_nc_gid=fm9HOGniUL576pj7_R56WA&_nc_ss=7b2a8&oh=00_Af5leo8UwwpU7fLH-GzYCP8NcHzIuMrI_eE1Qc5c2ufbRw&oe=6A1798A3\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/701172323_1400837422089615_7455776713854255628_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeEf9FoCbR_BjO9UJmRTdrYfbh49Nr893PtuHj02vz3c-wiUkm8EsPP9iMljEX3Scg5suueKaHf4r-ccQJJ2O2xV&_nc_ohc=MQcLG04gqHQQ7kNvwEyRzNA&_nc_oc=AdrUknCoJW1fbkMa_jWXjjLcB7FUtW_dt4UmIHXPwD_eUJf7q0rBftx2hl5DHGl6v24&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af67tdyPuNn2YQHP9VLQIVqPs3hJzK-ZYeH7M-OxqT7V2g&oe=6A178B61" },
-    { "GroupTitle": "Youth Film",     "Captions": "Sine Kabataan Youth Film",           "IsActive": "Show",
-      "Media Links": "https://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/704558556_1402337848606239_7656643794134414785_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=108&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGznZbtGwoYvZ9nAFJF_m6lA-2bCUOCWRED7ZsJQ4JZEYv9SYGhyQAyk1axqcTcKTFuJzurxLjeBuSBQ_arZxsy&_nc_ohc=_EMF9NhDRqUQ7kNvwGFACPT&_nc_oc=Adrn8r0BmZrQuLy746MpRgLbwWelIxGG_RHadAHeVhKf76twTxiIHM4NCz6CDr8EpxU&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af7eP1hkRfzjrRiv66ZJ1z0AWyTHgGX2sqB2KQywnfVLCQ&oe=6A17A048\nhttps://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/701234645_1400837215422969_910024190249438787_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=104&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFxJvhXnTuOa-6lNhPnNDTajZw2uMoz-X2NnDa4yjP5fYm3ktTRTJmYxSrP446urVG_yJkrApW_Yo4Kqxu97l2n&_nc_ohc=57phCSO0rrEQ7kNvwEoF0Te&_nc_oc=AdoRr-MadZ6wIplaVy8bqVhBKw5W6PY6Jk68Ar7e3DchSHA427ojYQpfhU3WQtF3vAo&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=5jiV2mLDaDgjQsTz55Ezkg&_nc_ss=7b2a8&oh=00_Af6v_5OSZABrhDvebvf7pJhqBlfjVmuB_ycJ6_5XkgIY1g&oe=6A177D68\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8" },
-    { "GroupTitle": "Industry Forum", "Captions": "Digital Distribution Summit",        "IsActive": "Show",
-      "Media Links": "https://scontent-mnl3-1.xx.fbcdn.net/v/t39.30808-6/702118551_1402338258606198_7456584163380400405_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=103&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeHtSDxdXkXHzsuJhDER5B5lWOwZVcsyAhZY7BlVyzICFtL1VBKm83KgxKVr7rawp6NV1XwXCOcE2V9VJ5WlI2aT&_nc_ohc=tg7IaN2cjbUQ7kNvwEWcoEP&_nc_oc=AdqXoCgEg9Z5KnQHSyWt0fXba4EYXbqBf-_gohRVFc5anywP_PLkQRFsIqPzvwWFieM&_nc_zt=23&_nc_ht=scontent-mnl3-1.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5WCo-CJj2F3ZkGbnNFmxDWilS0yGZzlpyBk-ghmgMq1A&oe=6A17A422\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/703136422_1402339395272751_1448122773927360612_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=101&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeF0jJpExOx_O64LoYAfbtQekCnfNrJbh52QKd82sluHnY2j10sGGx1mwH-cr0tIuTTJ9xRRbTrmT9OYc0uMEUbe&_nc_ohc=4erVgmV4d6EQ7kNvwElLgXM&_nc_oc=AdqzgI6mL2A5mwzIxZcPhaLqY6wpFjAd1j4WXJOZkcEIV23_ojDQ0rj3Ao-qNqkGUaA&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=XJwAeOqah7ytceBj0W8zPw&_nc_ss=7b2a8&oh=00_Af5BxhQnH6vZbo2lr89TMr27DZFVxitevBGkmR5_i_GObA&oe=6A177E43\nhttps://scontent-mnl3-3.xx.fbcdn.net/v/t39.30808-6/702509135_1402338288606195_2708137994007876199_n.jpg?stp=c213.0.1623.1623a_dst-jpg_s206x206_tt6&_nc_cat=109&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeGEmwgh8dRhR-75hjai5MqgkwMVXA-JAbuTAxVcD4kBuz62qVm9dZBCNh9uefsS1VqA4jyVIn46qw1LAdUTbdFN&_nc_ohc=I81BSGbGOVcQ7kNvwEqX5k9&_nc_oc=Ado80ByrmHGJO5uY1gwtMe8m-Vfep6dyusNfvMSreMTCtiEsMXBIGnrUm04qk0QTAj8&_nc_zt=23&_nc_ht=scontent-mnl3-3.xx&_nc_gid=nQtrVbNxy_dfky26C4LkTg&_nc_ss=7b2a8&oh=00_Af5uWKKI8ByT1GdYR_Q57HyQ_NGk_VkWOEK_gOPLyeUDLQ&oe=6A1795F8\nhttps://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-6/703076190_1402337875272903_5659435601112767977_n.jpg?stp=c342.0.1365.1365a_dst-jpg_s206x206_tt6&_nc_cat=100&ccb=1-7&_nc_sid=92e838&_nc_eui2=AeFk09gWwP3W7kOuYoRj8bOIuirVedJh0wu6KtV50mHTC6pMIQ2sz3wqYNqADM2gnCPehKrTlqfc6shrOtwr8PGr&_nc_ohc=_pV8vrqtNWsQ7kNvwFLXplS&_nc_oc=AdpbHtEh5BiytcjvP-TkZ2rMbjjDjoSs4tMe-4wPHzDEH2xkyBeLfKXaMRnQa81TFLo&_nc_zt=23&_nc_ht=scontent-mnl1-2.xx&_nc_gid=b8bya15skUAbPkFAl1zR0A&_nc_ss=7b2a8&oh=00_Af6cjIucDJ47_iGu1HVK2rtHOR8fRhOFAB_9x4-V1bwoTw&oe=6A177EAC" }
-  ];
-  // Inline __S3_REEL__ token (matches gallery.html behavior)
-  STORIES_SHEET = STORIES_SHEET.map(function (r) {
-    return {
-      "GroupTitle":  r["GroupTitle"],
-      "Captions":    r["Captions"],
-      "Media Links": String(r["Media Links"] || "").split("__S3_REEL__").join(S3_REEL),
-      "IsActive":    r["IsActive"]
-    };
-  });
-
   // =====================================================================
   // HELPERS
   // =====================================================================
@@ -216,26 +177,61 @@
     }
     return (clone.textContent || "").trim();
   }
-  function parseGvizHTML(text) {
+  function parseStoriesGviz(text) {
     var doc;
     try { doc = new DOMParser().parseFromString(text, "text/html"); }
     catch (e) { return []; }
     var table = doc.querySelector("table");
     if (!table || !table.rows.length) return [];
     var trs = table.rows;
-    var headers = [];
-    for (var h = 0; h < trs[0].cells.length; h++) {
-      headers.push((trs[0].cells[h].textContent || "").trim());
-    }
-    var out = [];
-    for (var i = 1; i < trs.length; i++) {
-      var cells = trs[i].cells, obj = {}, hasContent = false;
-      for (var j = 0; j < headers.length; j++) {
-        var name = headers[j], cell = cells[j];
-        obj[name] = cell ? cellToText(cell) : "";
-        if (obj[name]) hasContent = true;
+
+    var headerIdx = -1;
+    for (var r = 0; r < trs.length; r++) {
+      for (var c = 0; c < trs[r].cells.length; c++) {
+        if ((trs[r].cells[c].textContent || "").trim()) { headerIdx = r; break; }
       }
-      if (hasContent) out.push(obj);
+      if (headerIdx >= 0) break;
+    }
+    if (headerIdx < 0) return [];
+
+    var headers = [];
+    for (var h = 0; h < trs[headerIdx].cells.length; h++) {
+      headers.push((trs[headerIdx].cells[h].textContent || "").replace(/ /g, " ").trim().replace(/\s+/g, " ").toLowerCase());
+    }
+    function findIdx() {
+      for (var k = 0; k < headers.length; k++) {
+        for (var m = 0; m < arguments.length; m++) {
+          if (headers[k].indexOf(arguments[m]) >= 0) return k;
+        }
+      }
+      return -1;
+    }
+    var iCategory = findIdx("category", "group");
+    var iCaption  = findIdx("caption");
+    var iPhoto    = findIdx("photo link");
+    var iVideo    = findIdx("video link", "youtube");
+    var iActive   = findIdx("isactive", "show/hide", "show / hide");
+
+    function cellText(row, idx) {
+      if (idx < 0 || !row.cells[idx]) return "";
+      return cellToText(row.cells[idx]).replace(/ /g, " ").trim();
+    }
+
+    var out = [];
+    for (var i = headerIdx + 1; i < trs.length; i++) {
+      var grp   = cellText(trs[i], iCategory);
+      var cap   = cellText(trs[i], iCaption);
+      var photo = cellText(trs[i], iPhoto);
+      var vid   = cellText(trs[i], iVideo);
+      var act   = cellText(trs[i], iActive);
+      var media = [photo, vid].filter(Boolean).join("\n");
+      if (!grp && !cap && !media) continue;
+      out.push({
+        "GroupTitle":  grp,
+        "Captions":    cap,
+        "Media Links": media,
+        "IsActive":    act
+      });
     }
     return out;
   }
@@ -259,22 +255,55 @@
           .map(function (s) { return s.trim(); })
           .filter(function (s) { return /^https?:\/\//i.test(s); });
         var caption = r["Captions"] || "";
-        var assets = urls.map(function (u) {
-          return { type: isVideo(u) ? "video" : "image", src: u, caption: caption };
-        });
-        var firstImage = null;
-        for (var i = 0; i < urls.length; i++) {
-          if (!isVideo(urls[i])) { firstImage = urls[i]; break; }
+        function toAsset(u) {
+          var driveFolder = u.match(/drive\.google\.com\/drive\/folders\/([\w-]+)/i);
+          if (driveFolder) {
+            return {
+              type: "iframe",
+              src: "https://drive.google.com/embeddedfolderview?id=" + driveFolder[1] + "#grid",
+              thumb: "",
+              caption: caption
+            };
+          }
+          var driveFile = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
+          if (driveFile) {
+            return {
+              type: "iframe",
+              src: "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
+              thumb: "https://drive.google.com/thumbnail?id=" + driveFile[1] + "&sz=w1600",
+              caption: caption
+            };
+          }
+          return {
+            type: isVideo(u) ? "video" : "image",
+            src: u,
+            thumb: isVideo(u) ? "" : u,
+            caption: caption
+          };
         }
+        var assets = urls.map(toAsset);
+        var cover = "";
+        for (var i = 0; i < assets.length; i++) {
+          if (assets[i].thumb) { cover = assets[i].thumb; break; }
+        }
+        if (!cover && assets[0]) cover = assets[0].thumb || assets[0].src || "";
         return {
           id: slugify(caption) || slugify(r["GroupTitle"]),
           title: caption,
           eyebrow: r["GroupTitle"] || "",
-          cover: firstImage || urls[0] || "",
+          cover: cover,
           assets: assets
         };
       })
       .filter(function (s) { return s.assets.length > 0; });
+  }
+
+  function categoryFontSize(label) {
+    var len = String(label || "").trim().length;
+    if (len > 26) return "7px";
+    if (len > 21) return "8px";
+    if (len > 16) return "9px";
+    return "10px";
   }
 
   // =====================================================================
@@ -286,11 +315,11 @@
       var raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       var obj = JSON.parse(raw);
-      return (obj && obj.v === 1 && Array.isArray(obj.rows)) ? obj : null;
+      return (obj && obj.v === 2 && Array.isArray(obj.rows)) ? obj : null;
     } catch (e) { return null; }
   }
   function writeCache(rows, hash) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ v:1, t:Date.now(), hash:hash, rows:rows })); }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ v:2, t:Date.now(), hash:hash, rows:rows })); }
     catch (e) {}
   }
   function fetchLive() {
@@ -299,20 +328,19 @@
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function (txt) {
         lastFetchAt = Date.now();
-        return { hash: hashCSV(txt), rows: parseGvizHTML(txt) };
+        return { hash: hashCSV(txt), rows: parseStoriesGviz(txt) };
       });
   }
   function loadSWR(onData) {
     var cached = readCache();
     if (cached && cached.rows.length) onData(cached.rows);
-    else onData(MOCK);
     return fetchLive().then(function (fresh) {
       if (!fresh.rows.length) return;
       if (!cached || cached.hash !== fresh.hash) {
         onData(fresh.rows);
         writeCache(fresh.rows, fresh.hash);
       }
-    }).catch(function () { /* keep mock/cache painted */ });
+    }).catch(function () { /* keep cache painted */ });
   }
   function attachFocusRevalidate(onData) {
     document.addEventListener("visibilitychange", function () {
@@ -382,7 +410,12 @@
 
       var cover = el("img", { className: "fdcp-home-story-cover", src: s.cover || "", alt: "", loading: "lazy" });
       var scrim = el("div", { className: "fdcp-home-story-scrim" });
-      var ring  = el("span", { className: "fdcp-home-story-ring", textContent: s.eyebrow || "Story" });
+      var ringLabel = s.eyebrow || "Story";
+      var ring  = el("span", {
+        className: "fdcp-home-story-ring",
+        textContent: ringLabel,
+        style: { fontSize: categoryFontSize(ringLabel) }
+      });
       var meta  = el("span", { className: "fdcp-home-story-meta", textContent: n + " " + (n === 1 ? "item" : "items") });
       var title = el("span", { className: "fdcp-home-story-title", textContent: s.title || "" });
 
@@ -564,6 +597,7 @@
     if (!refs.viewport || !asset) return;
     refs.viewport.textContent = "";
     var mediaEl;
+    var interactive = (asset.type === "video" || asset.type === "iframe");
     if (asset.type === "video") {
       mediaEl = document.createElement("video");
       mediaEl.src = asset.src;
@@ -571,6 +605,20 @@
       mediaEl.autoplay = true;
       mediaEl.playsInline = true;
       mediaEl.setAttribute("playsinline", "");
+    } else if (asset.type === "iframe") {
+      var src = asset.src;
+      if (/youtube\.com\/embed\//.test(src)) {
+        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1&playsinline=1&rel=0&modestbranding=1";
+      } else if (/player\.vimeo\.com/.test(src)) {
+        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
+      } else if (/drive\.google\.com\/file\/d\/[^/]+\/preview/.test(src)) {
+        src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
+      }
+      mediaEl = document.createElement("iframe");
+      mediaEl.src = src;
+      mediaEl.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
+      mediaEl.setAttribute("allowfullscreen", "");
+      mediaEl.style.border = "0";
     } else {
       mediaEl = document.createElement("img");
       mediaEl.src = asset.src;
@@ -578,6 +626,8 @@
     }
     mediaEl.className = "fdcp-home-focus-media";
     refs.viewport.appendChild(mediaEl);
+    if (refs.tapPrev) refs.tapPrev.style.pointerEvents = interactive ? "none" : "";
+    if (refs.tapNext) refs.tapNext.style.pointerEvents = interactive ? "none" : "";
     if (refs.caption) refs.caption.textContent = asset.caption || "";
     syncArrowState();
   }
@@ -675,9 +725,14 @@
   function init() {
     injectStyles();
     buildSection();
-    STORIES = parseStoriesSheet(STORIES_SHEET);
-    if (!STORIES.length) return;
-    renderStoryCards();
+    loadSWR(function (rows) {
+      STORIES = parseStoriesSheet(rows);
+      renderStoryCards();
+    });
+    attachFocusRevalidate(function (rows) {
+      STORIES = parseStoriesSheet(rows);
+      renderStoryCards();
+    });
   }
 
   if (document.readyState === "loading") {
