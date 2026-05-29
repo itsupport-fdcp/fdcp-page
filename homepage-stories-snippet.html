@@ -18,12 +18,9 @@
     var CSS = [
       ".fdcp-home-stories-wrap{background:#F8F8F8;padding:48px 0 24px;}",
       ".fdcp-home-stories-shell{max-width:1280px;margin:0 auto;padding:0 24px;}",
-      "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
+      "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:none;-ms-overflow-style:none;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
       "#fdcp-home-stories-track.is-dragging{cursor:grabbing;}",
-      "#fdcp-home-stories-track::-webkit-scrollbar{height:6px;width:6px;}",
-      "#fdcp-home-stories-track::-webkit-scrollbar-track{background:transparent;}",
-      "#fdcp-home-stories-track::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.18);border-radius:9999px;}",
-      "#fdcp-home-stories-track::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.32);}",
+      "#fdcp-home-stories-track::-webkit-scrollbar{height:0;width:0;display:none;}",
       ".fdcp-home-story-card{flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;cursor:pointer;background:#1a1a1a;border:0;padding:0;text-align:left;color:#fff;transition:transform 220ms ease,box-shadow 220ms ease;box-shadow:0 4px 14px rgba(15,15,15,0.10);}",
       ".fdcp-home-story-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(88,0,118,0.28);}",
       ".fdcp-home-story-card:focus-visible{outline:3px solid #E200A9;outline-offset:3px;}",
@@ -259,6 +256,13 @@
             }
             var driveFile = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
             if (driveFile) {
+              // Drive's direct-download URL won't stream reliably in <video>
+              // (large files hit a virus-scan page), so use the /preview iframe.
+              // It can't auto-advance (cross-origin, no end event) and its
+              // controls can't be hidden — accepted tradeoff. When story videos
+              // move to direct .mp4 (S3) links, isVideo() below catches them and
+              // they render as a native <video> with exact auto-advance — no
+              // code change needed.
               return {
                 type: "iframe",
                 src: "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
@@ -283,11 +287,21 @@
             id: slugify(caption) || slugify(r["GroupTitle"]),
             title: caption,
             eyebrow: r["GroupTitle"] || "",
-            cover: cover,
+            // Card cover is a compressed (~600px) variant of the thumbnail for
+            // fast strip loading; the fullscreen viewer still uses asset.thumb
+            // (~1600px) so the story image stays sharp.
+            cover: compressDriveThumb(cover, 600),
             assets: assets
           };
         })
         .filter(function (s) { return s.assets.length > 0; });
+    }
+
+    // Rewrite a Drive thumbnail URL to a narrower (compressed) width. Returns
+    // non-Drive URLs unchanged so externally-hosted covers are untouched.
+    function compressDriveThumb(url, width) {
+      if (!url) return url;
+      return String(url).replace(/([?&]sz=w)\d+/i, "$1" + width);
     }
 
     function categoryFontSize(label) {
@@ -472,6 +486,24 @@
       track.addEventListener("click", function (e) {
         if (didDrag) { e.preventDefault(); e.stopPropagation(); }
       }, true);
+
+      // Mouse wheel → horizontal scroll. A normal vertical wheel (deltaY) moves
+      // the strip sideways; trackpads that already send horizontal deltas (deltaX)
+      // pass straight through. Only intercept when there's actually room to scroll
+      // horizontally, so the page can still scroll vertically past the strip.
+      track.addEventListener("wheel", function (e) {
+        var canScrollX = track.scrollWidth > track.clientWidth + 1;
+        if (!canScrollX) return;
+        // Use whichever axis the user is moving more on.
+        var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (!delta) return;
+        var atStart = track.scrollLeft <= 0;
+        var atEnd   = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+        // Let the page take over at the edges so the user isn't trapped.
+        if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return;
+        e.preventDefault();
+        track.scrollLeft += delta;
+      }, { passive: false });
     }
 
     // =====================================================================
@@ -495,8 +527,7 @@
       refs.title    = el("h4",  { className: "fdcp-home-focus-title", textContent: "" });
       refs.counter  = el("span",{ className: "fdcp-home-focus-counter", textContent: "" });
       var header    = el("div", { className: "fdcp-home-focus-header" }, [
-        el("div", { className: "fdcp-home-focus-titlewrap" }, [refs.title]),
-        refs.counter
+        el("div", { className: "fdcp-home-focus-titlewrap" }, [refs.title, refs.counter])
       ]);
       refs.viewport = el("div", { className: "fdcp-home-focus-viewport" });
       refs.tapPrev  = el("button", { type: "button", className: "fdcp-home-focus-tap prev", "aria-label": "Previous" });

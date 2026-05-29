@@ -203,6 +203,9 @@
       position: absolute !important;
       top: 10px !important;
       left: 10px !important;
+      right: 10px !important;
+      max-width: calc(100% - 20px) !important;
+      width: max-content !important;
       padding: 4px 8px !important;
       border-radius: 9999px !important;
       background: rgba(255,255,255,0.92) !important;
@@ -210,10 +213,13 @@
       font-size: 10px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
+      letter-spacing: 0.04em !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
     /* Title + meta sit inside .fdcp-story-foot so they stack with a gap and
       grow upward as the title wraps — no overlap regardless of line count. */
@@ -610,6 +616,7 @@
       .fdcp-focus-header {
         top: calc(56px + env(safe-area-inset-top, 0px)) !important;
         left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+        right: 56px !important;
       }
       .fdcp-focus-caption { bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
     }
@@ -841,6 +848,27 @@
       max-width: 600px !important;
       margin: 0 !important;
     }
+    .fdcp-desc-clamped {
+      display: -webkit-box !important;
+      -webkit-line-clamp: 3 !important;
+      line-clamp: 3 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+    }
+    .fdcp-read-more-btn {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 4px 0 0 !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #E200A9 !important;
+      cursor: pointer !important;
+      display: inline-block !important;
+      line-height: 1.4 !important;
+      letter-spacing: 0.01em !important;
+    }
+    .fdcp-read-more-btn:hover { opacity: 0.75 !important; }
     .fdcp-photos-controls {
       display: flex !important;
       flex-direction: row !important;
@@ -2073,8 +2101,10 @@
         .map(function (u) {
           var drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
           if (drive) return {
-            thumb: "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w1600",
-            full:  "https://drive.google.com/file/d/" + drive[1] + "/view"
+            // Compressed card thumbnail (~600px wide) for fast carousel/grid
+            // loading; the full-res image (~2000px) only loads in the lightbox.
+            thumb: "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w600",
+            full:  "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w2000"
           };
           if (/^https?:\/\//i.test(u)) return { thumb: u, full: u };
           return null;
@@ -2082,13 +2112,29 @@
         .filter(Boolean);
     }
 
+    // Poster card thumbnail — compressed (~600px) for fast loading. The
+    // full-res version is derived on demand in blockHTMLForEvent for the lightbox.
     function normalizePoster(url) {
       if (!url) return "";
       var u = String(url).trim();
       var drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);
-      if (drive) return "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w1600";
+      if (drive) return "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w600";
       if (/^https?:\/\//i.test(u)) return u;
       return "";
+    }
+
+    // Upgrade a compressed Drive thumbnail URL to a higher-res variant for the
+    // lightbox. Non-Drive URLs are returned unchanged.
+    function fullResFromThumb(url) {
+      if (!url) return url;
+      return String(url).replace(/([?&]sz=w)\d+/i, "$12000");
+    }
+
+    // Rewrite a Drive thumbnail URL to a narrower (compressed) width. Used for
+    // story card covers so the strip loads fast; non-Drive URLs are untouched.
+    function compressDriveThumb(url, width) {
+      if (!url) return url;
+      return String(url).replace(/([?&]sz=w)\d+/i, "$1" + width);
     }
 
     function hashCSV(s) {
@@ -2191,8 +2237,24 @@
       return acc;
     }
 
+    // Find the value of the first column whose header contains `needle`
+    // (case-insensitive), so a renamed/space-padded "Event Poster" column
+    // still resolves. Returns "" if no column matches.
+    function pickColumn(row, needle) {
+      needle = needle.toLowerCase();
+      for (var key in row) {
+        if (!Object.prototype.hasOwnProperty.call(row, key)) continue;
+        if (key.toLowerCase().indexOf(needle) >= 0) {
+          var v = (row[key] || "").trim();
+          if (v) return v;
+        }
+      }
+      return "";
+    }
+
     function buildMediaEvents(rows) {
       if (!rows || !rows.length) return [];
+      if (rows[0] && window.console) console.log("[FDCP gallery] sheet columns:", Object.keys(rows[0]));
       var out = [];
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i];
@@ -2206,14 +2268,17 @@
         var photos = parsePhotoLinks(photoRaw);
         var rawVideo = normalizeVideo(r["Video Link"] || "");
         var video = rawVideo.kind ? rawVideo : null;
-        if (!photos.length && !video) continue;  // skip events with no media
+        var poster = normalizePoster(pickColumn(r, "poster"));
+        // An event with only a poster (no photo links, no video) still belongs
+        // in the photo gallery — the poster becomes its sole photo card.
+        if (!photos.length && !video && !poster) continue;  // skip events with no media at all
         out = dedupBySlug(out, {
           id:       slugify(title),
           title:    title,
           date:     parseSheetDate(r["Start time/Date"] || ""),
           descHTML: r["Descriptions_html"] || r["Description_html"] || "",
           descText: r["Descriptions"]      || r["Description"]      || "",
-          poster:   normalizePoster(r["Event Poster"] || ""),
+          poster:   poster,
           photos:   photos,
           video:    video
         });
@@ -2231,7 +2296,9 @@
       });
       return {
         featuredVideos: events.filter(function (e) { return !!e.video; }),
-        photoEvents:    events.filter(function (e) { return e.photos.length > 0; })
+        // An event qualifies for the photo gallery if it has photo links OR a
+        // poster (the poster is prepended as its first/only card downstream).
+        photoEvents:    events.filter(function (e) { return e.photos.length > 0 || !!e.poster; })
       };
     }
 
@@ -2397,6 +2464,13 @@
             }
             var driveFile = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
             if (driveFile) {
+              // Drive's direct-download URL won't stream reliably in <video>
+              // (large files hit a virus-scan page), so use the /preview iframe.
+              // It can't auto-advance (cross-origin, no end event) and its
+              // controls can't be hidden — accepted tradeoff. When story videos
+              // move to direct .mp4 (S3) links, isVideo() below catches them and
+              // they render as a native <video> with exact auto-advance — no
+              // code change needed.
               return {
                 type:  "iframe",
                 src:   "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
@@ -2421,7 +2495,9 @@
             id: slugify(caption) || slugify(r["GroupTitle"]),
             title: caption,
             eyebrow: r["GroupTitle"] || "",
-            cover: cover,
+            // Compressed (~600px) card cover for fast strip loading; the
+            // fullscreen viewer still uses asset.src (original) so it stays sharp.
+            cover: compressDriveThumb(cover, 600),
             assets: assets
           };
         })
@@ -2492,12 +2568,25 @@
       });
     }
 
+    // Shrink the category pill's font so a long label stays on one line
+    // (matches homepage-stories-snippet.html). Paired with white-space:nowrap
+    // + ellipsis on .fdcp-story-ring as the safety net for extreme lengths.
+    function categoryFontSize(label) {
+      var len = String(label || "").trim().length;
+      if (len > 26) return "7px";
+      if (len > 21) return "8px";
+      if (len > 16) return "9px";
+      return "10px";
+    }
+
     function renderStoryCards() {
       var track = document.getElementById("fdcp-stories-track");
       if (!track) return;
 
       var html = STORIES.map(function (s, i) {
         var assetCount = (s.assets || []).length;
+        var ringLabel = s.eyebrow || "Story";
+        var ringFont  = categoryFontSize(ringLabel);
         return ''
           + '<button type="button" class="fdcp-story-card" data-story-index="' + i + '"'
           +   ' aria-label="Open story: ' + escapeAttr(s.title) + ' (' + assetCount + ' items)"'
@@ -2510,10 +2599,12 @@
           +     ' style="position:absolute;inset:0;pointer-events:none;'
           +            'background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);"></div>'
           +   '<span class="fdcp-story-ring"'
-          +     ' style="position:absolute;top:10px;left:10px;padding:4px 8px;border-radius:9999px;'
-          +            'background:rgba(255,255,255,0.92);color:#580076;font-size:10px;font-weight:700;'
-          +            'text-transform:uppercase;letter-spacing:0.06em;display:inline-flex;align-items:center;gap:4px;">'
-          +     escapeAttr(s.eyebrow || "Story")
+          +     ' style="position:absolute;top:10px;left:10px;right:10px;max-width:calc(100% - 20px);width:max-content;'
+          +            'padding:4px 8px;border-radius:9999px;'
+          +            'background:rgba(255,255,255,0.92);color:#580076;font-size:' + ringFont + ';font-weight:700;'
+          +            'text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:4px;'
+          +            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+          +     escapeAttr(ringLabel)
           +   '</span>'
           +   '<div class="fdcp-story-foot"'
           +     ' style="position:absolute;left:12px;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;pointer-events:none;">'
@@ -2832,6 +2923,7 @@
         startTimerAutoAdvance(PHOTO_AUTO_MS);
       }
     }
+
 
     //  AUTO-ADVANCE
     // Drives the current progress segment and steps to the next asset when the
@@ -3395,25 +3487,42 @@
     function blockHTMLForEvent(e) {
       // Each photo card carries inline scrim text via data-caption — used
       // when wirePhotoBlockControls / wirePhotoCards scrape items.
-      var cards = e.photos.map(function (p) {
+      var allPhotos = e.photos.slice();
+      // Prepend the event poster as the first photo if it exists and isn't
+      // already the first image in the photo list.
+      if (e.poster) {
+        var posterSrc = e.poster;                       // compressed thumbnail
+        var posterFull = fullResFromThumb(e.poster);    // high-res for lightbox
+        var alreadyFirst = allPhotos.length && (allPhotos[0].src === posterSrc || allPhotos[0].thumb === posterSrc || allPhotos[0].full === posterSrc);
+        if (!alreadyFirst) {
+          allPhotos.unshift({ src: posterSrc, thumb: posterSrc, full: posterFull, caption: e.title + " — Event Poster", alt: e.title + " — Event Poster" });
+        }
+      }
+      var cards = allPhotos.map(function (p) {
         var caption = p.caption || p.alt || "";
+        var thumbSrc = p.thumb || p.src || p.full || "";
+        var fullSrc  = p.full  || p.src || p.thumb || "";
         return ''
-          + '<div class="fdcp-photo-card" style="position:relative;border-radius:18px;overflow:hidden;aspect-ratio:1.55/1;background:#F5F2FF;cursor:pointer;">'
-          +   '<img src="' + escapeAttr(p.thumb || p.src || p.full || "") + '" alt="' + escapeAttr(caption) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">'
+          + '<div class="fdcp-photo-card" data-full="' + escapeAttr(fullSrc) + '" style="position:relative;border-radius:18px;overflow:hidden;aspect-ratio:1.55/1;background:#F5F2FF;cursor:pointer;">'
+          +   '<img src="' + escapeAttr(thumbSrc) + '" alt="' + escapeAttr(caption) + '" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">'
           +   '<div class="fdcp-photo-scrim" style="position:absolute;inset:auto 0 0 0;padding:12px 14px;background:linear-gradient(to top,rgba(0,0,0,0.78) 0%,rgba(0,0,0,0) 100%);color:#fff;font-size:12px;font-weight:600;line-height:1.3;opacity:0;transition:opacity 220ms ease;">'
           +     escapeAttr(caption)
           +   '</div>'
           + '</div>';
       }).join("");
 
+      // descHTML is pre-sanitized via sanitizeRichHTML() against the allowlist;
+      // descText is raw sheet text and must be escaped before innerHTML insertion.
       var desc = e.descHTML || escapeAttr(e.descText || "");
+      var descId = "fdcp-desc-" + escapeAttr(e.id);
 
       return ''
         + '<div class="fdcp-photos-block" data-event-id="' + escapeAttr(e.id) + '" style="margin-top:40px;padding-bottom:40px;">'
         +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:14px;">'
-        +     '<div class="fdcp-photos-info" style="flex:1 1 0;min-width:0;">'
+        +     '<div class="fdcp-photos-info" style="flex:1 1 auto;min-width:0;">'
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
-        +       '<p class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;max-width:600px;margin:0;">' + desc + '</p>'
+        +       '<p id="' + descId + '" class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;margin:0;max-width:900px;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + desc + '</p>'
+        +       '<button type="button" class="fdcp-read-more-btn" data-desc-id="' + descId + '" aria-expanded="false" style="background:none;border:none;padding:0;margin:6px 0 0;font-size:12px;font-weight:600;color:#E200A9;cursor:pointer;display:none;align-items:center;gap:4px;line-height:1.4;"><span class="fdcp-rm-label">Read more</span><svg class="fdcp-rm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;transition:transform 180ms ease;"><path d="m6 9 6 6 6-6"/></svg></button>'
         +     '</div>'
         +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:row;align-items:center;gap:12px;flex-shrink:0;margin-left:auto;">'
         +       '<button type="button" class="fdcp-view-all-btn" style="background-color:#580076;background-image:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;border:0;border-radius:9999px;padding:8px 28px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(88,0,118,0.20);">View all</button>'
@@ -3608,6 +3717,7 @@
       if (typeof applyBaseStyles === "function") applyBaseStyles();
       wirePhotoCards();
       wirePhotoBlockControls();
+      wireReadMoreButtons();
       reorderPhotosForMobile();
 
       renderPhotoPagination(totalPages, FILTER_STATE.page);
@@ -3641,13 +3751,28 @@
       if (host) {
         host.innerHTML = "";
         var img = document.createElement("img");
-        img.src = item.src;
         img.alt = item.caption || item.alt || "";
         img.className = "fdcp-lb-img";
         img.style.cssText =
           "max-width:100%;max-height:100%;width:auto;height:auto;" +
-          "object-fit:contain;display:block;";
+          "object-fit:contain;display:block;transition:filter 200ms ease;";
         host.appendChild(img);
+
+        var fullSrc = item.src;
+        var thumbSrc = item.thumb && item.thumb !== fullSrc ? item.thumb : "";
+        if (thumbSrc) {
+          // Show the already-cached compressed thumbnail instantly (slightly
+          // blurred), then swap to the full-res image once it has loaded so
+          // there is no blank flash and the high-quality version only loads here.
+          img.src = thumbSrc;
+          img.style.filter = "blur(8px)";
+          var hi = new Image();
+          hi.onload = function () { img.src = fullSrc; img.style.filter = "none"; };
+          hi.onerror = function () { img.style.filter = "none"; };
+          hi.src = fullSrc;
+        } else {
+          img.src = fullSrc;
+        }
       }
 
       var canPrev = PHOTO_LB.index > 0;
@@ -3737,7 +3862,10 @@
           var img   = card.querySelector("img");
           var scrim = card.querySelector(".fdcp-photo-scrim");
           return {
-            src: img ? img.src : "",
+            // Lightbox uses the full-res image; the card itself shows the
+            // compressed thumbnail. Fall back to the thumb if no data-full.
+            src: card.getAttribute("data-full") || (img ? img.src : ""),
+            thumb: img ? img.src : "",
             alt: img ? img.alt : "",
             caption: scrim ? scrim.textContent.trim() : (img ? img.alt : "")
           };
@@ -3771,6 +3899,69 @@
     // Per-block controls: prev/next scroll the carousel, View all opens the
     // photo-grid modal (thumbnails of every photo in that block). Clicking
     // a thumbnail inside the grid opens the FB-style fullscreen lightbox.
+    function wireReadMoreButtons() {
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-read-more-btn"), function (btn) {
+        if (btn._wired) return;
+        btn._wired = true;
+        var p = document.getElementById(btn.getAttribute("data-desc-id"));
+        if (!p) return;
+
+        // Toggle only the clamp-related properties; width/color/margin stay as
+        // applyBaseStyles + the container set them, so nothing fights back.
+        function clamp() {
+          p.style.display = "-webkit-box";
+          p.style.webkitLineClamp = "3";
+          p.style.lineClamp = "3";
+          p.style.webkitBoxOrient = "vertical";
+          p.style.overflow = "hidden";
+        }
+        function open() {
+          p.style.display = "block";
+          p.style.webkitLineClamp = "";
+          p.style.lineClamp = "";
+          p.style.webkitBoxOrient = "";
+          p.style.overflow = "visible";
+        }
+
+        var label = btn.querySelector(".fdcp-rm-label");
+        var icon  = btn.querySelector(".fdcp-rm-icon");
+        function setBtnState(expanded) {
+          if (label) label.textContent = expanded ? "Show less" : "Read more";
+          if (icon)  icon.style.transform = expanded ? "rotate(180deg)" : "rotate(0deg)";
+          btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        }
+
+        function checkOverflow() {
+          // Measure full height unclamped, then restore clamp
+          open();
+          var fullH = p.scrollHeight;
+          clamp();
+          var clampedH = p.clientHeight;
+          if (fullH > clampedH + 2) {
+            btn.style.display = "inline-flex";
+            setBtnState(false);
+          } else {
+            open();
+            btn.style.display = "none";
+          }
+        }
+
+        // 150ms lets the flex layout and font rendering fully settle
+        setTimeout(checkOverflow, 150);
+
+        btn.addEventListener("click", function () {
+          var expanded = btn.getAttribute("aria-expanded") === "true";
+          if (expanded) {
+            clamp();
+            setBtnState(false);
+          } else {
+            open();
+            setBtnState(true);
+          }
+        });
+      });
+    }
+
     function wirePhotoBlockControls() {
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-block"), function (block) {
         var grid = block.querySelector(".fdcp-photos-grid");
@@ -3877,7 +4068,9 @@
             var img   = card.querySelector("img");
             var scrim = card.querySelector(".fdcp-photo-scrim");
             return {
-              src: img ? img.src : "",
+              // src = full-res (lightbox), thumb = compressed (grid display).
+              src: card.getAttribute("data-full") || (img ? img.src : ""),
+              thumb: img ? img.src : "",
               alt: img ? img.alt : "",
               caption: scrim ? scrim.textContent.trim() : (img ? img.alt : "")
             };
@@ -3926,7 +4119,7 @@
           +          'cursor:pointer;padding:0;color:#fff;font-family:inherit;text-align:left;">'
           +   '<div class="fdcp-pg-thumb"'
           +     ' style="position:relative;width:100%;aspect-ratio:4/3;background:#000;overflow:hidden;">'
-          +     '<img src="' + escapeAttr(it.src) + '" alt="' + escapeAttr(it.alt || "") + '" loading="lazy"'
+          +     '<img src="' + escapeAttr(it.thumb || it.src) + '" alt="' + escapeAttr(it.alt || "") + '" loading="lazy" decoding="async"'
           +       ' style="width:100%;height:100%;object-fit:cover;display:block;">'
           +   '</div>'
           +   '<div class="fdcp-pg-caption"'
@@ -4144,6 +4337,7 @@
         var info       = block.querySelector(".fdcp-photos-info");
         var eventName  = block.querySelector(".fdcp-photos-event");
         var desc       = block.querySelector(".fdcp-photos-desc");
+        var readMoreBtn = block.querySelector(".fdcp-read-more-btn");
         var controls   = block.querySelector(".fdcp-photos-controls");
         var header     = block.querySelector(".fdcp-photos-header");
         var viewAllBtn = block.querySelector(".fdcp-view-all-btn");
@@ -4159,15 +4353,20 @@
             eventName.style.marginBottom = "4px";
             eventName.style.textAlign = "center";
           }
-          // Move description above the grid (right after event name)
+          // Move description + read-more button above the grid (right after event name)
           if (desc && desc.parentNode !== block) {
             block.insertBefore(desc, grid);
             desc.style.marginTop = "0";
-            desc.style.marginBottom = "16px";
+            desc.style.marginBottom = "4px";
             desc.style.maxWidth = "100%";
             desc.style.width = "100%";
             desc.style.textAlign = "center";
             desc.style.padding = "0 4px";
+          }
+          if (readMoreBtn && readMoreBtn.parentNode !== block) {
+            block.insertBefore(readMoreBtn, grid);
+            readMoreBtn.style.marginBottom = "12px";
+            readMoreBtn.style.display = readMoreBtn.getAttribute("aria-expanded") !== null ? readMoreBtn.style.display : "none";
           }
           // Hide the now-empty header so it leaves no gap
           if (header) header.style.display = "none";
@@ -4217,6 +4416,10 @@
             desc.style.width = "";
             desc.style.textAlign = "";
             desc.style.padding = "";
+          }
+          if (readMoreBtn && info && readMoreBtn.parentNode !== info) {
+            info.appendChild(readMoreBtn);
+            readMoreBtn.style.marginBottom = "";
           }
         }
       });
@@ -4330,14 +4533,15 @@
         }
       });
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photos-desc"), function (el) {
+        // Don't touch display/clamp here — wireReadMoreButtons owns the
+        // clamped/open state. Only set width constraints, and never override
+        // an explicit -webkit-box (clamped) display.
         if (photoStack) {
           el.style.maxWidth = "100%";
           el.style.width = "100%";
-          el.style.display = "block";
         } else {
-          el.style.maxWidth = "600px";
+          el.style.maxWidth = "";
           el.style.width = "";
-          el.style.display = "";
         }
       });
 
