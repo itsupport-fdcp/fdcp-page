@@ -203,9 +203,7 @@
       position: absolute !important;
       top: 10px !important;
       left: 10px !important;
-      right: 10px !important;
       max-width: calc(100% - 20px) !important;
-      width: max-content !important;
       padding: 4px 8px !important;
       border-radius: 9999px !important;
       background: rgba(255,255,255,0.92) !important;
@@ -214,12 +212,11 @@
       font-weight: 700 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.04em !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 4px !important;
+      display: inline-block !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
+      box-sizing: border-box !important;
     }
     /* Title + meta sit inside .fdcp-story-foot so they stack with a gap and
       grow upward as the title wraps — no overlap regardless of line count. */
@@ -2599,10 +2596,10 @@
           +     ' style="position:absolute;inset:0;pointer-events:none;'
           +            'background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);"></div>'
           +   '<span class="fdcp-story-ring"'
-          +     ' style="position:absolute;top:10px;left:10px;right:10px;max-width:calc(100% - 20px);width:max-content;'
-          +            'padding:4px 8px;border-radius:9999px;'
+          +     ' style="position:absolute;top:10px;left:10px;max-width:calc(100% - 20px);'
+          +            'padding:4px 8px;border-radius:9999px;box-sizing:border-box;'
           +            'background:rgba(255,255,255,0.92);color:#580076;font-size:' + ringFont + ';font-weight:700;'
-          +            'text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;gap:4px;'
+          +            'text-transform:uppercase;letter-spacing:0.04em;display:inline-block;'
           +            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
           +     escapeAttr(ringLabel)
           +   '</span>'
