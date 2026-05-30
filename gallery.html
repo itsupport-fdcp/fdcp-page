@@ -3571,6 +3571,17 @@
         track.addEventListener("transitionend", clear);
       }
 
+      // Animated step for non-drag triggers (touchpad wheel / arrow keys):
+      // briefly slide the track in the swipe direction, then re-render. The
+      // render resets transform to centered, completing the "slide-in" feel.
+      function animateStep(dir) {
+        if (!track) { stepVideo(dir); return; }
+        track.style.transition = "transform 140ms ease-out";
+        // content moves opposite the navigation direction (next = slide left)
+        track.style.transform = "translate3d(" + (dir > 0 ? -40 : 40) + "px,0,0)";
+        setTimeout(function () { stepVideo(dir); }, 140);
+      }
+
       carousel.addEventListener("pointerdown", function (e) {
         if (e.button != null && e.button !== 0) return; // left/touch only
         if (isArrow(e.target)) return;                  // let arrows click
@@ -3632,9 +3643,10 @@
         if (wheelResetTimer) clearTimeout(wheelResetTimer);
         wheelResetTimer = setTimeout(function () { wheelAccum = 0; }, 180);
         if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD) {
-          stepVideo(wheelAccum > 0 ? 1 : -1); // swipe left content -> next
+          var dir = wheelAccum > 0 ? 1 : -1; // swipe left content -> next
           wheelAccum = 0;
           wheelLock = true;
+          animateStep(dir);
           setTimeout(function () { wheelLock = false; }, 450);
         }
       }, { passive: false });
