@@ -1706,12 +1706,12 @@
             style="position:relative;width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;">
           <button type="button" id="fdcp-videos-prev" class="fdcp-videos-arrow is-left"
                   aria-label="Previous video"
-                  style="position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.35);border:0;color:#fff;width:48px;height:48px;border-radius:9999px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;left:11%;">
+                  style="position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:0;color:#fff;width:48px;height:48px;border-radius:9999px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;left:11%;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <button type="button" id="fdcp-videos-next" class="fdcp-videos-arrow is-right"
                   aria-label="Next video"
-                  style="position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.35);border:0;color:#fff;width:48px;height:48px;border-radius:9999px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;right:11%;">
+                  style="position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:0;color:#fff;width:48px;height:48px;border-radius:9999px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;right:11%;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
 
@@ -3632,22 +3632,29 @@
       // not pointer drags. Accumulate horizontal delta and step once a gesture
       // passes the threshold, then lock out until the gesture settles so one
       // swipe doesn't fire several steps.
-      var WHEEL_THRESHOLD = 60;
-      var wheelAccum = 0, wheelLock = false, wheelResetTimer = 0;
+      var WHEEL_THRESHOLD = 30;
+      var QUIET_MS = 120; // gap of no horizontal wheel events => fling ended, re-arm
+      var wheelAccum = 0, wheelArmed = true, wheelEndTimer = 0, lastDir = 0;
       carousel.addEventListener("wheel", function (e) {
         // Ignore mostly-vertical wheels so normal page scroll is unaffected.
         if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
         e.preventDefault(); // we're consuming this horizontal gesture
-        if (wheelLock) return;
+
+        var dir = e.deltaX > 0 ? 1 : -1;
+
+        // Re-arm when the fling goes quiet (so a fresh swipe always fires), and
+        // immediately if the scroll reverses direction (clearly a new gesture).
+        if (wheelEndTimer) clearTimeout(wheelEndTimer);
+        wheelEndTimer = setTimeout(function () { wheelArmed = true; wheelAccum = 0; }, QUIET_MS);
+        if (!wheelArmed && dir !== lastDir) { wheelArmed = true; wheelAccum = 0; }
+
+        if (!wheelArmed) return;
         wheelAccum += e.deltaX;
-        if (wheelResetTimer) clearTimeout(wheelResetTimer);
-        wheelResetTimer = setTimeout(function () { wheelAccum = 0; }, 180);
         if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD) {
-          var dir = wheelAccum > 0 ? 1 : -1; // swipe left content -> next
           wheelAccum = 0;
-          wheelLock = true;
+          wheelArmed = false;  // consume the rest of this fling
+          lastDir = dir;
           animateStep(dir);
-          setTimeout(function () { wheelLock = false; }, 450);
         }
       }, { passive: false });
 
