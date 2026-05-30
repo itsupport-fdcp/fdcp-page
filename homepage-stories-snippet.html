@@ -21,8 +21,8 @@
     // =====================================================================
     var CSS = [
       ".fdcp-home-stories-wrap{background:#F8F8F8;padding:48px 0 24px;}",
-      ".fdcp-home-stories-shell{max-width:1280px;margin:0 auto;padding:0 24px;}",
-      "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:none;-ms-overflow-style:none;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
+      ".fdcp-home-stories-shell{max-width:1280px;margin:0 auto;padding:0;}",
+      "#fdcp-home-stories-track{display:flex;gap:14px;justify-content:safe center;overflow-x:auto;padding:4px 24px 14px;scroll-padding:0 24px;scrollbar-width:none;-ms-overflow-style:none;cursor:grab;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;}",
       "#fdcp-home-stories-track.is-dragging{cursor:grabbing;}",
       "#fdcp-home-stories-track::-webkit-scrollbar{height:0;width:0;display:none;}",
       ".fdcp-home-story-card{flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;cursor:pointer;background:#1a1a1a;border:0;padding:0;text-align:left;color:#fff;transition:transform 220ms ease,box-shadow 220ms ease;box-shadow:0 4px 14px rgba(15,15,15,0.10);}",
@@ -98,6 +98,7 @@
       "  .fdcp-home-focus-mobilenav{display:none;}",
       "}",
       "@media (max-width:640px){",
+      "  #fdcp-home-stories-track{justify-content:flex-start;padding:4px 16px 14px;scroll-padding:0 16px;}",
       "  .fdcp-home-story-card,.fdcp-home-story-cta{flex:0 0 140px;height:240px;}",
       "  .fdcp-home-story-cta{padding:16px 12px;gap:8px;}",
       "  .fdcp-home-story-cta-icon{width:40px;height:40px;}",
@@ -441,10 +442,11 @@
         var n = (s.assets || []).length;
 
         // Cover: image thumbnail when available, else a muted native <video>
-        // first frame for S3 .mp4 stories with no image thumbnail.
+        // seeked 2s in (#t=2) for S3 .mp4 stories with no image thumbnail
+        // (2s avoids the common black fade-in first frame).
         var cover;
         if (s.coverVideo) {
-          cover = el("video", { className: "fdcp-home-story-cover", src: s.coverVideo + "#t=0.1", muted: "", playsinline: "", preload: "metadata" });
+          cover = el("video", { className: "fdcp-home-story-cover", src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata" });
           cover.muted = true;
         } else {
           cover = el("img", { className: "fdcp-home-story-cover", src: s.cover || "", alt: "", loading: "lazy" });
@@ -641,7 +643,7 @@
         if (s.coverVideo) {
           thumb = el("video", {
             className: "fdcp-home-focus-story-thumb",
-            src: s.coverVideo + "#t=0.1", muted: "", playsinline: "", preload: "metadata"
+            src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata"
           });
           thumb.muted = true;
         } else {

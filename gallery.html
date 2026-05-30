@@ -129,7 +129,9 @@
       display: flex !important;
       gap: 14px !important;
       overflow-x: auto !important;
-      padding: 4px 4px 14px !important;
+      padding: 4px 16px 14px !important;
+      scroll-padding: 0 16px !important;
+      margin: 0 -16px !important;
       scrollbar-width: thin !important;
       scrollbar-color: rgba(0, 0, 0, 0.18) transparent !important;
       cursor: grab !important;
@@ -843,6 +845,8 @@
       color: #6b7280 !important;
       max-width: 600px !important;
       margin: 0 !important;
+      text-align: justify !important;
+      text-justify: inter-word !important;
     }
     .fdcp-desc-clamped {
       display: -webkit-box !important;
@@ -1681,7 +1685,7 @@
           </button>
 
           <div id="fdcp-stories-track" role="list" aria-label="Event stories"
-              style="display:flex;gap:14px;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;scroll-behavior:smooth;">
+              style="display:flex;gap:14px;overflow-x:auto;padding:4px 16px 14px;scroll-padding:0 16px;margin:0 -16px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;scroll-behavior:smooth;">
             <!-- cards injected by JS -->
           </div>
         </div>
@@ -1727,6 +1731,8 @@
              style="font-size:12px;color:#6b7280;margin:0 0 10px;">—</p>
           <p class="fdcp-vd-text" id="fdcp-vd-text"
              style="font-size:14px;color:#374151;line-height:1.6;margin:0;"></p>
+          <button type="button" id="fdcp-vd-more"
+                  style="display:none;margin:8px auto 0;background:none;border:0;padding:0;cursor:pointer;font-size:13px;font-weight:700;color:#E200A9;">See more</button>
         </div>
 
         <div class="fdcp-view-all-wrap" style="margin-top:28px;display:flex;justify-content:center;width:100%;">
@@ -2593,10 +2599,11 @@
         var ringLabel = s.eyebrow || "Story";
         var ringFont  = categoryFontSize(ringLabel);
         // Cover: an image thumbnail when available, otherwise a muted native
-        // <video> seeked to its first frame (#t=0.1) for S3 .mp4 stories that
-        // have no image thumbnail. preload="metadata" keeps the strip light.
+        // <video> seeked 2s in (#t=2) for S3 .mp4 stories that have no image
+        // thumbnail (2s avoids the common black fade-in first frame).
+        // preload="metadata" keeps the strip light.
         var coverEl = s.coverVideo
-          ? '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=0.1" muted playsinline preload="metadata"'
+          ? '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata"'
             + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;"></video>'
           : '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
             + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">';
@@ -2821,7 +2828,7 @@
           +          'cursor:pointer;background:' + (active ? "rgba(255,255,255,0.14)" : "transparent") + ';'
           +          'border:0;color:#fff;width:100%;text-align:left;font-family:inherit;">'
           +   (s.coverVideo
-              ? '<video class="fdcp-focus-story-thumb" src="' + escapeAttr(s.coverVideo) + '#t=0.1" muted playsinline preload="metadata"'
+              ? '<video class="fdcp-focus-story-thumb" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata"'
                 + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
                 + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;"></video>'
               : '<img class="fdcp-focus-story-thumb" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
@@ -3207,6 +3214,12 @@
       var track = document.getElementById("fdcp-videos-track");
       if (!track) return;
 
+      // Reset any leftover drag offset/transition from a swipe so the rebuilt
+      // track is centered (rebuilding children does not clear the parent's
+      // inline transform).
+      track.style.transition = "";
+      track.style.transform = "";
+
       var arrowPrev = document.getElementById("fdcp-videos-prev");
       var arrowNext = document.getElementById("fdcp-videos-next");
       var viewAllWrap = document.querySelector(".fdcp-view-all-wrap");
@@ -3275,6 +3288,9 @@
       }
       html += '<div class="fdcp-video-card is-main" data-video-open="1" role="button" tabindex="0" aria-label="Open ' + escapeAttr(main.title) + ' in focus mode" style="' + mainCommon + ';cursor:pointer;">' +
                 videoEmbedHTMLForEvent(main) +
+                // Transparent overlay so drag/swipe is captured over the iframe
+                // (iframes swallow pointer events). A clean tap still opens focus.
+                '<div class="fdcp-video-dragveil" style="position:absolute;inset:0;z-index:2;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;"></div>' +
               '</div>';
       if (showSides) {
         html += '<div class="fdcp-video-card is-side" data-video-step="1" aria-label="Show next video" role="button" tabindex="0" style="' + sideCommon + '">' +
@@ -3447,11 +3463,56 @@
           } else {
             text.textContent = (ev.descText || "").trim();
           }
-          text.style.cssText = "font-size:14px;color:#374151;line-height:1.6;margin:0;";
+          applyVideoDescClamp(text);
         }
         wrap.classList.remove("is-fading");
         wrap.style.opacity = "1";
       }, 140);
+    }
+
+    // Clamp the video description to 4 lines and reveal a "See more" toggle only
+    // when the text actually overflows. Re-evaluated on every video swap.
+    var VD_CLAMP_LINES = 4;
+    function videoDescBaseStyle(clamped) {
+      var s = "font-size:14px;color:#374151;line-height:1.6;margin:0;text-align:justify;text-justify:inter-word;";
+      if (clamped) {
+        s += "display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:" +
+             VD_CLAMP_LINES + ";overflow:hidden;";
+      }
+      return s;
+    }
+    function applyVideoDescClamp(text) {
+      var btn = document.getElementById("fdcp-vd-more");
+      // Start clamped so we can measure overflow against the clamped height.
+      text.style.cssText = videoDescBaseStyle(true);
+      if (!btn) return;
+      // scrollHeight > clientHeight means content is taller than the clamp.
+      var overflows = text.scrollHeight - text.clientHeight > 2;
+      if (overflows) {
+        btn.style.display = "block";
+        btn.textContent = "See more";
+        btn.dataset.expanded = "0";
+      } else {
+        btn.style.display = "none";
+        text.style.cssText = videoDescBaseStyle(false);
+      }
+    }
+    function wireVideoDescMore() {
+      var btn = document.getElementById("fdcp-vd-more");
+      var text = document.getElementById("fdcp-vd-text");
+      if (!btn || !text) return;
+      btn.addEventListener("click", function () {
+        var expanded = btn.dataset.expanded === "1";
+        if (expanded) {
+          text.style.cssText = videoDescBaseStyle(true);
+          btn.textContent = "See more";
+          btn.dataset.expanded = "0";
+        } else {
+          text.style.cssText = videoDescBaseStyle(false);
+          btn.textContent = "See less";
+          btn.dataset.expanded = "1";
+        }
+      });
     }
 
     function stepVideo(delta) {
@@ -3466,6 +3527,123 @@
       var next = document.getElementById("fdcp-videos-next");
       if (prev) prev.addEventListener("click", function () { stepVideo(-1); });
       if (next) next.addEventListener("click", function () { stepVideo(1); });
+      wireVideosSwipe();
+    }
+
+    // Drag/swipe the featured-videos carousel to go prev/next on both web
+    // (mouse) and mobile (touch). Uses Pointer Events so one code path covers
+    // both. A horizontal drag past SWIPE_THRESHOLD steps one video; we suppress
+    // the trailing click so dragging never opens the focus modal by accident.
+    function wireVideosSwipe() {
+      var carousel = document.querySelector(".fdcp-videos-carousel");
+      if (!carousel || carousel.dataset.swipeWired === "1") return;
+      carousel.dataset.swipeWired = "1";
+
+      var SWIPE_THRESHOLD = 45; // px of horizontal travel to trigger a step
+      var FOLLOW = 0.35;        // how much the track follows the finger (rubber-band)
+      var startX = 0, startY = 0, dragging = false, moved = false, pid = null;
+      var curDX = 0, rafPending = false;
+
+      var track = carousel.querySelector("#fdcp-videos-track");
+
+      function isArrow(t) {
+        return t && t.closest && t.closest(".fdcp-videos-arrow");
+      }
+
+      // Apply the live drag offset via transform only (GPU-composited, no
+      // layout/paint). Batched through rAF so multiple pointermove events in a
+      // frame collapse into a single style write.
+      function paint() {
+        rafPending = false;
+        if (track) track.style.transform = "translate3d(" + (curDX * FOLLOW) + "px,0,0)";
+      }
+      function requestPaint() {
+        if (!rafPending) { rafPending = true; requestAnimationFrame(paint); }
+      }
+      function settle() {
+        if (!track) return;
+        track.style.transition = "transform 260ms cubic-bezier(.22,.61,.36,1)";
+        track.style.transform = "translate3d(0,0,0)";
+        var clear = function () {
+          track.style.transition = "";
+          track.removeEventListener("transitionend", clear);
+        };
+        track.addEventListener("transitionend", clear);
+      }
+
+      carousel.addEventListener("pointerdown", function (e) {
+        if (e.button != null && e.button !== 0) return; // left/touch only
+        if (isArrow(e.target)) return;                  // let arrows click
+        dragging = true; moved = false; pid = e.pointerId;
+        startX = e.clientX; startY = e.clientY; curDX = 0;
+        if (track) track.style.transition = "none"; // follow finger instantly
+        try { carousel.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+
+      carousel.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        curDX = e.clientX - startX;
+        if (Math.abs(curDX) > 8) {
+          moved = true;
+          if (window.getSelection) { var s = window.getSelection(); if (s && s.removeAllRanges) s.removeAllRanges(); }
+        }
+        requestPaint();
+      });
+
+      function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        // only treat as a swipe if mostly horizontal
+        if (Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+          stepVideo(dx < 0 ? 1 : -1); // drag left -> next, drag right -> prev
+          // stepVideo re-renders the track, which resets transform to none.
+        } else {
+          settle(); // spring back to center
+        }
+        curDX = 0;
+        try { if (pid != null) carousel.releasePointerCapture(pid); } catch (err) {}
+        pid = null;
+      }
+
+      carousel.addEventListener("pointerup", endDrag);
+      carousel.addEventListener("pointercancel", function () {
+        dragging = false; curDX = 0; pid = null; settle();
+      });
+
+      // Block the click that fires after a drag so it doesn't open the modal.
+      carousel.addEventListener("click", function (e) {
+        if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+      }, true);
+
+      // Touchpad horizontal swipe (two-finger) fires wheel events with deltaX,
+      // not pointer drags. Accumulate horizontal delta and step once a gesture
+      // passes the threshold, then lock out until the gesture settles so one
+      // swipe doesn't fire several steps.
+      var WHEEL_THRESHOLD = 60;
+      var wheelAccum = 0, wheelLock = false, wheelResetTimer = 0;
+      carousel.addEventListener("wheel", function (e) {
+        // Ignore mostly-vertical wheels so normal page scroll is unaffected.
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        e.preventDefault(); // we're consuming this horizontal gesture
+        if (wheelLock) return;
+        wheelAccum += e.deltaX;
+        if (wheelResetTimer) clearTimeout(wheelResetTimer);
+        wheelResetTimer = setTimeout(function () { wheelAccum = 0; }, 180);
+        if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD) {
+          stepVideo(wheelAccum > 0 ? 1 : -1); // swipe left content -> next
+          wheelAccum = 0;
+          wheelLock = true;
+          setTimeout(function () { wheelLock = false; }, 450);
+        }
+      }, { passive: false });
+
+      carousel.style.touchAction = "pan-y";
+      carousel.style.cursor = "grab";
+      // Prevent text/element selection (blue highlight) while dragging the iframe.
+      carousel.style.webkitUserSelect = "none";
+      carousel.style.userSelect = "none";
     }
 
     //  PHOTO SEARCH (live) 
@@ -3538,7 +3716,7 @@
         +   '<div class="fdcp-photos-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:14px;">'
         +     '<div class="fdcp-photos-info" style="flex:1 1 auto;min-width:0;">'
         +       '<h3 class="fdcp-photos-event" style="font-size:22px;font-weight:600;color:#1f2937;margin:4px 0 6px;">' + escapeAttr(e.title) + '</h3>'
-        +       '<p id="' + descId + '" class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;margin:0;max-width:900px;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + desc + '</p>'
+        +       '<p id="' + descId + '" class="fdcp-photos-desc" style="font-size:13px;line-height:1.6;color:#6b7280;margin:0;max-width:900px;text-align:justify;text-justify:inter-word;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + desc + '</p>'
         +       '<button type="button" class="fdcp-read-more-btn" data-desc-id="' + descId + '" aria-expanded="false" style="background:none;border:none;padding:0;margin:6px 0 0;font-size:12px;font-weight:600;color:#E200A9;cursor:pointer;display:none;align-items:center;gap:4px;line-height:1.4;"><span class="fdcp-rm-label">Read more</span><svg class="fdcp-rm-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;transition:transform 180ms ease;"><path d="m6 9 6 6 6-6"/></svg></button>'
         +     '</div>'
         +     '<div class="fdcp-photos-controls" style="display:flex;flex-direction:row;align-items:center;gap:12px;flex-shrink:0;margin-left:auto;">'
@@ -4873,6 +5051,7 @@
       // below — initial render happens synchronously from cache/mock, then
       // again if the live fetch returns different data.
       wireVideosControls();
+      wireVideoDescMore();
       wirePhotoSearch();
       wirePhotoLightboxControls();
       wirePhotoGridControls();
