@@ -177,7 +177,6 @@
     }
     .fdcp-story-card:hover {
       transform: translateY(-4px) !important;
-      box-shadow: 0 18px 38px rgba(88, 0, 118, 0.28) !important;
     }
     .fdcp-story-card:focus-visible {
       outline: 3px solid #E200A9 !important;
@@ -2484,10 +2483,18 @@
           }
           var assets = urls.map(toAsset);
           var cover = "";
+          var coverVideo = "";   // S3/native video used as the card cover (first frame)
           for (var i = 0; i < assets.length; i++) {
             if (assets[i].thumb) { cover = assets[i].thumb; break; }
           }
-          if (!cover && assets[0]) cover = assets[0].thumb || assets[0].src || "";
+          // No image thumbnail anywhere (e.g. story is a single S3 .mp4).
+          // Fall back to the first native video so the card can show its first
+          // frame as the cover instead of a broken <img>.
+          if (!cover) {
+            for (var j = 0; j < assets.length; j++) {
+              if (assets[j].type === "video" && assets[j].src) { coverVideo = assets[j].src; break; }
+            }
+          }
           return {
             id: slugify(caption) || slugify(r["GroupTitle"]),
             title: caption,
@@ -2495,6 +2502,7 @@
             // Compressed (~600px) card cover for fast strip loading; the
             // fullscreen viewer still uses asset.src (original) so it stays sharp.
             cover: compressDriveThumb(cover, 600),
+            coverVideo: coverVideo,
             assets: assets
           };
         })
@@ -2584,14 +2592,21 @@
         var assetCount = (s.assets || []).length;
         var ringLabel = s.eyebrow || "Story";
         var ringFont  = categoryFontSize(ringLabel);
+        // Cover: an image thumbnail when available, otherwise a muted native
+        // <video> seeked to its first frame (#t=0.1) for S3 .mp4 stories that
+        // have no image thumbnail. preload="metadata" keeps the strip light.
+        var coverEl = s.coverVideo
+          ? '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=0.1" muted playsinline preload="metadata"'
+            + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;"></video>'
+          : '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
+            + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">';
         return ''
           + '<button type="button" class="fdcp-story-card" data-story-index="' + i + '"'
           +   ' aria-label="Open story: ' + escapeAttr(s.title) + ' (' + assetCount + ' items)"'
           +   ' style="flex:0 0 160px;height:280px;border-radius:18px;position:relative;overflow:hidden;'
           +          'cursor:pointer;background:#1a1a1a;border:0;padding:0;'
           +          'text-align:left;color:#fff;box-shadow:0 4px 14px rgba(15,15,15,0.10);">'
-          +   '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
-          +     ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">'
+          +   coverEl
           +   '<div class="fdcp-story-scrim"'
           +     ' style="position:absolute;inset:0;pointer-events:none;'
           +            'background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.10) 50%,rgba(0,0,0,0.40) 100%);"></div>'
@@ -2631,6 +2646,7 @@
 
       enableDragScroll(track);
       setupStoriesArrows(track);
+      if (typeof wireHoverAnimations === "function") wireHoverAnimations();
     }
 
     // Left/right scroll controls for the stories strip. Mirrors the Featured
@@ -2804,9 +2820,13 @@
           +   ' style="display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;'
           +          'cursor:pointer;background:' + (active ? "rgba(255,255,255,0.14)" : "transparent") + ';'
           +          'border:0;color:#fff;width:100%;text-align:left;font-family:inherit;">'
-          +   '<img class="fdcp-focus-story-thumb" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
-          +     ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
-          +            'background:#1a1a1a;border:2px solid ' + ring + ';display:block;">'
+          +   (s.coverVideo
+              ? '<video class="fdcp-focus-story-thumb" src="' + escapeAttr(s.coverVideo) + '#t=0.1" muted playsinline preload="metadata"'
+                + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
+                + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;"></video>'
+              : '<img class="fdcp-focus-story-thumb" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
+                + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
+                + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;">')
           +   '<span class="fdcp-focus-story-info" style="min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;">'
           +     '<span class="fdcp-focus-story-name"'
           +       ' style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
@@ -4456,6 +4476,96 @@
       document.head.appendChild(s);
     }
 
+    // Hover micro-animations wired in JS so they survive Drupal stripping the
+    // <style> block (inline styles can't carry :hover). Each binder stores the
+    // resting transform/shadow and swaps to the hover state on enter/leave.
+    // Idempotent via the _fdcpHover flag.
+    function bindHoverLift(el, opts) {
+      if (!el || el._fdcpHover) return;
+      el._fdcpHover = true;
+      opts = opts || {};
+      var lift   = opts.lift   || "translateY(-3px)";
+      var shadow = opts.shadow || "0 14px 30px rgba(88,0,118,0.18)";
+      // Ensure a transition is present even if the inline style omitted it.
+      if (!/transition/.test(el.style.cssText)) {
+        el.style.transition = "transform 200ms ease, box-shadow 200ms ease";
+      }
+      el.addEventListener("mouseenter", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.transform = lift;
+        if (shadow) el.style.boxShadow = shadow;
+      });
+      el.addEventListener("mouseleave", function () {
+        el.style.transform = "";
+        if (shadow) el.style.boxShadow = "";
+      });
+    }
+
+    // Zoom the inner <img> of a card on hover (cover/photo images). Separate
+    // from the lift so the two can compose on the same card.
+    function bindImageZoom(card) {
+      if (!card || card._fdcpZoom) return;
+      // Cover may be an <img> (photo/thumbnail) or a <video> (S3 first-frame).
+      var media = card.querySelector("img, video.fdcp-story-cover");
+      if (!media) return;
+      card._fdcpZoom = true;
+      media.style.transition = "transform 600ms cubic-bezier(.2,.7,.2,1)";
+      card.addEventListener("mouseenter", function () { media.style.transform = "scale(1.06)"; });
+      card.addEventListener("mouseleave", function () { media.style.transform = ""; });
+    }
+
+    // Hover feedback for elements that can't take a transform lift (they're
+    // already transform-positioned, e.g. translateY(-50%) centered arrows).
+    // A subtle scale via a CSS variable would re-trigger the same issue, so we
+    // animate opacity only — leaving the element's positioning transform alone.
+    function bindHoverOpacity(el) {
+      if (!el || el._fdcpHoverOp) return;
+      el._fdcpHoverOp = true;
+      if (!/transition/.test(el.style.cssText)) {
+        el.style.transition = "opacity 180ms ease, background 180ms ease";
+      }
+      el.addEventListener("mouseenter", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.opacity = "0.82";
+      });
+      el.addEventListener("mouseleave", function () {
+        el.style.opacity = "";
+      });
+    }
+
+    // Wire hover animations across every interactive element on the page.
+    // Re-run after each render; the per-element flags make it a no-op on
+    // elements already bound.
+    function wireHoverAnimations() {
+      // Photo gallery cards — lift + image zoom
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photo-card"), function (el) {
+        bindHoverLift(el, { lift: "translateY(-3px)", shadow: "0 14px 30px rgba(88,0,118,0.18)" });
+        bindImageZoom(el);
+      });
+      // Story cards — lift + cover zoom (shadow removed per design)
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-story-card"), function (el) {
+        bindHoverLift(el, { lift: "translateY(-4px)", shadow: "" });
+        bindImageZoom(el);
+      });
+      // Pill / CTA buttons — subtle lift + shadow
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-view-all-btn"), function (el) {
+        bindHoverLift(el, { lift: "translateY(-2px)", shadow: "0 10px 24px rgba(88,0,118,0.32)" });
+      });
+      // Circular per-block photo arrows — gentle lift (these are in normal
+      // flow, so a translateY lift is safe).
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-arrow-circle"), function (el) {
+        bindHoverLift(el, { lift: "translateY(-1px)", shadow: "" });
+      });
+      // Absolutely-centered arrows (stories strip + video carousel) are
+      // positioned with transform:translateY(-50%); a hover lift that rewrites
+      // transform would wipe that centering and make them jump. They already
+      // have a CSS background-brighten hover, so use opacity for the micro-feel
+      // instead of transform.
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-stories-arrow, .fdcp-videos-arrow"), function (el) {
+        bindHoverOpacity(el);
+      });
+    }
+
     // Drupal block-context filters can strip the <style> block entirely.
     // Re-assert the layout-critical rules on every host element so the page
     // still renders correctly (gutters, grids, controls) when CSS is gone.
@@ -4481,7 +4591,8 @@
       Array.prototype.forEach.call(document.querySelectorAll(".fdcp-photo-card"), function (el) {
         el.style.cssText =
           "position:relative;flex:0 0 " + cardW + ";aspect-ratio:1.55/1;" +
-          "border-radius:18px;overflow:hidden;background:#F5F2FF;cursor:pointer;";
+          "border-radius:18px;overflow:hidden;background:#F5F2FF;cursor:pointer;" +
+          "transition:transform 200ms ease,box-shadow 200ms ease;";
       });
 
       // Photos header — hidden on mobile (elements are reordered by reorderPhotosForMobile),
@@ -4744,6 +4855,11 @@
         vCarousel.style.cssText =
           "position:relative;width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;";
       }
+
+      // Re-bind hover micro-animations — applyBaseStyles rewrites several cards'
+      // inline styles above, which clears any prior transform; the binders are
+      // idempotent so already-wired elements are skipped.
+      wireHoverAnimations();
     }
 
     function init() {
