@@ -156,7 +156,20 @@
       background: rgba(0, 0, 0, 0.32) !important;
     }
 
-    .fdcp-stories-arrow:hover:not(:disabled) { background: rgba(0, 0, 0, 0.65) !important; }
+    .fdcp-stories-arrow {
+      transition: background 180ms ease, opacity 180ms ease, transform 180ms ease !important;
+    }
+    .fdcp-stories-arrow:hover:not(:disabled) {
+      background-color: #CC8500 !important;
+      background-image: linear-gradient(135deg, #CC8500 0%, #FFCC00 100%) !important;
+      transform: translateY(-50%) scale(1.08) !important;
+      box-shadow: 0 6px 18px rgba(204, 133, 0, 0.45) !important;
+    }
+    /* Press feedback: dim on click, then ease back to full when released. */
+    .fdcp-stories-arrow:active:not(:disabled) {
+      opacity: 0.55 !important;
+      transform: translateY(-50%) scale(0.94) !important;
+    }
     .fdcp-stories-arrow:disabled { opacity: 0.3 !important; cursor: not-allowed !important; }
     @media (max-width: 768px) {
       .fdcp-stories-arrow { display: none !important; }
@@ -1166,8 +1179,11 @@
       z-index: 2147483647 !important;
       background: rgba(0,0,0,0.96) !important;
       display: none !important;
-      align-items: center !important;
+      /* flex-start + overflow so a tall stage (big frame + long description)
+         scrolls instead of clipping the title off the top of the viewport. */
+      align-items: flex-start !important;
       justify-content: center !important;
+      overflow-y: auto !important;
       padding: 24px !important;
       box-sizing: border-box !important;
     }
@@ -1176,6 +1192,7 @@
       position: relative !important;
       width: 100% !important;
       max-width: 1200px !important;
+      margin: auto !important;   /* vertically centers when it fits, scrolls when it doesn't */
       display: flex !important;
       flex-direction: column !important;
       gap: 12px !important;
@@ -1263,12 +1280,26 @@
     .fdcp-vf-arrow.prev { left: 24px !important; }
     .fdcp-vf-arrow.next { right: 24px !important; }
 
+    /* Video description inside the focus modal — capped measure, scrolls when expanded */
+    .fdcp-vf-desc {
+      width: 100% !important;
+      max-width: 760px !important;
+      margin: 0 auto !important;
+      padding: 2px 4px 0 !important;
+      box-sizing: border-box !important;
+    }
+    .fdcp-vf-desc-text a { color: #FFD4F3 !important; text-decoration: underline !important; }
+    .fdcp-vf-desc-more:hover { opacity: 0.8 !important; }
+
     @media (max-width: 768px) {
       #fdcp-video-focus { padding: 12px !important; }
       .fdcp-vf-arrow { width: 40px !important; height: 40px !important; }
       .fdcp-vf-arrow.prev { left: 6px !important; }
       .fdcp-vf-arrow.next { right: 6px !important; }
       .fdcp-vf-title { font-size: 14px !important; }
+      .fdcp-vf-frame { max-height: 42vh !important; }
+      .fdcp-vf-desc { max-width: 100% !important; }
+      .fdcp-vf-desc-text { font-size: 13px !important; }
     }
 
     /*  VIDEO GRID MODAL (thumbnails of every video)  */
@@ -1675,17 +1706,17 @@
         <div class="fdcp-stories-carousel" style="position:relative;width:100%;">
           <button type="button" id="fdcp-stories-prev" class="fdcp-stories-arrow is-left"
                   aria-label="Scroll stories left"
-                  style="position:absolute;top:50%;left:-8px;transform:translateY(-50%);background:rgba(0,0,0,0.45);border:0;color:#fff;width:44px;height:44px;border-radius:9999px;cursor:pointer;z-index:10;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+                  style="position:absolute;top:50%;left:-8px;transform:translateY(-50%);background:rgba(0,0,0,0.7);border:0;color:#fff;width:44px;height:44px;border-radius:9999px;cursor:pointer;z-index:10;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <button type="button" id="fdcp-stories-next" class="fdcp-stories-arrow is-right"
                   aria-label="Scroll stories right"
-                  style="position:absolute;top:50%;right:-8px;transform:translateY(-50%);background:rgba(0,0,0,0.45);border:0;color:#fff;width:44px;height:44px;border-radius:9999px;cursor:pointer;z-index:10;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+                  style="position:absolute;top:50%;right:-8px;transform:translateY(-50%);background:rgba(0,0,0,0.7);border:0;color:#fff;width:44px;height:44px;border-radius:9999px;cursor:pointer;z-index:10;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
 
           <div id="fdcp-stories-track" role="list" aria-label="Event stories"
-              style="display:flex;gap:14px;overflow-x:auto;padding:4px 16px 14px;scroll-padding:0 16px;margin:0 -16px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;scroll-behavior:smooth;">
+              style="display:flex;gap:14px;overflow-x:auto;padding:4px 16px 14px;scroll-padding:0 16px;margin:0 -16px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.18) transparent;">
             <!-- cards injected by JS -->
           </div>
         </div>
@@ -1892,7 +1923,7 @@
 
   <!--  VIDEO FOCUS MODAL (YouTube fullscreen + prev/next between videos)  -->
   <div id="fdcp-video-focus" role="dialog" aria-modal="true" aria-labelledby="fdcp-vf-title"
-      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+      style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px;box-sizing:border-box;">
 
     <button type="button" class="fdcp-vf-arrow prev" id="fdcp-vf-prev" aria-label="Previous video"
             style="position:absolute;top:50%;left:24px;transform:translateY(-50%);width:52px;height:52px;border-radius:9999px;background:rgba(255,255,255,0.14);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;">
@@ -1904,7 +1935,7 @@
     </button>
 
     <div class="fdcp-vf-stage"
-        style="position:relative;width:100%;max-width:1200px;display:flex;flex-direction:column;gap:12px;">
+        style="position:relative;width:100%;max-width:1200px;margin:auto;display:flex;flex-direction:column;gap:12px;">
       <div class="fdcp-vf-header"
           style="display:flex;align-items:center;justify-content:space-between;gap:12px;color:#fff;padding:0 4px;">
         <div class="fdcp-vf-titlewrap" style="min-width:0;display:flex;flex-direction:column;gap:2px;">
@@ -1919,7 +1950,18 @@
         </button>
       </div>
       <div class="fdcp-vf-frame" id="fdcp-vf-frame"
-          style="position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.55);"></div>
+          style="position:relative;width:100%;aspect-ratio:16/9;max-height:62vh;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.55);"></div>
+
+      <!-- Video description — light theme, readable measure, clamped w/ See more -->
+      <div class="fdcp-vf-desc" id="fdcp-vf-desc"
+          style="width:100%;max-width:760px;margin:0 auto;padding:2px 4px 0;box-sizing:border-box;">
+        <p class="fdcp-vf-desc-date" id="fdcp-vf-desc-date"
+            style="margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:rgba(255,255,255,0.55);"></p>
+        <div class="fdcp-vf-desc-text" id="fdcp-vf-desc-text"
+            style="margin:0;color:rgba(255,255,255,0.82);font-size:14px;line-height:1.6;text-align:left;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden;"></div>
+        <button type="button" class="fdcp-vf-desc-more" id="fdcp-vf-desc-more"
+            style="display:none;margin:8px 0 0;background:none;border:0;padding:0;cursor:pointer;font-size:13px;font-weight:700;color:#E200A9;font-family:inherit;">See more</button>
+      </div>
     </div>
   </div>
 
@@ -3182,20 +3224,29 @@
 
     // Build the player markup for Featured Videos. These wait for user play;
     // FDCP Stories handle their own autoplay in renderMedia().
-    function videoEmbedHTMLForEvent(e) {
+    // `autoplay` is passed true when the player opens in the focus modal — the
+    // user click that opened it satisfies the browser autoplay-with-sound policy.
+    // The inline carousel card passes no flag so it stays a quiet preview.
+    function videoEmbedHTMLForEvent(e, autoplay) {
       if (!e || !e.video) return "";
       if (e.video.kind === "iframe") {
         var src = e.video.src;
+        var params = [];
         if (/youtube\.com\/embed\//.test(src)) {
-          src += (src.indexOf("?") >= 0 ? "&" : "?") + "rel=0&modestbranding=1";
+          params.push("rel=0", "modestbranding=1");
+          if (autoplay) params.push("autoplay=1", "playsinline=1");
+        } else if (autoplay) {
+          // Vimeo, Drive /preview, and other embeds all read ?autoplay=1.
+          params.push("autoplay=1");
         }
+        if (params.length) src += (src.indexOf("?") >= 0 ? "&" : "?") + params.join("&");
         return '<iframe src="' + escapeAttr(src) + '" title="' + escapeAttr(e.title || "") + '"' +
-          ' allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen' +
+          ' allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen' +
           ' style="position:absolute;inset:0;width:100%;height:100%;border:0;display:block;"></iframe>';
       }
       if (e.video.kind === "file") {
         var poster = e.poster ? ' poster="' + escapeAttr(e.poster) + '"' : "";
-        return '<video controls playsinline' + poster +
+        return '<video controls playsinline' + (autoplay ? " autoplay" : "") + poster +
           ' src="' + escapeAttr(e.video.src) + '"' +
           ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#000;"></video>';
       }
@@ -3332,11 +3383,64 @@
 
       if (titleEl)   titleEl.textContent = v.title;
       if (counterEl) counterEl.textContent = (VIDEO_INDEX + 1) + " of " + FEATURED_VIDEOS.length;
-      if (frame) frame.innerHTML = videoEmbedHTMLForEvent(v);
+      // autoplay = true: the player opens already playing, not just visible.
+      if (frame) frame.innerHTML = videoEmbedHTMLForEvent(v, true);
+
+      // Description panel — date + text, clamped with a See more toggle. Hidden
+      // entirely when the event has neither, so the modal stays clean.
+      var descWrap = document.getElementById("fdcp-vf-desc");
+      var descDate = document.getElementById("fdcp-vf-desc-date");
+      var descText = document.getElementById("fdcp-vf-desc-text");
+      var descHTML = (v.descHTML || "").trim();
+      var descPlain = (v.descText || "").trim();
+      var hasDesc = !!(descHTML || descPlain);
+      var dateStr = v.date
+        ? v.date.toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })
+        : "";
+      if (descWrap) descWrap.style.display = (hasDesc || dateStr) ? "block" : "none";
+      if (descDate) {
+        descDate.textContent = dateStr;
+        descDate.style.display = dateStr ? "block" : "none";
+      }
+      if (descText) {
+        if (descHTML) descText.innerHTML = descHTML;
+        else descText.textContent = descPlain;
+        applyVfDescClamp();
+      }
 
       var n = FEATURED_VIDEOS.length;
       if (prev) { prev.disabled = n <= 1; prev.style.opacity = prev.disabled ? "0.3" : "1"; }
       if (next) { next.disabled = n <= 1; next.style.opacity = next.disabled ? "0.3" : "1"; }
+    }
+
+    // Modal description clamp: collapsed = 3 lines; expanded scrolls inside a
+    // capped height so the modal never grows past the viewport. Light theme.
+    var VF_DESC_LINES = 3;
+    function vfDescBaseStyle(clamped) {
+      var s = "margin:0;color:rgba(255,255,255,0.82);font-size:14px;line-height:1.6;text-align:left;";
+      if (clamped) {
+        s += "display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:" +
+             VF_DESC_LINES + ";line-clamp:" + VF_DESC_LINES + ";overflow:hidden;";
+      } else {
+        s += "display:block;max-height:26vh;overflow-y:auto;" +
+             "scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.3) transparent;";
+      }
+      return s;
+    }
+    function applyVfDescClamp() {
+      var text = document.getElementById("fdcp-vf-desc-text");
+      var btn  = document.getElementById("fdcp-vf-desc-more");
+      if (!text) return;
+      text.style.cssText = vfDescBaseStyle(true);   // start collapsed
+      if (!btn) return;
+      // scrollHeight > clientHeight means the text overflows the 3-line clamp.
+      if (text.scrollHeight - text.clientHeight > 2) {
+        btn.style.display = "inline-block";
+        btn.textContent = "See more";
+        btn.dataset.expanded = "0";
+      } else {
+        btn.style.display = "none";
+      }
     }
 
     function openVideoFocus(idx) {
@@ -3409,8 +3513,69 @@
       if (close) close.addEventListener("click", closeVideoFocus);
       if (prev)  prev.addEventListener("click", function () { stepVideoFocus(-1); });
       if (next)  next.addEventListener("click", function () { stepVideoFocus(1); });
+      // Match the stories arrows: purple-on-hover + press feedback, wired in JS
+      // so it survives Drupal stripping the <style> block.
+      if (prev) bindVideoFocusArrowHover(prev);
+      if (next) bindVideoFocusArrowHover(next);
+
+      // Description See more / See less toggle (wired once).
+      var descMore = document.getElementById("fdcp-vf-desc-more");
+      if (descMore && !descMore._fdcpWired) {
+        descMore._fdcpWired = true;
+        descMore.addEventListener("click", function () {
+          var text = document.getElementById("fdcp-vf-desc-text");
+          if (!text) return;
+          var expanded = descMore.dataset.expanded === "1";
+          if (expanded) {
+            text.style.cssText = vfDescBaseStyle(true);
+            descMore.textContent = "See more";
+            descMore.dataset.expanded = "0";
+          } else {
+            text.style.cssText = vfDescBaseStyle(false);
+            descMore.textContent = "See less";
+            descMore.dataset.expanded = "1";
+          }
+        });
+      }
       if (modal) modal.addEventListener("click", function (e) {
         if (e.target === modal) closeVideoFocus();
+      });
+    }
+
+    // Purple-on-hover + press feedback for the video focus modal's prev/next
+    // arrows — mirrors bindStoriesArrowHover. Respects the disabled state that
+    // renderVideoFocus sets when there's only one video.
+    function bindVideoFocusArrowHover(el, restBg) {
+      if (!el || el._fdcpVfArrowHover) return;
+      el._fdcpVfArrowHover = true;
+      var REST_BG = restBg || "rgba(255,255,255,0.14)";
+      var BASE_T = "translateY(-50%)";
+      el.style.transition =
+        "background 180ms ease, opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease";
+      function rest() {
+        el.style.backgroundImage = "none";
+        el.style.backgroundColor = REST_BG;
+        el.style.transform = BASE_T;
+        el.style.boxShadow = "none";
+        el.style.opacity = el.hasAttribute("disabled") ? "0.3" : "";
+      }
+      el.addEventListener("mouseenter", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.backgroundColor = "#CC8500";
+        el.style.backgroundImage = "linear-gradient(135deg,#CC8500 0%,#FFCC00 100%)";
+        el.style.transform = BASE_T + " scale(1.08)";
+        el.style.boxShadow = "0 6px 18px rgba(204,133,0,0.45)";
+      });
+      el.addEventListener("mouseleave", rest);
+      el.addEventListener("pointerdown", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.opacity = "0.55";
+        el.style.transform = BASE_T + " scale(0.94)";
+      });
+      el.addEventListener("pointerup", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.opacity = "";
+        el.style.transform = BASE_T + " scale(1.08)";
       });
     }
 
@@ -3588,13 +3753,20 @@
         dragging = true; moved = false; pid = e.pointerId;
         startX = e.clientX; startY = e.clientY; curDX = 0;
         if (track) track.style.transition = "none"; // follow finger instantly
-        try { carousel.setPointerCapture(e.pointerId); } catch (err) {}
+        // NOTE: do NOT setPointerCapture here — capturing on a plain tap makes
+        // the follow-up click land on the carousel instead of the main video
+        // card, so the card never opens/plays. We only capture once a real drag
+        // begins (see pointermove below).
       });
 
       carousel.addEventListener("pointermove", function (e) {
         if (!dragging) return;
         curDX = e.clientX - startX;
         if (Math.abs(curDX) > 8) {
+          // First real movement → now it's a drag: capture the pointer so
+          // tracking stays smooth even outside the carousel. Taps never reach
+          // here, so their click passes through to the card.
+          if (!moved) { try { carousel.setPointerCapture(pid); } catch (err) {} }
           moved = true;
           if (window.getSelection) { var s = window.getSelection(); if (s && s.removeAllRanges) s.removeAllRanges(); }
         }
@@ -4669,7 +4841,13 @@
         ".fdcp-focus-sidebar::-webkit-scrollbar{width:6px !important;height:6px !important;}" +
         ".fdcp-focus-sidebar::-webkit-scrollbar-track{background:transparent !important;}" +
         ".fdcp-focus-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2) !important;border-radius:9999px !important;}" +
-        ".fdcp-focus-sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.38) !important;}";
+        ".fdcp-focus-sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.38) !important;}" +
+        // Thin light scrollbar for the expanded video-description panel.
+        ".fdcp-vf-desc-text{scrollbar-width:thin !important;scrollbar-color:rgba(255,255,255,0.3) transparent !important;}" +
+        ".fdcp-vf-desc-text::-webkit-scrollbar{width:6px !important;height:6px !important;}" +
+        ".fdcp-vf-desc-text::-webkit-scrollbar-track{background:transparent !important;}" +
+        ".fdcp-vf-desc-text::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.3) !important;border-radius:9999px !important;}" +
+        ".fdcp-vf-desc-text::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.5) !important;}";
       document.head.appendChild(s);
     }
 
@@ -4758,8 +4936,54 @@
       // transform would wipe that centering and make them jump. They already
       // have a CSS background-brighten hover, so use opacity for the micro-feel
       // instead of transform.
-      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-stories-arrow, .fdcp-videos-arrow"), function (el) {
-        bindHoverOpacity(el);
+      // Featured Videos carousel arrows — same brand-purple hover + press as the
+      // modal/stories arrows (rest background matches their inline rgba(0,0,0,0.5)).
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-videos-arrow"), function (el) {
+        bindVideoFocusArrowHover(el, "rgba(0,0,0,0.5)");
+      });
+      // Stories strip arrows — hover turns them brand-purple + scales up; press
+      // dims them; release restores. Wired in JS (not CSS :hover) because Drupal
+      // strips the <style> block, so the class-based hover never fires there.
+      Array.prototype.forEach.call(document.querySelectorAll(".fdcp-stories-arrow"), function (el) {
+        bindStoriesArrowHover(el);
+      });
+    }
+
+    // Purple-on-hover + press feedback for the stories prev/next arrows, applied
+    // as inline styles so it survives Drupal stripping the <style> block.
+    function bindStoriesArrowHover(el) {
+      if (!el || el._fdcpArrowHover) return;
+      el._fdcpArrowHover = true;
+      var REST_BG = "rgba(0,0,0,0.7)";
+      var REST_SHADOW = "0 4px 14px rgba(0,0,0,0.25)";
+      var BASE_T = "translateY(-50%)";
+      el.style.transition =
+        "background 180ms ease, opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease";
+      function rest() {
+        el.style.backgroundImage = "none";
+        el.style.backgroundColor = REST_BG;
+        el.style.transform = BASE_T;
+        el.style.boxShadow = REST_SHADOW;
+        el.style.opacity = "";
+      }
+      el.addEventListener("mouseenter", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.backgroundColor = "#CC8500";
+        el.style.backgroundImage = "linear-gradient(135deg,#CC8500 0%,#FFCC00 100%)";
+        el.style.transform = BASE_T + " scale(1.08)";
+        el.style.boxShadow = "0 6px 18px rgba(204,133,0,0.45)";
+      });
+      el.addEventListener("mouseleave", rest);
+      el.addEventListener("pointerdown", function () {
+        if (el.hasAttribute("disabled")) return;
+        el.style.opacity = "0.55";
+        el.style.transform = BASE_T + " scale(0.94)";
+      });
+      el.addEventListener("pointerup", function () {
+        if (el.hasAttribute("disabled")) return;
+        // Snap back to the hovered look (pointer is still over the button).
+        el.style.opacity = "";
+        el.style.transform = BASE_T + " scale(1.08)";
       });
     }
 

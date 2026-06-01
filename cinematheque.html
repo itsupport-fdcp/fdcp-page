@@ -493,6 +493,36 @@ const MONTH_FILTER = _getPHMonth();   // still used for the hero image folder
 const ASSET_BASE = "/sites/default/files/" + (MONTH_FILTER || "cinematheque") + "/";
 // Map each location to its image file name (without extension).
 const LOC_IMAGES = { "Manila": "cinema", "Negros": "negros", "Iloilo": "iloilo", "Davao": "davao" };
+
+// Hero images live in a month-named folder, but that folder is often not
+// uploaded yet at the very start of a new month — so the current-month image
+// 404s (e.g. on June 1 there is no /2026-06/ folder yet). Build a fallback
+// chain: current month → previous month → generic "cinematheque" folder.
+function _heroBases() {
+  var bases = [];
+  if (MONTH_FILTER) {
+    bases.push("/sites/default/files/" + MONTH_FILTER + "/");
+    var d = _getPHDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 1);
+    var prev = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    bases.push("/sites/default/files/" + prev + "/");
+  }
+  bases.push("/sites/default/files/cinematheque/");
+  return bases;
+}
+// Point a hero <img> at a location image, trying each base in turn on error.
+function setHeroImage(img, loc) {
+  var file = (LOC_IMAGES[loc] || loc.toLowerCase()) + ".webp";
+  var bases = _heroBases();
+  var i = 0;
+  img.onerror = function () {
+    i++;
+    if (i < bases.length) img.src = bases[i] + file;
+    else img.onerror = null;
+  };
+  img.src = bases[0] + file;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── MANILA "VIEW DETAILS" LINK ──────────────────────────────────────────────
@@ -737,7 +767,7 @@ function selectLocation(loc) {
   if (img) {
     img.style.opacity = "0";
     setTimeout(function () {
-      img.src = ASSET_BASE + (LOC_IMAGES[loc] || loc.toLowerCase()) + ".webp";
+      setHeroImage(img, loc);
       img.alt = "Cinematheque " + loc;
       img.style.opacity = "1";
     }, 200);
@@ -757,7 +787,7 @@ function ccInit() {
     });
   }
   var heroImg = findOne("ccHeroImg", "cc-hero__img");
-  if (heroImg) heroImg.src = ASSET_BASE + (LOC_IMAGES["Manila"] || "cinema") + ".webp";
+  if (heroImg) setHeroImage(heroImg, "Manila");
   renderFilms("Manila");
 }
 
