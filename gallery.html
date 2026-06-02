@@ -2571,15 +2571,17 @@
             if (assets[i].thumb) { cover = assets[i].thumb; break; }
           }
           // No image thumbnail anywhere (e.g. story is a single S3 .mp4).
-          // Fall back to the first native video so the card can show its first
-          // frame as the cover instead of a broken <img>. HLS (.m3u8) is
-          // excluded: it won't render in a bare <video> off Safari, and pulling
-          // hls.js in just to paint a static strip thumbnail isn't worth it —
-          // such a story falls through to the dark card background instead.
+          // Fall back to the first native (progressive) video so the card can
+          // show its first frame via a bare <video #t=2>. HLS (.m3u8) can't do
+          // that off Safari, so it's recorded separately as hlsCover and the
+          // strip lazily captures a frame from it via hls.js + canvas (see
+          // observeHlsCovers) only once the card scrolls into view.
+          var hlsCover = "";
           if (!cover) {
             for (var j = 0; j < assets.length; j++) {
-              if (assets[j].type === "video" && assets[j].src && !isHls(assets[j].src)) {
-                coverVideo = assets[j].src; break;
+              if (assets[j].type === "video" && assets[j].src) {
+                if (isHls(assets[j].src)) { if (!hlsCover) hlsCover = assets[j].src; }
+                else { coverVideo = assets[j].src; break; }
               }
             }
           }
@@ -2591,6 +2593,7 @@
             // fullscreen viewer still uses asset.src (original) so it stays sharp.
             cover: compressDriveThumb(cover, 600),
             coverVideo: coverVideo,
+            hlsCover: coverVideo ? "" : hlsCover,   // only when no better cover
             assets: assets
           };
         })
@@ -2680,15 +2683,26 @@
         var assetCount = (s.assets || []).length;
         var ringLabel = s.eyebrow || "Story";
         var ringFont  = categoryFontSize(ringLabel);
-        // Cover: an image thumbnail when available, otherwise a muted native
-        // <video> seeked 2s in (#t=2) for S3 .mp4 stories that have no image
-        // thumbnail (2s avoids the common black fade-in first frame).
-        // preload="metadata" keeps the strip light.
-        var coverEl = s.coverVideo
-          ? '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata" disablepictureinpicture'
-            + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;"></video>'
-          : '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
-            + ' style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">';
+        // Cover precedence:
+        //   1. image thumbnail (Drive/YouTube/photo) — fastest, just an <img>
+        //   2. progressive <video> seeked 2s in (#t=2) — S3 .mp4 first frame
+        //      (2s avoids the common black fade-in); preload="metadata" stays light
+        //   3. HLS (.m3u8) — no image/progressive cover, so emit a dark host
+        //      flagged data-hls-cover; observeHlsCovers() lazily captures a frame
+        //      via hls.js + canvas once the card scrolls into view.
+        var coverFill = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;";
+        var coverEl;
+        if (s.coverVideo) {
+          coverEl = '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata" disablepictureinpicture'
+            + ' style="' + coverFill + '"></video>';
+        } else if (!s.cover && s.hlsCover) {
+          coverEl = '<span class="fdcp-story-cover" data-hls-cover="' + escapeAttr(s.hlsCover) + '"'
+            + ' data-cover-class="fdcp-story-cover" data-cover-style="' + coverFill + '"'
+            + ' style="' + coverFill + 'background:#1a1a1a;"></span>';
+        } else {
+          coverEl = '<img class="fdcp-story-cover" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
+            + ' style="' + coverFill + '">';
+        }
         return ''
           + '<button type="button" class="fdcp-story-card" data-story-index="' + i + '"'
           +   ' aria-label="Open story: ' + escapeAttr(s.title) + ' (' + assetCount + ' items)"'
@@ -2735,6 +2749,7 @@
 
       enableDragScroll(track);
       setupStoriesArrows(track);
+      observeHlsCovers(track);   // lazily capture covers for HLS-only stories
       if (typeof wireHoverAnimations === "function") wireHoverAnimations();
     }
 
@@ -2945,9 +2960,14 @@
               ? '<video class="fdcp-focus-story-thumb" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata" disablepictureinpicture'
                 + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
                 + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;"></video>'
-              : '<img class="fdcp-focus-story-thumb" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
-                + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
-                + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;">')
+              : (!s.cover && s.hlsCover
+                ? '<span class="fdcp-focus-story-thumb" data-hls-cover="' + escapeAttr(s.hlsCover) + '"'
+                  + ' data-cover-class="" data-cover-style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;"'
+                  + ' style="position:relative;width:56px;height:56px;border-radius:9999px;overflow:hidden;flex-shrink:0;'
+                  + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;"></span>'
+                : '<img class="fdcp-focus-story-thumb" src="' + escapeAttr(s.cover) + '" alt="" loading="lazy"'
+                  + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
+                  + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;">'))
           +   '<span class="fdcp-focus-story-info" style="min-width:0;display:flex;flex-direction:column;gap:2px;flex:1 1 auto;">'
           +     '<span class="fdcp-focus-story-name"'
           +       ' style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
@@ -2960,6 +2980,7 @@
           + '</button>';
       }).join("");
       host.innerHTML = html;
+      observeHlsCovers(host);   // lazily capture sidebar circles for HLS stories
 
       Array.prototype.forEach.call(host.querySelectorAll("[data-story-jump]"), function (btn) {
         btn.addEventListener("click", function () {
@@ -3211,18 +3232,29 @@
 
       var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
+      // Mobile: the close (X) lives top-right, so the gear moves to the
+      // bottom-right (lifted above the player's own control bar + safe area)
+      // and its menu opens upward. Desktop keeps both at the top-right.
+      var isMobile = window.innerWidth <= 900;
+      var btnPos = isMobile
+        ? "bottom:calc(76px + env(safe-area-inset-bottom,0px));right:14px;"
+        : "top:14px;right:14px;";
+      var menuPos = isMobile
+        ? "bottom:calc(124px + env(safe-area-inset-bottom,0px));right:14px;"
+        : "top:60px;right:14px;";
+
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "fdcp-focus-quality-btn";
       btn.setAttribute("aria-label", "Video quality");
       btn.innerHTML = GEAR;
-      btn.style.cssText = "position:absolute;top:14px;right:14px;z-index:6;width:40px;height:40px;"
+      btn.style.cssText = "position:absolute;" + btnPos + "z-index:6;width:40px;height:40px;"
         + "display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:9999px;"
         + "background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);";
 
       var menu = document.createElement("div");
       menu.className = "fdcp-focus-quality-menu";
-      menu.style.cssText = "position:absolute;top:60px;right:14px;z-index:6;display:none;min-width:128px;"
+      menu.style.cssText = "position:absolute;" + menuPos + "z-index:6;display:none;min-width:128px;"
         + "padding:6px;border-radius:12px;background:rgba(20,20,20,0.96);color:#fff;"
         + "box-shadow:0 8px 24px rgba(0,0,0,0.5);font-size:13px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);";
 
@@ -3275,6 +3307,144 @@
       setActive(-1);   // Auto is the default
       host.appendChild(btn);
       host.appendChild(menu);
+    }
+
+    //  HLS COVER CAPTURE (strip + sidebar thumbnails)
+    // An HLS-only story has no image thumbnail and can't use the bare-<video>
+    // first-frame trick off Safari. So we lazily grab one frame from the .m3u8
+    // via hls.js + canvas — but only once the card scrolls into view (see
+    // observeHlsCovers), and only once per URL (HLS_FRAME_CACHE). Requires the
+    // stream to be CORS-enabled (Access-Control-Allow-Origin); a tainted canvas
+    // throws on toDataURL and we resolve null → the card keeps its dark bg.
+    var HLS_FRAME_CACHE = {};   // url -> Promise<dataURL|null>
+    var HLS_COVER_MAXW  = 360;  // capture downscale width (serves 160px card + 56px circle)
+
+    // Draw a video frame to an offscreen canvas no wider than maxW (keeping
+    // aspect), then export a compressed JPEG data-URL so the thumbnail is a tiny
+    // file that paints instantly. Throws if the canvas is tainted (non-CORS
+    // source) — caller treats that as "no cover".
+    function frameToCompressedDataURL(video, maxW) {
+      var vw = video.videoWidth, vh = video.videoHeight;
+      if (!vw || !vh) return null;
+      var scale = Math.min(1, maxW / vw);
+      var c = document.createElement("canvas");
+      c.width  = Math.max(1, Math.round(vw * scale));
+      c.height = Math.max(1, Math.round(vh * scale));
+      c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+      return c.toDataURL("image/jpeg", 0.6);   // 0.6 = small file, fine at thumb sizes
+    }
+
+    function captureHlsFrame(url) {
+      if (HLS_FRAME_CACHE[url]) return HLS_FRAME_CACHE[url];
+      var p = ensureHls().then(function (Hls) {
+        // Native-HLS browsers (Safari/iOS) can feed a CORS video straight to a
+        // canvas without hls.js; others need it. If neither works, give up.
+        var nativeOK = canPlayNativeHls();
+        if (!Hls && !nativeOK) return null;
+
+        return new Promise(function (resolve) {
+          var video = document.createElement("video");
+          video.crossOrigin = "anonymous";   // required for a CORS-clean canvas
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("playsinline", "");
+          video.preload = "auto";
+          video.style.cssText = "position:fixed;left:-9999px;top:0;width:160px;height:284px;opacity:0;pointer-events:none;";
+          document.body.appendChild(video);
+
+          var hls = null, done = false, timer = 0;
+          function cleanup() {
+            if (timer) { clearTimeout(timer); timer = 0; }
+            if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
+            if (video.parentNode) video.parentNode.removeChild(video);
+          }
+          function finish(val) {
+            if (done) return; done = true;
+            cleanup();
+            resolve(val);
+          }
+          function grab() {
+            if (done) return;
+            if (video.readyState >= 2 && video.videoWidth > 0) {
+              try { finish(frameToCompressedDataURL(video, HLS_COVER_MAXW)); }
+              catch (e) {
+                if (window.console) console.warn("[FDCP gallery] HLS cover capture blocked (CORS?)", e && e.name);
+                finish(null);
+              }
+            }
+          }
+          video.addEventListener("loadeddata", function () { try { video.currentTime = 1.5; } catch (e) {} });
+          video.addEventListener("seeked", grab);
+          video.addEventListener("canplay", grab);
+          video.addEventListener("error", function () { finish(null); });
+          timer = setTimeout(function () { finish(null); }, 15000);
+
+          if (Hls) {
+            hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+              try { hls.currentLevel = 0; } catch (e) {}   // lowest rendition: fast + light
+              video.play().catch(function () {});
+            });
+            hls.on(Hls.Events.ERROR, function (evt, data) { if (data && data.fatal) finish(null); });
+            hls.loadSource(url);
+            hls.attachMedia(video);
+          } else {
+            // Native HLS path (Safari/iOS)
+            video.src = url;
+            video.play().catch(function () {});
+          }
+        });
+      }).catch(function () { return null; });
+      HLS_FRAME_CACHE[url] = p;
+      return p;
+    }
+
+    // Lazily fill any element flagged data-hls-cover="<m3u8>" with a captured
+    // frame once it scrolls into view. Used for both the strip cards and the
+    // sidebar circles. Re-run after each render; already-handled nodes carry a
+    // _hlsCoverWired flag so the observer doesn't reprocess them.
+    var _hlsCoverObserver = null;
+    function observeHlsCovers(root) {
+      var scope = root || document;
+      var nodes = scope.querySelectorAll("[data-hls-cover]");
+      if (!nodes.length) return;
+
+      function handle(host) {
+        if (host._hlsCoverWired) return;
+        host._hlsCoverWired = true;
+        var url = host.getAttribute("data-hls-cover");
+        if (!url) return;
+        captureHlsFrame(url).then(function (dataUrl) {
+          if (!dataUrl || !host.isConnected) return;
+          var img = document.createElement("img");
+          img.src = dataUrl;
+          img.alt = "";
+          // Match whichever cover class the host expects (card vs sidebar).
+          img.className = host.getAttribute("data-cover-class") || "";
+          img.style.cssText = host.getAttribute("data-cover-style") ||
+            "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;";
+          host.insertBefore(img, host.firstChild);
+        });
+      }
+
+      if (!("IntersectionObserver" in window)) {
+        // No IO support — just capture immediately (rare; old browsers).
+        Array.prototype.forEach.call(nodes, handle);
+        return;
+      }
+      if (!_hlsCoverObserver) {
+        _hlsCoverObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) {
+              _hlsCoverObserver.unobserve(en.target);
+              handle(en.target);
+            }
+          });
+        }, { rootMargin: "200px" });   // start a touch before it's visible
+      }
+      Array.prototype.forEach.call(nodes, function (n) {
+        if (!n._hlsCoverWired) _hlsCoverObserver.observe(n);
+      });
     }
 
 
