@@ -172,6 +172,14 @@
       return /\.(mp4|mov|webm|m4v|ogg)(\?|#|$)/i.test(url)
           || /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
     }
+    // Extracts the 11-char video id from any YouTube URL form, including
+    // Shorts (youtube.com/shorts/ID), watch?v=ID, youtu.be/ID and /embed/ID.
+    function youTubeId(url) {
+      var m = String(url || "").match(
+        /(?:youtube\.com\/(?:shorts\/|embed\/|live\/|watch\?(?:.*&)?v=)|youtu\.be\/)([\w-]{11})/i
+      );
+      return m ? m[1] : "";
+    }
     function cellToText(cell) {
       if (!cell) return "";
       var clone = cell.cloneNode(true);
@@ -282,6 +290,18 @@
                 type: "iframe",
                 src: "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
                 thumb: "https://drive.google.com/thumbnail?id=" + driveFile[1] + "&sz=w1600",
+                caption: caption
+              };
+            }
+            var ytId = youTubeId(u);
+            if (ytId) {
+              // YouTube (incl. Shorts) → embed iframe. renderMedia() appends the
+              // autoplay/playsinline params for youtube.com/embed/ srcs. The
+              // hqdefault thumbnail drives the card cover + sidebar circle.
+              return {
+                type: "iframe",
+                src: "https://www.youtube.com/embed/" + ytId,
+                thumb: "https://img.youtube.com/vi/" + ytId + "/hqdefault.jpg",
                 caption: caption
               };
             }
@@ -446,8 +466,9 @@
         // (2s avoids the common black fade-in first frame).
         var cover;
         if (s.coverVideo) {
-          cover = el("video", { className: "fdcp-home-story-cover", src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata" });
+          cover = el("video", { className: "fdcp-home-story-cover", src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata", disablepictureinpicture: "" });
           cover.muted = true;
+          cover.disablePictureInPicture = true;
         } else {
           cover = el("img", { className: "fdcp-home-story-cover", src: s.cover || "", alt: "", loading: "lazy" });
         }
@@ -632,8 +653,38 @@
       }
     }
 
+    // Signature of the currently-built sidebar list, so we only rebuild its DOM
+    // (and re-request the thumbnails) when the story set actually changes — not
+    // on every navigation. Rebuilding each time made the circle thumbnails
+    // flicker/re-fetch when stepping assets or clicking another story.
+    var storyListSig = null;
+    function storiesSignature() {
+      return STORIES.map(function (s) { return s.id + "|" + (s.assets || []).length; }).join(",");
+    }
+
+    // Updates only the active highlight on the existing sidebar items. Cheap and
+    // does not touch the <img>/<video> thumbnails, so they stay cached.
+    function updateStoryListActive() {
+      if (!refs.list) return;
+      var items = refs.list.querySelectorAll(".fdcp-home-focus-story-item");
+      for (var i = 0; i < items.length; i++) {
+        var active = i === FOCUS.storyIndex;
+        items[i].classList.toggle("is-active", active);
+        var thumb = items[i].querySelector(".fdcp-home-focus-story-thumb");
+        if (thumb) thumb.style.borderColor = active ? "#E200A9" : "transparent";
+      }
+    }
+
     function renderStoryList() {
       if (!refs.list) return;
+      // Already built for this exact story set: just move the highlight so the
+      // thumbnails are never re-created (and therefore never re-fetched).
+      var sig = storiesSignature();
+      if (storyListSig === sig && refs.list.querySelector(".fdcp-home-focus-story-item")) {
+        updateStoryListActive();
+        return;
+      }
+      storyListSig = sig;
       refs.list.textContent = "";
       STORIES.forEach(function (s, i) {
         var active = i === FOCUS.storyIndex;
@@ -643,9 +694,10 @@
         if (s.coverVideo) {
           thumb = el("video", {
             className: "fdcp-home-focus-story-thumb",
-            src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata"
+            src: s.coverVideo + "#t=2", muted: "", playsinline: "", preload: "metadata", disablepictureinpicture: ""
           });
           thumb.muted = true;
+          thumb.disablePictureInPicture = true;
         } else {
           thumb = el("img", {
             className: "fdcp-home-focus-story-thumb",
@@ -668,7 +720,7 @@
           if (i === FOCUS.storyIndex) return;
           FOCUS.storyIndex = i;
           FOCUS.assetIndex = 0;
-          renderStoryList(); renderProgress(); renderHeader(); renderMedia();
+          updateStoryListActive(); renderProgress(); renderHeader(); renderMedia();
         });
 
         refs.list.appendChild(btn);
@@ -678,7 +730,14 @@
     function renderHeader() {
       var s = activeStory();
       if (!s) return;
-      if (refs.title)   refs.title.textContent   = s.title || "";
+      // YouTube embeds render their own title overlay inside the player; showing
+      // our header title too looks duplicated, so hide ours for those assets.
+      var a = activeAsset();
+      var isYouTube = !!(a && a.type === "iframe" && /youtube\.com\/embed\//.test(a.src || ""));
+      if (refs.title) {
+        refs.title.textContent   = s.title || "";
+        refs.title.style.display = isYouTube ? "none" : "";
+      }
       if (refs.counter) refs.counter.textContent = (FOCUS.assetIndex + 1) + " of " + s.assets.length;
     }
 
@@ -687,6 +746,7 @@
       if (!refs.viewport || !asset) return;
       refs.viewport.textContent = "";
       var mediaEl;
+      var ytVideoId = "";   // set when this asset is a YouTube (incl. Shorts) embed
       var interactive = (asset.type === "video" || asset.type === "iframe");
       if (asset.type === "video") {
         mediaEl = document.createElement("video");
@@ -695,18 +755,24 @@
         mediaEl.autoplay = true;
         mediaEl.playsInline = true;
         mediaEl.setAttribute("playsinline", "");
+        mediaEl.disablePictureInPicture = true;
+        mediaEl.setAttribute("disablepictureinpicture", "");
+      } else if (asset.type === "iframe" && /youtube\.com\/embed\/([\w-]{11})/.test(asset.src)) {
+        // YouTube (incl. Shorts): mount a <div> the IFrame Player API replaces
+        // with its iframe, so we get real playback time + an ENDED event for
+        // accurate auto-advance (see startYouTubeAutoAdvance).
+        ytVideoId = asset.src.match(/youtube\.com\/embed\/([\w-]{11})/)[1];
+        mediaEl = document.createElement("div");
       } else if (asset.type === "iframe") {
         var src = asset.src;
-        if (/youtube\.com\/embed\//.test(src)) {
-          src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1&playsinline=1&rel=0&modestbranding=1";
-        } else if (/player\.vimeo\.com/.test(src)) {
+        if (/player\.vimeo\.com/.test(src)) {
           src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
         } else if (/drive\.google\.com\/file\/d\/[^/]+\/preview/.test(src)) {
           src += (src.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1";
         }
         mediaEl = document.createElement("iframe");
         mediaEl.src = src;
-        mediaEl.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen");
+        mediaEl.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
         mediaEl.setAttribute("allowfullscreen", "");
         mediaEl.style.border = "0";
       } else {
@@ -722,16 +788,23 @@
       if (refs.tapPrev) refs.tapPrev.style.pointerEvents = "";
       if (refs.tapNext) refs.tapNext.style.pointerEvents = "";
       // Bottom caption removed — the story title already shows in the header,
-      // so the duplicated text at the bottom is suppressed.
-      if (refs.caption) refs.caption.textContent = "";
+      // so the duplicated text at the bottom is suppressed. Hidden outright for
+      // YouTube Shorts so it never overlaps the player's own bottom UI.
+      if (refs.caption) {
+        refs.caption.textContent = "";
+        refs.caption.style.display = ytVideoId ? "none" : "";
+      }
       syncArrowState();
 
       // Auto-advance: fill the current bar over the asset's duration, then step
       // to the next asset. Photos use a fixed timer; <video> uses real playback
-      // time + the native "ended" event; cross-origin iframes fall back to a
-      // fixed timer (their playback time isn't readable across origins).
+      // time + the native "ended" event; YouTube (incl. Shorts) uses the IFrame
+      // Player API for accurate timing; Vimeo/Drive iframes fall back to a fixed
+      // timer (their playback time isn't readable across origins).
       if (asset.type === "video") {
         startVideoAutoAdvance(mediaEl);
+      } else if (ytVideoId) {
+        startYouTubeAutoAdvance(mediaEl, ytVideoId);
       } else if (asset.type === "iframe") {
         startTimerAutoAdvance(IFRAME_AUTO_MS);
       } else {
@@ -796,6 +869,74 @@
       };
     }
 
+    // Loads the YouTube IFrame Player API once (shared across all players) and
+    // calls `cb` as soon as YT.Player is available.
+    var ytApiState = 0;            // 0 = not loaded, 1 = loading, 2 = ready
+    var ytApiQueue = [];
+    function loadYouTubeAPI(cb) {
+      if (ytApiState === 2) { cb(); return; }
+      ytApiQueue.push(cb);
+      if (ytApiState === 1) return;
+      ytApiState = 1;
+      var prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () {
+        if (typeof prev === "function") { try { prev(); } catch (e) {} }
+        ytApiState = 2;
+        var q = ytApiQueue.slice(); ytApiQueue.length = 0;
+        q.forEach(function (fn) { try { fn(); } catch (e) {} });
+      };
+      var tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+
+    // Accurate auto-advance for YouTube (incl. Shorts) via the IFrame Player
+    // API: the progress bar tracks real playback time and we advance the moment
+    // the player reports ENDED — no more 30s fixed-timer guess. `mountEl` is a
+    // <div> the API replaces with its own iframe.
+    function startYouTubeAutoAdvance(mountEl, videoId) {
+      clearAuto();
+      var fill = currentSegFill();
+      var player = null, poll = 0, finished = false;
+      function stopPoll() { if (poll) { clearInterval(poll); poll = 0; } }
+      loadYouTubeAPI(function () {
+        if (!window.YT || !YT.Player) { startTimerAutoAdvance(IFRAME_AUTO_MS); return; }
+        player = new YT.Player(mountEl, {
+          width: "100%", height: "100%", videoId: videoId,
+          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, controls: 1 },
+          events: {
+            onReady: function (e) {
+              var f = e.target.getIframe && e.target.getIframe();
+              if (f) {
+                f.className = "fdcp-home-focus-media";
+                // Drop picture-in-picture from the player's permissions.
+                f.setAttribute("allow", "autoplay; encrypted-media; fullscreen");
+              }
+              try { e.target.playVideo(); } catch (_) {}
+            },
+            onStateChange: function (e) {
+              if (e.data === YT.PlayerState.PLAYING && !poll) {
+                poll = setInterval(function () {
+                  if (!player || !player.getDuration) return;
+                  var d = player.getDuration() || 0, t = player.getCurrentTime() || 0;
+                  if (d) setSegWidth(fill, (t / d) * 100);
+                }, 200);
+              } else if (e.data === YT.PlayerState.ENDED && !finished) {
+                finished = true; stopPoll(); setSegWidth(fill, 100); advanceAuto();
+              }
+            }
+          }
+        });
+      });
+      // Runs on clearAuto() (navigation/close): stop polling and tear the player
+      // down so a stale ENDED can't advance after the view changed.
+      AUTO.cancel = function () {
+        stopPoll();
+        if (player && player.destroy) { try { player.destroy(); } catch (_) {} }
+        player = null;
+      };
+    }
+
     function advanceAuto() {
       clearAuto();
       var s = activeStory();
@@ -834,7 +975,7 @@
       } else {
         FOCUS.assetIndex = ni;
       }
-      renderStoryList(); renderProgress(); renderHeader(); renderMedia();
+      updateStoryListActive(); renderProgress(); renderHeader(); renderMedia();
     }
 
     function openFocus(storyIndex, assetIndex) {
