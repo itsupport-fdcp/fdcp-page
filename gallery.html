@@ -288,15 +288,19 @@
     #fdcp-focus.is-open,
     #fdcp-photo-lightbox.is-open { display: flex !important; }
 
-    /* Close button — top-left, like Stories */
+    /* Close button — top-RIGHT corner. On desktop (webview) it carries the
+      brand gradient so it stays visible against any story; mobile overrides
+      this back to a plain dark pill in the media query below. */
     .fdcp-focus-top-close {
       position: absolute !important;
       top: 16px !important;
-      left: 16px !important;
+      right: 16px !important;
+      left: auto !important;
       width: 40px !important;
       height: 40px !important;
       border-radius: 9999px !important;
-      background: rgba(255,255,255,0.10) !important;
+      background-color: #580076 !important;
+      background-image: linear-gradient(135deg,#580076 0%,#E200A9 100%) !important;
       color: #fff !important;
       border: 0 !important;
       cursor: pointer !important;
@@ -304,9 +308,13 @@
       align-items: center !important;
       justify-content: center !important;
       z-index: 20 !important;
-      transition: background 180ms ease !important;
+      box-shadow: 0 4px 14px rgba(88,0,118,0.45) !important;
+      transition: filter 180ms ease, box-shadow 180ms ease !important;
     }
-    .fdcp-focus-top-close:hover { background: rgba(255,255,255,0.20) !important; }
+    .fdcp-focus-top-close:hover {
+      filter: brightness(1.12) !important;
+      box-shadow: 0 6px 18px rgba(226,0,169,0.55) !important;
+    }
 
     /* Two-column layout: sidebar (left) + stage (center) */
     .fdcp-focus-layout {
@@ -522,6 +530,10 @@
       display: block !important;
       background: #000 !important;
     }
+    /* Quality gear (HLS only). Inline styles in buildQualityMenu() are the
+       source of truth; these are progressive hover/active polish. */
+    .fdcp-focus-quality-btn:hover { background: rgba(0,0,0,0.75) !important; }
+    .fdcp-focus-quality-menu button:hover { background: rgba(255,255,255,0.10) !important; }
     .fdcp-focus-tap {
       position: absolute !important;
       top: 0 !important;
@@ -612,22 +624,33 @@
       }
       .fdcp-focus-arrow.prev { left: calc(8px + env(safe-area-inset-left, 0px)) !important; right: auto !important; }
       .fdcp-focus-arrow.next { right: calc(8px + env(safe-area-inset-right, 0px)) !important; left: auto !important; }
-      /* X stays in the top-LEFT corner on mobile (matches homepage stories),
-        pushed below the progress bar with notch/status-bar offset. */
+      /* X sits in the top-RIGHT corner on mobile, pushed below the progress
+        bar with notch/status-bar offset. Plain dark pill here — the desktop
+        gradient is reset so it matches the other mobile controls. */
       .fdcp-focus-top-close {
         top: calc(48px + env(safe-area-inset-top, 0px)) !important;
-        left: calc(12px + env(safe-area-inset-left, 0px)) !important;
-        right: auto !important;
+        right: calc(12px + env(safe-area-inset-right, 0px)) !important;
+        left: auto !important;
+        background-color: rgba(0,0,0,0.55) !important;
+        background-image: none !important;
+        box-shadow: none !important;
+      }
+      .fdcp-focus-top-close:hover {
+        filter: none !important;
+        background-color: rgba(0,0,0,0.7) !important;
+        box-shadow: none !important;
       }
       /* Push the segment indicator + header below the status bar / notch so they're
         always visible inside the safe area on mobile browsers. */
       .fdcp-focus-progress {
         padding: calc(14px + env(safe-area-inset-top, 0px)) 12px 8px !important;
       }
+      /* Header now hugs the left edge (the X moved to the right) and keeps
+        clearance from the top-right X. */
       .fdcp-focus-header {
         top: calc(56px + env(safe-area-inset-top, 0px)) !important;
-        left: calc(64px + env(safe-area-inset-left, 0px)) !important;
-        right: 56px !important;
+        left: calc(12px + env(safe-area-inset-left, 0px)) !important;
+        right: 64px !important;
       }
       .fdcp-focus-caption { bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
     }
@@ -1812,7 +1835,7 @@
       style="position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.96);display:none;padding:16px;box-sizing:border-box;">
 
     <button type="button" class="fdcp-focus-top-close" id="fdcp-focus-close" aria-label="Close stories"
-            style="position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,0.10);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;">
+            style="position:absolute;top:16px;right:16px;left:auto;width:40px;height:40px;border-radius:9999px;background-color:#580076;background-image:linear-gradient(135deg,#580076 0%,#E200A9 100%);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 4px 14px rgba(88,0,118,0.45);">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
 
@@ -2478,7 +2501,7 @@
         return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       };
       var isVideo = function (url) {
-        return /\.(mp4|mov|webm|m4v|ogg)(\?|#|$)/i.test(url)
+        return /\.(mp4|mov|webm|m4v|ogg|m3u8)(\?|#|$)/i.test(url)
             || /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
       };
       return (rows || [])
@@ -2549,10 +2572,15 @@
           }
           // No image thumbnail anywhere (e.g. story is a single S3 .mp4).
           // Fall back to the first native video so the card can show its first
-          // frame as the cover instead of a broken <img>.
+          // frame as the cover instead of a broken <img>. HLS (.m3u8) is
+          // excluded: it won't render in a bare <video> off Safari, and pulling
+          // hls.js in just to paint a static strip thumbnail isn't worth it —
+          // such a story falls through to the dark card background instead.
           if (!cover) {
             for (var j = 0; j < assets.length; j++) {
-              if (assets[j].type === "video" && assets[j].src) { coverVideo = assets[j].src; break; }
+              if (assets[j].type === "video" && assets[j].src && !isHls(assets[j].src)) {
+                coverVideo = assets[j].src; break;
+              }
             }
           }
           return {
@@ -2969,6 +2997,7 @@
       var asset = activeAsset();
       if (!host || !asset) return;
 
+      destroyActiveHls();   // drop any hls.js instance from the previous asset
       host.innerHTML = "";
 
       // Fill the 9:16 portrait frame like Stories
@@ -2979,7 +3008,12 @@
       var interactive = (asset.type === "video" || asset.type === "iframe");
       if (asset.type === "video") {
         el = document.createElement("video");
-        el.src = asset.src;
+        // HLS on non-Safari browsers is wired up by hls.js after append (see
+        // setupHlsPlayback) — leave src unset there so hls.js owns the source.
+        // Native-HLS browsers and plain progressive files set src directly.
+        if (!(isHls(asset.src) && !canPlayNativeHls())) {
+          el.src = asset.src;
+        }
         el.controls = true;
         el.autoplay = true;
         // Sound on by default — the click that opened the focus modal counts
@@ -3030,6 +3064,13 @@
       if (tapPrev) tapPrev.style.pointerEvents = interactive ? "none" : "";
       if (tapNext) tapNext.style.pointerEvents = interactive ? "none" : "";
 
+      // HLS (.m3u8) story video on a non-Safari browser: attach hls.js and add
+      // the quality gear menu. Native-HLS browsers already have src set above
+      // and stream with native ABR (no gear). No-op for every other asset type.
+      if (asset.type === "video" && isHls(asset.src) && !canPlayNativeHls()) {
+        setupHlsPlayback(el, asset.src);
+      }
+
       // Bottom caption removed — the story title already shows in the header,
       // so the duplicated text at the bottom is suppressed. For YouTube Shorts
       // we also hide the empty caption bar so it never overlaps the player's
@@ -3055,6 +3096,185 @@
       } else {
         startTimerAutoAdvance(PHOTO_AUTO_MS);
       }
+    }
+
+
+    //  HLS PLAYBACK (selectable quality)
+    // Story videos can be a single .m3u8 master playlist that references every
+    // bitrate rendition. Safari/iOS play HLS natively (no library, native ABR,
+    // no manual picker). Other browsers need hls.js, lazy-loaded from a CDN the
+    // first time an HLS story opens and memoized for the rest of the session.
+    var HLS_CDN = "https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
+    var ACTIVE_HLS = null;   // the live Hls instance, so it can be torn down
+    var _hlsPromise = null;  // memoized loader; resolves to window.Hls or null
+
+    function isHls(url) {
+      return /\.m3u8(\?|#|$)/i.test(String(url || ""));
+    }
+
+    // True only when the browser can play HLS *natively* (Safari/iOS). There we
+    // skip hls.js and the gear menu — native HLS does its own ABR and won't let
+    // JS pin a fixed level reliably.
+    function canPlayNativeHls() {
+      var v = document.createElement("video");
+      return !!(v.canPlayType && (
+        v.canPlayType("application/vnd.apple.mpegurl") ||
+        v.canPlayType("application/x-mpegURL")
+      ));
+    }
+
+    // Lazy-inject hls.js once. Resolves to window.Hls, or null if the CDN fails
+    // or the build can't run here (caller then falls back to a plain src set).
+    function ensureHls() {
+      if (window.Hls) return Promise.resolve(window.Hls);
+      if (_hlsPromise) return _hlsPromise;
+      _hlsPromise = new Promise(function (resolve) {
+        var s = document.createElement("script");
+        s.src = HLS_CDN;
+        s.async = true;
+        s.onload = function () {
+          resolve(window.Hls && window.Hls.isSupported() ? window.Hls : null);
+        };
+        s.onerror = function () {
+          if (window.console) console.warn("[FDCP gallery] hls.js failed to load from CDN");
+          _hlsPromise = null;   // allow a retry on the next HLS story
+          resolve(null);
+        };
+        document.head.appendChild(s);
+      });
+      return _hlsPromise;
+    }
+
+    // Tear down the active hls.js instance (no-op for native HLS / non-HLS).
+    // Called on every asset change and on close so MSE buffers don't leak.
+    function destroyActiveHls() {
+      if (ACTIVE_HLS) {
+        try { ACTIVE_HLS.destroy(); } catch (e) {}
+        ACTIVE_HLS = null;
+      }
+    }
+
+    // Attach hls.js to a <video> for an .m3u8 source, then (once the manifest
+    // parses) build the quality gear menu from the renditions it exposes. On any
+    // failure we fall back to a plain src set so Safari-class browsers still play
+    // and others at least show the native error rather than a blank frame.
+    function setupHlsPlayback(video, url) {
+      ensureHls().then(function (Hls) {
+        // The viewer may have moved on (or closed) while the CDN loaded.
+        if (!video.isConnected) return;
+        if (!Hls) { video.src = url; return; }
+
+        var hls = new Hls({ enableWorker: true });
+        ACTIVE_HLS = hls;
+        var recovered = false;
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          buildQualityMenu(video, hls, Hls);
+          var p = video.play(); if (p && p.catch) p.catch(function () {});
+        });
+
+        hls.on(Hls.Events.ERROR, function (evt, data) {
+          if (!data || !data.fatal) return;
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) {
+            recovered = true;
+            try { hls.recoverMediaError(); return; } catch (e) {}
+          }
+          if (window.console) console.warn("[FDCP gallery] HLS fatal error", data.type);
+          try { hls.destroy(); } catch (e) {}
+          if (ACTIVE_HLS === hls) ACTIVE_HLS = null;
+        });
+
+        hls.loadSource(url);
+        hls.attachMedia(video);
+      });
+    }
+
+    // Build the ⚙ gear button + quality popover for an hls.js stream. Levels are
+    // deduped by height and listed high→low under an "Auto" (adaptive) default.
+    // Everything is styled inline so Drupal's filter can't strip the controls.
+    function buildQualityMenu(video, hls, Hls) {
+      var host = video.parentNode;
+      if (!host) return;
+
+      // Collapse renditions to distinct heights, remembering one level index per
+      // height (the menu pins a specific level; Auto restores adaptive mode).
+      var seen = {};
+      var heights = [];
+      (hls.levels || []).forEach(function (lvl, i) {
+        var h = lvl.height || 0;
+        if (!h || seen[h] != null) return;
+        seen[h] = i;
+        heights.push(h);
+      });
+      heights.sort(function (a, b) { return b - a; });
+      if (heights.length < 2) return;   // nothing meaningful to choose
+
+      var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fdcp-focus-quality-btn";
+      btn.setAttribute("aria-label", "Video quality");
+      btn.innerHTML = GEAR;
+      btn.style.cssText = "position:absolute;top:14px;right:14px;z-index:6;width:40px;height:40px;"
+        + "display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:9999px;"
+        + "background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);";
+
+      var menu = document.createElement("div");
+      menu.className = "fdcp-focus-quality-menu";
+      menu.style.cssText = "position:absolute;top:60px;right:14px;z-index:6;display:none;min-width:128px;"
+        + "padding:6px;border-radius:12px;background:rgba(20,20,20,0.96);color:#fff;"
+        + "box-shadow:0 8px 24px rgba(0,0,0,0.5);font-size:13px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);";
+
+      var rows = [];   // {value, height, el} — value -1 == Auto
+      function addRow(label, value, height) {
+        var item = document.createElement("button");
+        item.type = "button";
+        item.textContent = label;
+        item.setAttribute("data-level", String(value));
+        item.style.cssText = "display:block;width:100%;text-align:left;padding:8px 12px;border:0;border-radius:8px;"
+          + "background:transparent;color:#fff;cursor:pointer;font-size:13px;line-height:1.2;white-space:nowrap;";
+        item.addEventListener("click", function () {
+          hls.currentLevel = value;            // -1 → Auto (adaptive)
+          setActive(value);
+          closeMenu();
+        });
+        menu.appendChild(item);
+        rows.push({ value: value, height: height, el: item });
+      }
+
+      addRow("Auto", -1, null);
+      heights.forEach(function (h) { addRow(h + "p", seen[h], h); });
+
+      // Highlight the active row; for Auto, show the height it's currently at.
+      function setActive(value) {
+        rows.forEach(function (r) {
+          var on = r.value === value;
+          r.el.style.background = on ? "rgba(255,255,255,0.16)" : "transparent";
+          r.el.style.fontWeight = on ? "700" : "400";
+        });
+      }
+      function refreshAutoLabel() {
+        var autoRow = rows[0];
+        if (hls.autoLevelEnabled && hls.currentLevel >= 0 && hls.levels[hls.currentLevel]) {
+          autoRow.el.textContent = "Auto (" + hls.levels[hls.currentLevel].height + "p)";
+        } else if (hls.autoLevelEnabled) {
+          autoRow.el.textContent = "Auto";
+        }
+      }
+      hls.on(Hls.Events.LEVEL_SWITCHED, refreshAutoLabel);
+
+      function openMenu() { menu.style.display = "block"; document.addEventListener("click", onDocClick, true); }
+      function closeMenu() { menu.style.display = "none"; document.removeEventListener("click", onDocClick, true); }
+      function onDocClick(e) { if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closeMenu(); }
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (menu.style.display === "block") closeMenu(); else openMenu();
+      });
+
+      setActive(-1);   // Auto is the default
+      host.appendChild(btn);
+      host.appendChild(menu);
     }
 
 
@@ -3289,6 +3509,7 @@
       document.body.style.overflow = "";
 
       clearAuto();
+      destroyActiveHls();
 
       // stop any playing video
       var host = document.getElementById("fdcp-focus-media-host");
@@ -5359,15 +5580,24 @@
       var fClose = document.getElementById("fdcp-focus-close");
       if (fClose) {
         if (isMobile) {
-          // Mobile: X stays top-LEFT (matches homepage stories), pushed below
-          // the progress bar with safe-area offset.
+          // Mobile: X sits top-RIGHT, pushed below the progress bar with
+          // safe-area offset. Plain dark pill (no gradient) — the inline
+          // gradient is reset here so the gradient is webview-only.
           fClose.style.top = "calc(48px + env(safe-area-inset-top, 0px))";
-          fClose.style.left = "calc(12px + env(safe-area-inset-left, 0px))";
-          fClose.style.right = "auto";
+          fClose.style.right = "calc(12px + env(safe-area-inset-right, 0px))";
+          fClose.style.left = "auto";
+          fClose.style.backgroundColor = "rgba(0,0,0,0.55)";
+          fClose.style.backgroundImage = "none";
+          fClose.style.boxShadow = "none";
         } else {
+          // Desktop (webview): top-RIGHT corner with the brand gradient so the
+          // X stays clearly visible against any story.
           fClose.style.top = "16px";
-          fClose.style.left = "16px";
-          fClose.style.right = "auto";
+          fClose.style.right = "16px";
+          fClose.style.left = "auto";
+          fClose.style.backgroundColor = "#580076";
+          fClose.style.backgroundImage = "linear-gradient(135deg,#580076 0%,#E200A9 100%)";
+          fClose.style.boxShadow = "0 4px 14px rgba(88,0,118,0.45)";
         }
       }
       // Push the progress indicator + title below the notch/status bar so they're
@@ -5380,14 +5610,15 @@
       }
       var fHead = fmodal && fmodal.querySelector(".fdcp-focus-header");
       if (fHead) {
-        // Push the header right of the top-left close button on mobile
-        // (matches homepage stories) so the title doesn't sit under the X.
+        // X moved to the top-RIGHT on mobile, so the header hugs the left edge
+        // and just keeps clearance from the X on the right.
         fHead.style.top = isMobile
           ? "calc(56px + env(safe-area-inset-top, 0px))"
           : "26px";
         fHead.style.left = isMobile
-          ? "calc(64px + env(safe-area-inset-left, 0px))"
+          ? "calc(12px + env(safe-area-inset-left, 0px))"
           : "12px";
+        if (isMobile) fHead.style.right = "64px";
       }
       var fCap = document.getElementById("fdcp-focus-caption");
       if (fCap) {

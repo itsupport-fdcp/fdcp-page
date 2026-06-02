@@ -42,8 +42,8 @@
       ".fdcp-home-story-cta-sub{font-size:11px;font-weight:500;opacity:0.85;text-transform:uppercase;letter-spacing:0.08em;}",
       "#fdcp-home-focus{position:fixed;top:0;left:0;right:0;bottom:0;inset:0;z-index:2147483647;background:rgba(0,0,0,0.94);display:none;align-items:center;justify-content:center;padding:16px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}",
       "#fdcp-home-focus.is-open{display:flex;}",
-      ".fdcp-home-focus-top-close{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,0.10);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;transition:background 180ms ease;}",
-      ".fdcp-home-focus-top-close:hover{background:rgba(255,255,255,0.20);}",
+      ".fdcp-home-focus-top-close{position:absolute;top:16px;right:16px;left:auto;width:40px;height:40px;border-radius:9999px;background-color:#580076;background-image:linear-gradient(135deg,#580076 0%,#E200A9 100%);color:#fff;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 4px 14px rgba(88,0,118,0.45);transition:filter 180ms ease, box-shadow 180ms ease;}",
+      ".fdcp-home-focus-top-close:hover{filter:brightness(1.12);box-shadow:0 6px 18px rgba(226,0,169,0.55);}",
       ".fdcp-home-focus-layout{display:flex;width:100%;height:100%;gap:20px;position:relative;padding-top:8px;}",
       ".fdcp-home-focus-sidebar{flex:0 0 300px;background:rgba(0,0,0,0.45);border-radius:16px;padding:56px 12px 16px;overflow-y:auto;color:#fff;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;}",
       ".fdcp-home-focus-sidebar::-webkit-scrollbar{width:6px;height:6px;}",
@@ -69,6 +69,8 @@
       ".fdcp-home-focus-counter{font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.06em;text-shadow:0 1px 4px rgba(0,0,0,0.6);}",
       ".fdcp-home-focus-viewport{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}",
       ".fdcp-home-focus-media{width:100%;height:100%;object-fit:cover;display:block;background:#000;}",
+      ".fdcp-home-focus-quality-btn:hover{background:rgba(0,0,0,0.75);}",
+      ".fdcp-home-focus-quality-menu button:hover{background:rgba(255,255,255,0.10);}",
       ".fdcp-home-focus-tap{position:absolute;top:0;bottom:0;width:20%;background:transparent;border:0;cursor:pointer;z-index:4;padding:0;}",
       ".fdcp-home-focus-tap.prev{left:0;}",
       ".fdcp-home-focus-tap.next{right:0;}",
@@ -90,11 +92,12 @@
       "  .fdcp-home-focus-arrow{display:flex;position:fixed;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(0,0,0,0.55);z-index:8;}",
       "  .fdcp-home-focus-arrow.is-prev{left:calc(8px + env(safe-area-inset-left,0px));}",
       "  .fdcp-home-focus-arrow.is-next{right:calc(8px + env(safe-area-inset-right,0px));}",
-      "  .fdcp-home-focus-top-close{top:calc(48px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));right:auto;transform:none;width:44px;height:44px;background:rgba(0,0,0,0.55);z-index:9;}",
+      "  .fdcp-home-focus-top-close{top:calc(48px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));left:auto;transform:none;width:44px;height:44px;background:rgba(0,0,0,0.55);background-image:none;box-shadow:none;z-index:9;}",
+      "  .fdcp-home-focus-top-close:hover{filter:none;background:rgba(0,0,0,0.7);box-shadow:none;}",
       "  .fdcp-home-focus-progress{padding:calc(14px + env(safe-area-inset-top,0px)) 12px 8px;}",
-      "  .fdcp-home-focus-header{top:calc(56px + env(safe-area-inset-top,0px));left:calc(64px + env(safe-area-inset-left,0px));right:56px;flex-direction:column;align-items:flex-start;justify-content:center;}",
+      "  .fdcp-home-focus-header{top:calc(56px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));right:64px;flex-direction:column;align-items:flex-start;justify-content:center;}",
       "  .fdcp-home-focus-counter{align-self:flex-start;}",
-      "  .fdcp-home-focus-caption{top:calc(74px + env(safe-area-inset-top,0px));bottom:auto;left:12px;right:12px;background:rgba(0,0,0,0.55);max-height:30vh;overflow-y:auto;}",
+      "  .fdcp-home-focus-caption{top:calc(74px + env(safe-area-inset-top,0px));bottom:auto;left:12px;right:64px;background:rgba(0,0,0,0.55);max-height:30vh;overflow-y:auto;}",
       "  .fdcp-home-focus-mobilenav{display:none;}",
       "}",
       "@media (max-width:640px){",
@@ -169,8 +172,11 @@
       return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     }
     function isVideo(url) {
-      return /\.(mp4|mov|webm|m4v|ogg)(\?|#|$)/i.test(url)
+      return /\.(mp4|mov|webm|m4v|ogg|m3u8)(\?|#|$)/i.test(url)
           || /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+    }
+    function isHls(url) {
+      return /\.m3u8(\?|#|$)/i.test(String(url || ""));
     }
     // Extracts the 11-char video id from any YouTube URL form, including
     // Shorts (youtube.com/shorts/ID), watch?v=ID, youtu.be/ID and /embed/ID.
@@ -319,10 +325,14 @@
             if (assets[i].thumb) { cover = assets[i].thumb; break; }
           }
           // No image thumbnail anywhere (e.g. single S3 .mp4 story) — fall back
-          // to the first native video so the card shows its first frame.
+          // to the first native video so the card shows its first frame. HLS
+          // (.m3u8) is excluded: it won't render in a bare <video> off Safari,
+          // and loading hls.js just for a static thumbnail isn't worth it.
           if (!cover) {
             for (var j = 0; j < assets.length; j++) {
-              if (assets[j].type === "video" && assets[j].src) { coverVideo = assets[j].src; break; }
+              if (assets[j].type === "video" && assets[j].src && !isHls(assets[j].src)) {
+                coverVideo = assets[j].src; break;
+              }
             }
           }
           return {
@@ -744,13 +754,18 @@
     function renderMedia() {
       var asset = activeAsset();
       if (!refs.viewport || !asset) return;
+      destroyActiveHls();   // drop any hls.js instance from the previous asset
       refs.viewport.textContent = "";
       var mediaEl;
       var ytVideoId = "";   // set when this asset is a YouTube (incl. Shorts) embed
       var interactive = (asset.type === "video" || asset.type === "iframe");
       if (asset.type === "video") {
         mediaEl = document.createElement("video");
-        mediaEl.src = asset.src;
+        // HLS on non-Safari is wired by hls.js after append (setupHlsPlayback) —
+        // leave src unset there. Native-HLS browsers + progressive files set it.
+        if (!(isHls(asset.src) && !canPlayNativeHls())) {
+          mediaEl.src = asset.src;
+        }
         mediaEl.controls = true;
         mediaEl.autoplay = true;
         mediaEl.playsInline = true;
@@ -782,6 +797,11 @@
       }
       mediaEl.className = "fdcp-home-focus-media";
       refs.viewport.appendChild(mediaEl);
+      // HLS (.m3u8) story on a non-Safari browser: attach hls.js + quality gear.
+      // Native-HLS browsers already have src set and stream with native ABR.
+      if (asset.type === "video" && isHls(asset.src) && !canPlayNativeHls()) {
+        setupHlsPlayback(mediaEl, asset.src);
+      }
       // Tap zones always navigate prev/next, even over videos/iframes. They only
       // cover the upper part of the frame (see .fdcp-home-focus-tap CSS bottom
       // offset), so the player's bottom control bar stays clickable underneath.
@@ -810,6 +830,161 @@
       } else {
         startTimerAutoAdvance(PHOTO_AUTO_MS);
       }
+    }
+
+    // HLS PLAYBACK (selectable quality) — mirrors gallery.html. A story video
+    // can be a single .m3u8 master that references every rendition. Safari/iOS
+    // play it natively (native ABR, no gear). Other browsers get hls.js, lazy-
+    // loaded from a CDN on first use and memoized for the session.
+    var HLS_CDN = "https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
+    var ACTIVE_HLS = null;
+    var _hlsPromise = null;
+
+    function canPlayNativeHls() {
+      var v = document.createElement("video");
+      return !!(v.canPlayType && (
+        v.canPlayType("application/vnd.apple.mpegurl") ||
+        v.canPlayType("application/x-mpegURL")
+      ));
+    }
+
+    function ensureHls() {
+      if (window.Hls) return Promise.resolve(window.Hls);
+      if (_hlsPromise) return _hlsPromise;
+      _hlsPromise = new Promise(function (resolve) {
+        var s = document.createElement("script");
+        s.src = HLS_CDN;
+        s.async = true;
+        s.onload = function () {
+          resolve(window.Hls && window.Hls.isSupported() ? window.Hls : null);
+        };
+        s.onerror = function () {
+          if (window.console) console.warn("[FDCP home stories] hls.js failed to load from CDN");
+          _hlsPromise = null;
+          resolve(null);
+        };
+        document.head.appendChild(s);
+      });
+      return _hlsPromise;
+    }
+
+    function destroyActiveHls() {
+      if (ACTIVE_HLS) {
+        try { ACTIVE_HLS.destroy(); } catch (e) {}
+        ACTIVE_HLS = null;
+      }
+    }
+
+    function setupHlsPlayback(video, url) {
+      ensureHls().then(function (Hls) {
+        if (!video.isConnected) return;
+        if (!Hls) { video.src = url; return; }
+
+        var hls = new Hls({ enableWorker: true });
+        ACTIVE_HLS = hls;
+        var recovered = false;
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          buildQualityMenu(video, hls, Hls);
+          var p = video.play(); if (p && p.catch) p.catch(function () {});
+        });
+
+        hls.on(Hls.Events.ERROR, function (evt, data) {
+          if (!data || !data.fatal) return;
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) {
+            recovered = true;
+            try { hls.recoverMediaError(); return; } catch (e) {}
+          }
+          if (window.console) console.warn("[FDCP home stories] HLS fatal error", data.type);
+          try { hls.destroy(); } catch (e) {}
+          if (ACTIVE_HLS === hls) ACTIVE_HLS = null;
+        });
+
+        hls.loadSource(url);
+        hls.attachMedia(video);
+      });
+    }
+
+    function buildQualityMenu(video, hls, Hls) {
+      var host = video.parentNode;
+      if (!host) return;
+
+      var seen = {};
+      var heights = [];
+      (hls.levels || []).forEach(function (lvl, i) {
+        var h = lvl.height || 0;
+        if (!h || seen[h] != null) return;
+        seen[h] = i;
+        heights.push(h);
+      });
+      heights.sort(function (a, b) { return b - a; });
+      if (heights.length < 2) return;
+
+      var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fdcp-home-focus-quality-btn";
+      btn.setAttribute("aria-label", "Video quality");
+      btn.innerHTML = GEAR;
+      btn.style.cssText = "position:absolute;top:14px;right:14px;z-index:6;width:40px;height:40px;"
+        + "display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:9999px;"
+        + "background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);";
+
+      var menu = document.createElement("div");
+      menu.className = "fdcp-home-focus-quality-menu";
+      menu.style.cssText = "position:absolute;top:60px;right:14px;z-index:6;display:none;min-width:128px;"
+        + "padding:6px;border-radius:12px;background:rgba(20,20,20,0.96);color:#fff;"
+        + "box-shadow:0 8px 24px rgba(0,0,0,0.5);font-size:13px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);";
+
+      var rows = [];
+      function addRow(label, value, height) {
+        var item = document.createElement("button");
+        item.type = "button";
+        item.textContent = label;
+        item.setAttribute("data-level", String(value));
+        item.style.cssText = "display:block;width:100%;text-align:left;padding:8px 12px;border:0;border-radius:8px;"
+          + "background:transparent;color:#fff;cursor:pointer;font-size:13px;line-height:1.2;white-space:nowrap;";
+        item.addEventListener("click", function () {
+          hls.currentLevel = value;
+          setActive(value);
+          closeMenu();
+        });
+        menu.appendChild(item);
+        rows.push({ value: value, height: height, el: item });
+      }
+
+      addRow("Auto", -1, null);
+      heights.forEach(function (h) { addRow(h + "p", seen[h], h); });
+
+      function setActive(value) {
+        rows.forEach(function (r) {
+          var on = r.value === value;
+          r.el.style.background = on ? "rgba(255,255,255,0.16)" : "transparent";
+          r.el.style.fontWeight = on ? "700" : "400";
+        });
+      }
+      function refreshAutoLabel() {
+        var autoRow = rows[0];
+        if (hls.autoLevelEnabled && hls.currentLevel >= 0 && hls.levels[hls.currentLevel]) {
+          autoRow.el.textContent = "Auto (" + hls.levels[hls.currentLevel].height + "p)";
+        } else if (hls.autoLevelEnabled) {
+          autoRow.el.textContent = "Auto";
+        }
+      }
+      hls.on(Hls.Events.LEVEL_SWITCHED, refreshAutoLabel);
+
+      function openMenu() { menu.style.display = "block"; document.addEventListener("click", onDocClick, true); }
+      function closeMenu() { menu.style.display = "none"; document.removeEventListener("click", onDocClick, true); }
+      function onDocClick(e) { if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closeMenu(); }
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (menu.style.display === "block") closeMenu(); else openMenu();
+      });
+
+      setActive(-1);
+      host.appendChild(btn);
+      host.appendChild(menu);
     }
 
     // AUTO-ADVANCE — see clearAuto()/advanceAuto() below. clearAuto() runs at
@@ -1006,6 +1181,7 @@
       modalEl.style.display = "none";
       document.body.style.overflow = "";
       clearAuto();
+      destroyActiveHls();
       if (refs.viewport) {
         var v = refs.viewport.querySelector("video");
         if (v) { try { v.pause(); } catch (e) {} }
