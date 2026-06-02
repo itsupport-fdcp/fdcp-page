@@ -1044,59 +1044,180 @@
       return c.toDataURL("image/jpeg", 0.6);   // 0.6 = small file, fine at thumb sizes
     }
 
+    // Mean luma (0–255) of the current frame, sampled on a tiny canvas so it's
+    // cheap to call on every presented frame. Lets us skip the black/fade-in
+    // lead-in that opens most reels. Returns "taint" for a CORS-blocked canvas
+    // (permanent) or -1 if the frame isn't decodable yet.
+    function frameBrightness(video) {
+      var vw = video.videoWidth, vh = video.videoHeight;
+      if (!vw || !vh) return -1;
+      var c = document.createElement("canvas");
+      c.width = 32; c.height = Math.max(1, Math.round(32 * vh / vw));
+      var ctx = c.getContext("2d");
+      ctx.drawImage(video, 0, 0, c.width, c.height);
+      try {
+        var d = ctx.getImageData(0, 0, c.width, c.height).data, sum = 0;
+        for (var i = 0; i < d.length; i += 4) sum += (d[i] + d[i + 1] + d[i + 2]) / 3;
+        return sum / (d.length / 4);
+      } catch (e) { return "taint"; }   // cross-origin canvas — pixels unreadable
+    }
+
+    var HLS_MIN_BRIGHT  = 16;   // frames dimmer than this ≈ black; keep scanning
+    var HLS_TARGET_SECS = 2;    // skip the fade-in: don't grab a cover before this point
+    var HLS_SCAN_SECS   = 6;    // stop hunting for a good frame after this
+    var HLS_FF_RATE     = 8;    // fast-forward the muted capture video to the target
+
+    // Persistent thumbnail cache (localStorage). A capture plays a couple
+    // seconds of video, so once a cover is grabbed we keep it forever, keyed by
+    // stream URL. Repeat visits — and the gallery stories strip on the same
+    // origin — then paint instantly with no capture and no fade-in flash.
+    var HLS_THUMB_PREFIX = "fdcp_hls_thumb_v1::";
+
+    function thumbStoreGet(url) {
+      try {
+        var raw = localStorage.getItem(HLS_THUMB_PREFIX + url);
+        if (!raw) return null;
+        var o = JSON.parse(raw);
+        return o && o.d ? o.d : null;
+      } catch (e) { return null; }
+    }
+
+    function thumbStoreSet(url, dataUrl) {
+      if (!dataUrl) return;
+      var rec = JSON.stringify({ d: dataUrl, t: Date.now() });
+      try { localStorage.setItem(HLS_THUMB_PREFIX + url, rec); return; }
+      catch (e) { /* out of quota — evict the oldest half and retry once below */ }
+      try {
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf(HLS_THUMB_PREFIX) === 0) {
+            var t = 0; try { t = (JSON.parse(localStorage.getItem(k)) || {}).t || 0; } catch (e2) {}
+            keys.push({ k: k, t: t });
+          }
+        }
+        keys.sort(function (a, b) { return a.t - b.t; });
+        for (var j = 0; j < Math.ceil(keys.length / 2); j++) localStorage.removeItem(keys[j].k);
+        localStorage.setItem(HLS_THUMB_PREFIX + url, rec);
+      } catch (e3) { /* give up; the in-memory cache still serves this session */ }
+    }
+
+    // One capture at a time. iOS historically decodes only a single <video> at
+    // once, so concurrent captures would leave all-but-one black; serializing
+    // also keeps mobile CPU/battery sane. Covers are lazy + cached, so the queue
+    // drains fast enough.
+    var _hlsCaptureChain = Promise.resolve();
+
     function captureHlsFrame(url) {
       if (HLS_FRAME_CACHE[url]) return HLS_FRAME_CACHE[url];
-      var p = ensureHls().then(function (Hls) {
-        var nativeOK = canPlayNativeHls();
-        if (!Hls && !nativeOK) return null;
-        return new Promise(function (resolve) {
-          var video = document.createElement("video");
-          video.crossOrigin = "anonymous";   // required for a CORS-clean canvas
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute("playsinline", "");
-          video.preload = "auto";
-          video.style.cssText = "position:fixed;left:-9999px;top:0;width:160px;height:284px;opacity:0;pointer-events:none;";
-          document.body.appendChild(video);
 
-          var hls = null, done = false, timer = 0;
-          function cleanup() {
-            if (timer) { clearTimeout(timer); timer = 0; }
-            if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
-            if (video.parentNode) video.parentNode.removeChild(video);
-          }
-          function finish(val) { if (done) return; done = true; cleanup(); resolve(val); }
-          function grab() {
-            if (done) return;
-            if (video.readyState >= 2 && video.videoWidth > 0) {
-              try { finish(frameToCompressedDataURL(video, HLS_COVER_MAXW)); }
-              catch (e) {
-                if (window.console) console.warn("[FDCP home stories] HLS cover capture blocked (CORS?)", e && e.name);
-                finish(null);
-              }
+      // Persistent cache hit → paint instantly, no capture, no fade-in.
+      var stored = thumbStoreGet(url);
+      if (stored) { var hit = Promise.resolve(stored); HLS_FRAME_CACHE[url] = hit; return hit; }
+
+      function run() {
+        return ensureHls().then(function (Hls) {
+          var nativeOK = canPlayNativeHls();
+          if (!Hls && !nativeOK) return null;
+          return new Promise(function (resolve) {
+            var video = document.createElement("video");
+            video.crossOrigin = "anonymous";   // required for a CORS-clean canvas
+            video.muted = true;
+            video.playsInline = true;
+            video.setAttribute("playsinline", "");
+            video.setAttribute("webkit-playsinline", "");
+            video.preload = "auto";
+            // MUST be in the viewport and actually rendered (not display:none,
+            // not offscreen): mobile browsers refuse to decode an invisible or
+            // off-screen <video>, so the old left:-9999px element painted pure
+            // black on phones. A 1px, ~1%-opacity element on top decodes
+            // normally yet is imperceptible to the user.
+            video.style.cssText = "position:fixed;left:0;top:0;width:1px;height:1px;" +
+              "opacity:0.01;pointer-events:none;z-index:2147483647;border:0;margin:0;padding:0;";
+            document.body.appendChild(video);
+
+            var hls = null, done = false, timer = 0;
+            var bestBright = -1, bestData = null;
+
+            function cleanup() {
+              if (timer) { clearTimeout(timer); timer = 0; }
+              if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
+              if (video.parentNode) video.parentNode.removeChild(video);
             }
-          }
-          video.addEventListener("loadeddata", function () { try { video.currentTime = 1.5; } catch (e) {} });
-          video.addEventListener("seeked", grab);
-          video.addEventListener("canplay", grab);
-          video.addEventListener("error", function () { finish(null); });
-          timer = setTimeout(function () { finish(null); }, 15000);
+            function finish(val) { if (done) return; done = true; cleanup(); resolve(val); }
+            // Inspect the current frame. Bail on a CORS taint; otherwise, once
+            // we're past the ~2s fade-in, take the first non-black frame as the
+            // cover. Track the brightest frame as a fallback for short/dark clips.
+            function grab() {
+              if (done) return;
+              if (video.readyState < 2 || !video.videoWidth) return;
+              var b = frameBrightness(video);
+              if (b === "taint") {
+                if (window.console) console.warn("[FDCP home stories] HLS cover capture blocked (CORS?)");
+                finish(null); return;
+              }
+              if (b < 0) return;                       // frame not decodable yet
+              // Past the fade-in and bright enough → this is the thumbnail.
+              if (video.currentTime >= HLS_TARGET_SECS && b >= HLS_MIN_BRIGHT) {
+                try { finish(frameToCompressedDataURL(video, HLS_COVER_MAXW)); }
+                catch (e) {
+                  if (window.console) console.warn("[FDCP home stories] HLS cover capture blocked (CORS?)");
+                  finish(null);
+                }
+                return;
+              }
+              // Fallback: keep the brightest frame, used if the clip ends or the
+              // scan times out before we get a clean post-fade frame.
+              if (b > bestBright) {
+                bestBright = b;
+                try { bestData = frameToCompressedDataURL(video, HLS_COVER_MAXW); }
+                catch (e) { finish(null); return; }
+              }
+              if (video.currentTime >= HLS_SCAN_SECS) finish(bestData);
+            }
 
-          if (Hls) {
-            hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-              try { hls.currentLevel = 0; } catch (e) {}   // lowest rendition: fast + light
+            // requestVideoFrameCallback only fires for frames actually painted
+            // to the compositor, so we never sample an undecoded (black) buffer.
+            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+              var pump = function () { if (done) return; grab(); if (!done) { try { video.requestVideoFrameCallback(pump); } catch (e) {} } };
+              try { video.requestVideoFrameCallback(pump); } catch (e) {}
+            } else {
+              video.addEventListener("loadeddata", grab);
+              video.addEventListener("canplay", grab);
+              video.addEventListener("timeupdate", grab);
+              video.addEventListener("seeked", grab);
+            }
+            video.addEventListener("error", function () { finish(bestData); });
+            video.addEventListener("ended", function () { finish(bestData); });   // short clip
+            timer = setTimeout(function () { finish(bestData); }, 12000);
+
+            if (Hls) {
+              hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
+              hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                try { hls.currentLevel = 0; } catch (e) {}   // lowest rendition: fast + light
+                try { video.playbackRate = HLS_FF_RATE; } catch (e) {}   // fast-forward to the target
+                video.play().catch(function () {});
+              });
+              hls.on(Hls.Events.ERROR, function (evt, data) { if (data && data.fatal) finish(bestData); });
+              hls.loadSource(url);
+              hls.attachMedia(video);
+            } else {
+              video.src = url;
+              try { video.playbackRate = HLS_FF_RATE; } catch (e) {}
               video.play().catch(function () {});
-            });
-            hls.on(Hls.Events.ERROR, function (evt, data) { if (data && data.fatal) finish(null); });
-            hls.loadSource(url);
-            hls.attachMedia(video);
-          } else {
-            video.src = url;
-            video.play().catch(function () {});
-          }
-        });
-      }).catch(function () { return null; });
+            }
+          });
+        }).catch(function () { return null; });
+      }
+
+      // Run captures one after another (see _hlsCaptureChain note). run() never
+      // rejects, so the chain can't stall on a single broken stream. Persist the
+      // result so it's never re-captured (and never re-shows a fade-in flash).
+      var p = _hlsCaptureChain.then(run, run).then(function (dataUrl) {
+        if (dataUrl) thumbStoreSet(url, dataUrl);
+        return dataUrl;
+      });
+      _hlsCaptureChain = p.catch(function () {});
       HLS_FRAME_CACHE[url] = p;
       return p;
     }
