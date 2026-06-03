@@ -466,11 +466,20 @@
   <div class="py-20 px-6 space-y-10 lg:py-[127px] lg:px-40 lg:space-y-20">
 
     <div class="max-w-screen-sm mx-auto text-center">
-      <h2 class="text-[55px] font-bold text-center">Upcoming Events</h2>
-      <p>Important Dates at a Glance</p>
+      <h2 id="fdcp-events-heading" class="text-[55px] font-bold text-center">Upcoming Events</h2>
+      <p id="fdcp-events-subtitle">Important Dates at a Glance</p>
     </div>
 
     <div class="max-w-screen-lg mx-auto">
+      <!-- Upcoming / Previous mode toggle — switches the list between future and past events -->
+      <div id="fdcp-events-mode" role="tablist" aria-label="Upcoming or previous events"
+           style="display:flex;justify-content:center;gap:0;margin-bottom:24px;">
+        <button type="button" data-mode="upcoming" role="tab" aria-selected="true"
+                style="min-height:44px;padding:10px 28px;border-radius:9999px 0 0 9999px;border:1px solid transparent;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Upcoming</button>
+        <button type="button" data-mode="previous" role="tab" aria-selected="false"
+                style="min-height:44px;padding:10px 28px;border-radius:0 9999px 9999px 0;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:14px;font-weight:700;cursor:pointer;">Previous</button>
+      </div>
+
       <!-- Search bar — filters upcoming events by title, location, or description -->
       <div id="fdcp-events-search-wrap"
            style="display:flex;align-items:center;gap:10px;max-width:520px;margin:0 auto 20px;padding:0 14px;border-radius:9999px;border:1px solid #E5E7EB;background:#fff;box-shadow:0 1px 2px rgba(15,15,15,0.04);box-sizing:border-box;">
@@ -916,7 +925,10 @@
   }
 
   var ALL_UPCOMING = []; // populated once, then filtered on each render
+  var ALL_PAST     = []; // past events, most-recent first — shown in "Previous" mode
   var ALL_EVENTS   = []; // every row with a valid start date — used by the calendar
+  var VIEW_MODE    = "upcoming"; // "upcoming" | "previous"
+  var PAST_PAGE_SIZE = 8;        // past events paginate by count, not date window
   var CAL_VIEW     = { year: 0, month: 0 }; // 0-indexed month
   var PILL_COLORS  = ["#0B8043", "#FFCC00", "#580076", "#E200A9", "#0096E2"];
 
@@ -953,11 +965,12 @@
       var s = JSON.parse(raw);
       if (s && typeof s.filter === "string") CURRENT_FILTER = s.filter;
       if (s && typeof s.page === "number" && s.page >= 1) CURRENT_PAGE = s.page;
+      if (s && (s.mode === "upcoming" || s.mode === "previous")) VIEW_MODE = s.mode;
     } catch (e) { /* ignore */ }
   }
   function saveState() {
     try {
-      sessionStorage.setItem(STATE_KEY, JSON.stringify({ filter: CURRENT_FILTER, page: CURRENT_PAGE }));
+      sessionStorage.setItem(STATE_KEY, JSON.stringify({ filter: CURRENT_FILTER, page: CURRENT_PAGE, mode: VIEW_MODE }));
     } catch (e) { /* ignore */ }
   }
 
@@ -975,6 +988,32 @@
   // week/month return a bounded slice; all/multiday use 30-day windows from today
   function buildPage() {
     var today = startOfDay(new Date());
+
+    // Previous mode: a flat, most-recent-first list of past events, paginated by
+    // count. Date chips (week/month/multiday) don't apply here; search still does.
+    if (VIEW_MODE === "previous") {
+      var src = ALL_PAST;
+      if (SEARCH_QUERY) {
+        var pHits = src.filter(function (x) { return matchesSearch(x.row, SEARCH_QUERY); });
+        return {
+          items: pHits, paginated: false, search: true,
+          label: "Found " + pHits.length + " past event" + (pHits.length === 1 ? "" : "s") +
+                 ' matching "' + escapeHtml(SEARCH_QUERY) + '"'
+        };
+      }
+      var pTotalPages = Math.max(1, Math.ceil(src.length / PAST_PAGE_SIZE));
+      if (CURRENT_PAGE > pTotalPages) CURRENT_PAGE = pTotalPages;
+      if (CURRENT_PAGE < 1) CURRENT_PAGE = 1;
+      var pStart = (CURRENT_PAGE - 1) * PAST_PAGE_SIZE;
+      var pItems = src.slice(pStart, pStart + PAST_PAGE_SIZE);
+      return {
+        items: pItems, paginated: true, page: CURRENT_PAGE, totalPages: pTotalPages, base: src,
+        label: src.length
+          ? ("Showing " + (pStart + 1) + "–" + (pStart + pItems.length) + " of " +
+             src.length + " past event" + (src.length === 1 ? "" : "s"))
+          : ""
+      };
+    }
 
     // Search mode: ignore date filters/pagination and show every upcoming event
     // whose title, location, or description matches the query.
@@ -1067,9 +1106,14 @@
     container.innerHTML = "";
     if (pagination) pagination.innerHTML = "";
 
-    if (!ALL_UPCOMING.length) {
+    var activeSource = VIEW_MODE === "previous" ? ALL_PAST : ALL_UPCOMING;
+    if (!activeSource.length) {
       container.innerHTML =
-        '<div class="text-center py-20 text-gray-500">No upcoming events at the moment.</div>';
+        '<div class="text-center py-20 text-gray-500">' +
+        (VIEW_MODE === "previous"
+          ? "No previous events to show yet."
+          : "No upcoming events at the moment.") +
+        '</div>';
       return;
     }
 
@@ -1078,7 +1122,8 @@
     if (!page.items.length) {
       if (page.search) {
         container.innerHTML =
-          '<div class="text-center py-16 text-gray-500"><p class="mb-3">No upcoming events match "' +
+          '<div class="text-center py-16 text-gray-500"><p class="mb-3">No ' +
+          (VIEW_MODE === "previous" ? "past" : "upcoming") + ' events match "' +
           escapeHtml(SEARCH_QUERY) + '".</p>' +
           '<button type="button" data-fdcp-clear-search class="fdcp-chip" style="background:transparent;color:#580076;border:1px solid #580076;">Clear search</button></div>';
         return;
@@ -1306,6 +1351,49 @@
     btn.setAttribute("style", active ? CHIP_STYLE_ACTIVE : CHIP_STYLE_INACTIVE);
   }
 
+  // Reflect VIEW_MODE across the toggle buttons, heading copy, search placeholder,
+  // and the date-filter chip row (which only makes sense for upcoming events).
+  // Inline styles (not class swaps) so the look survives Drupal stripping the <style> block.
+  var MODE_BTN_ACTIVE   = "min-height:44px;padding:10px 28px;border:1px solid transparent;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;font-size:14px;font-weight:700;cursor:pointer;";
+  var MODE_BTN_INACTIVE = "min-height:44px;padding:10px 28px;border:1px solid #E5E7EB;background:#F5F2FF;color:#580076;font-size:14px;font-weight:700;cursor:pointer;";
+  function updateModeUI() {
+    document.querySelectorAll('#fdcp-events-mode button[data-mode]').forEach(function (b) {
+      var active = b.dataset.mode === VIEW_MODE;
+      var radius = b.dataset.mode === "upcoming" ? "9999px 0 0 9999px" : "0 9999px 9999px 0";
+      b.setAttribute("style", (active ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE) + "border-radius:" + radius + ";");
+      b.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    var isPrev = VIEW_MODE === "previous";
+    var heading  = document.getElementById("fdcp-events-heading");
+    var subtitle = document.getElementById("fdcp-events-subtitle");
+    var search   = document.getElementById("fdcp-events-search");
+    var filters  = document.getElementById("fdcp-events-filters");
+    if (heading)  heading.textContent  = isPrev ? "Previous Events" : "Upcoming Events";
+    if (subtitle) subtitle.textContent = isPrev ? "A Look Back at Past Events" : "Important Dates at a Glance";
+    if (search)   search.setAttribute("placeholder", isPrev ? "Search past events…" : "Search upcoming events…");
+    // Date chips are upcoming-only; hide the whole row in previous mode.
+    if (filters)  filters.style.display = isPrev ? "none" : "flex";
+  }
+
+  function setViewMode(mode) {
+    if (mode !== "upcoming" && mode !== "previous") return;
+    if (mode === VIEW_MODE) return;
+    VIEW_MODE = mode;
+    CURRENT_PAGE = 1;
+    // Switching modes exits search so the new list shows in full.
+    if (SEARCH_QUERY) {
+      SEARCH_QUERY = "";
+      var sEl = document.getElementById("fdcp-events-search");
+      if (sEl) sEl.value = "";
+      var sClear = document.getElementById("fdcp-events-search-clear");
+      if (sClear) sClear.hidden = true;
+    }
+    saveState();
+    updateModeUI();
+    render();
+  }
+
   function syncChipActiveState() {
     document.querySelectorAll('#fdcp-events-filters button').forEach(function (b) {
       var active = b.dataset.filter === CURRENT_FILTER;
@@ -1330,6 +1418,8 @@
       .sort(function (a, b) { return a.start - b.start; });
 
     ALL_UPCOMING = ALL_EVENTS.filter(function (x) { return x.start >= today; });
+    // Past events, most-recent first (ALL_EVENTS is ascending, so reverse).
+    ALL_PAST = ALL_EVENTS.filter(function (x) { return x.start < today; }).reverse();
 
     renderStatsBand();
     updateMultidayChipVisibility();
@@ -1828,6 +1918,16 @@
 
     loadState();
     syncChipActiveState();
+    updateModeUI();
+
+    var modeEl = document.getElementById("fdcp-events-mode");
+    if (modeEl) {
+      modeEl.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-mode]");
+        if (!btn) return;
+        setViewMode(btn.dataset.mode);
+      });
+    }
 
     // render calendar shell immediately; events fill in after ingest()
     var today = new Date();

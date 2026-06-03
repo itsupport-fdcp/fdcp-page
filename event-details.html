@@ -481,8 +481,11 @@
         .map(function (u) {
           var drive = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/i);
           if (drive) return {
-            thumb: "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w1600",
-            full:  "https://drive.google.com/file/d/" + drive[1] + "/view"
+            // Grid tile: small, auto-compressed thumbnail (fast to load).
+            thumb: "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w600",
+            // Modal: high-res render of the same image (still served as an
+            // <img>, so we can blur-up from the thumb while it loads).
+            full:  "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w2048"
           };
           if (/^https?:\/\//i.test(u)) return { thumb: u, full: u };
           return null;
@@ -632,6 +635,110 @@
     set("fdcp-pe-chip-label", v.chip);
   }
 
+  // Lightbox modal for the photo grid. Clicking a tile opens a full-screen
+  // overlay that shows the compressed thumbnail immediately (scaled up +
+  // blurred) and fades in the high-res image on top once it has loaded —
+  // a "blur-up" progressive reveal so there's never a blank/black flash.
+  // Built entirely in JS + inline styles so Drupal's HTML filter can't
+  // strip it (see the CTA survival notes above).
+  var _lightbox = null;
+  function buildLightbox() {
+    if (_lightbox) return _lightbox;
+
+    var overlay = document.createElement("div");
+    overlay.setAttribute(
+      "style",
+      "position:fixed;inset:0;z-index:9999;display:none;align-items:center;" +
+      "justify-content:center;background:rgba(8,2,12,0.92);padding:24px;" +
+      "opacity:0;transition:opacity 0.25s ease;cursor:zoom-out;"
+    );
+
+    // Stage holds the two stacked images (blur thumb + sharp full).
+    var stage = document.createElement("div");
+    stage.setAttribute(
+      "style",
+      "position:relative;max-width:92vw;max-height:88vh;display:flex;" +
+      "align-items:center;justify-content:center;"
+    );
+
+    var blur = document.createElement("img");
+    blur.setAttribute(
+      "style",
+      "max-width:92vw;max-height:88vh;width:auto;height:auto;display:block;" +
+      "border-radius:10px;filter:blur(18px);transform:scale(1.04);" +
+      "transition:opacity 0.4s ease;"
+    );
+
+    var full = document.createElement("img");
+    full.setAttribute(
+      "style",
+      "position:absolute;inset:0;margin:auto;max-width:92vw;max-height:88vh;" +
+      "width:auto;height:auto;display:block;border-radius:10px;opacity:0;" +
+      "transition:opacity 0.45s ease;box-shadow:0 24px 60px -20px rgba(0,0,0,0.7);"
+    );
+
+    // Close button.
+    var close = document.createElement("button");
+    close.setAttribute("aria-label", "Close");
+    close.innerHTML =
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line>' +
+      '<line x1="18" y1="6" x2="6" y2="18"></line></svg>';
+    close.setAttribute(
+      "style",
+      "position:fixed;top:18px;right:20px;width:44px;height:44px;border:0;" +
+      "border-radius:9999px;background:rgba(255,255,255,0.12);color:#fff;" +
+      "display:flex;align-items:center;justify-content:center;cursor:pointer;" +
+      "backdrop-filter:blur(4px);"
+    );
+
+    stage.appendChild(blur);
+    stage.appendChild(full);
+    overlay.appendChild(stage);
+    overlay.appendChild(close);
+    document.body.appendChild(overlay);
+
+    function hide() {
+      overlay.style.opacity = "0";
+      setTimeout(function () {
+        overlay.style.display = "none";
+        full.src = ""; blur.src = "";
+        document.body.style.overflow = "";
+      }, 250);
+    }
+    overlay.addEventListener("click", function (e) {
+      // Click anywhere outside the sharp image closes it.
+      if (e.target === full) return;
+      hide();
+    });
+    close.addEventListener("click", hide);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && overlay.style.display !== "none") hide();
+    });
+
+    _lightbox = { overlay: overlay, blur: blur, full: full, hide: hide };
+    return _lightbox;
+  }
+
+  function openLightbox(thumbSrc, fullSrc, alt) {
+    var lb = buildLightbox();
+    lb.blur.src = thumbSrc;
+    lb.blur.alt = alt || "";
+    lb.blur.style.opacity = "1";
+    lb.full.alt = alt || "";
+    lb.full.style.opacity = "0";
+    // Fade the sharp image in once it's decoded; keep the blur underneath
+    // until then so the modal is never empty.
+    lb.full.onload = function () { lb.full.style.opacity = "1"; };
+    lb.full.onerror = function () { /* keep showing the blurred thumb */ };
+    lb.full.src = fullSrc;
+
+    document.body.style.overflow = "hidden"; // lock background scroll
+    lb.overlay.style.display = "flex";
+    // next frame → transition the overlay opacity in
+    requestAnimationFrame(function () { lb.overlay.style.opacity = "1"; });
+  }
+
   function render(row) {
       var title = row["Event"] || "(untitled event)";
       document.title = title + " – FDCP";
@@ -748,23 +855,31 @@
         // achieved with min-width on each tile so wrapping is driven by
         // available space, not media queries. Drupal's Tailwind subset
         // strips most arbitrary-value classes (see CLAUDE.md note 10), so
-        // every style here is inline.
+        // every style here is inline. flex-grow is 0 so a lone last photo
+        // keeps the normal tile width instead of stretching across the row.
         photosGrid.setAttribute(
           "style",
           "display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px;"
         );
         photos.forEach(function (p) {
           var a = document.createElement("a");
+          // Real href to the full image so the tile stays right-clickable /
+          // openable in a new tab, but a left click opens the lightbox modal
+          // instead (the thumbnail blurs up to full quality there).
           a.href = p.full;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
           a.setAttribute(
             "style",
-            "flex:1 1 calc((100% - 24px) / 3);min-width:220px;max-width:100%;" +
+            "flex:0 1 calc((100% - 24px) / 3);min-width:220px;max-width:100%;" +
             "display:block;border-radius:12px;overflow:hidden;background:#0b0010;" +
             "box-shadow:0 6px 18px -10px rgba(0,0,0,0.4);aspect-ratio:4/3;" +
-            "position:relative;text-decoration:none;"
+            "position:relative;text-decoration:none;cursor:zoom-in;"
           );
+          a.addEventListener("click", function (e) {
+            // Let modified clicks (new tab / new window) behave normally.
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+            e.preventDefault();
+            openLightbox(p.thumb, p.full, title);
+          });
           var img = document.createElement("img");
           img.src = p.thumb;
           img.alt = title + " — photo";
