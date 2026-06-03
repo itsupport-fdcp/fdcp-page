@@ -523,6 +523,15 @@
       background: #000 !important;
       overflow: hidden !important;
     }
+    .fdcp-focus-viewport.is-player-iframe .fdcp-focus-loader,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-focus-spinner,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-story-loader,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-story-spinner,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-loading,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-loader,
+    .fdcp-focus-viewport.is-player-iframe .fdcp-spinner {
+      display: none !important;
+    }
     .fdcp-focus-media {
       width: 100% !important;
       height: 100% !important;
@@ -3065,15 +3074,19 @@
       var ytVideoId = "";   // set when this asset is a YouTube (incl. Shorts) embed
       var interactive = (asset.type === "video" || asset.type === "iframe");
       var usePlayerIframe = false;
+      var viewport = document.getElementById("fdcp-focus-viewport");
+      if (viewport) viewport.classList.remove("is-player-iframe");
       if (asset.type === "video" && isHls(asset.src) && STORY_PLAYER_BASE) {
         // Self-hosted player iframe: uniform ⚙ quality menu + sharp start, with
         // nothing for Drupal's CSP to strip. It posts playback time back so the
         // segment bar + auto-advance still work (startIframePlayerAutoAdvance).
         usePlayerIframe = true;
+        if (viewport) viewport.classList.add("is-player-iframe");
         el = document.createElement("iframe");
         el.src = STORY_PLAYER_BASE + (STORY_PLAYER_BASE.indexOf("?") >= 0 ? "&" : "?")
           + "src=" + encodeURIComponent(asset.src) + "&autoplay=1&fit=cover"
           + (fdcpIsMobile() ? "&muted=1&controls=0" : "&controls=1");
+        el.setAttribute("data-fdcp-cloudfront-player", "1");
         el.setAttribute("allow", "autoplay; fullscreen; encrypted-media");
         el.setAttribute("allowfullscreen", "");
         el.className = "fdcp-focus-media";
@@ -4004,6 +4017,8 @@
         if (v) { try { v.pause(); } catch (e) {} }
         host.innerHTML = "";
       }
+      var viewport = document.getElementById("fdcp-focus-viewport");
+      if (viewport) viewport.classList.remove("is-player-iframe");
 
       if (FOCUS_STATE.keyHandler) {
         document.removeEventListener("keydown", FOCUS_STATE.keyHandler);
