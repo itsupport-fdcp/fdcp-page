@@ -485,7 +485,7 @@
             thumb: "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w600",
             // Modal: high-res render of the same image (still served as an
             // <img>, so we can blur-up from the thumb while it loads).
-            full:  "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w2048"
+            full:  "https://drive.google.com/thumbnail?id=" + drive[1] + "&sz=w2560"
           };
           if (/^https?:\/\//i.test(u)) return { thumb: u, full: u };
           return null;
@@ -653,29 +653,49 @@
       "opacity:0;transition:opacity 0.25s ease;cursor:zoom-out;"
     );
 
-    // Stage holds the two stacked images (blur thumb + sharp full).
+    // Stage stacks the two images in a single grid cell so they're always
+    // perfectly centered on top of each other regardless of which one is
+    // larger. The sharp "full" image defines the cell size once loaded; the
+    // blurred thumb sits in the same cell underneath until then.
     var stage = document.createElement("div");
     stage.setAttribute(
       "style",
-      "position:relative;max-width:92vw;max-height:88vh;display:flex;" +
-      "align-items:center;justify-content:center;"
+      "display:grid;place-items:center;max-width:92vw;max-height:88vh;"
     );
 
     var blur = document.createElement("img");
     blur.setAttribute(
       "style",
-      "max-width:92vw;max-height:88vh;width:auto;height:auto;display:block;" +
-      "border-radius:10px;filter:blur(18px);transform:scale(1.04);" +
-      "transition:opacity 0.4s ease;"
+      "grid-area:1/1;max-width:92vw;max-height:88vh;width:100%;height:100%;" +
+      "object-fit:contain;display:block;border-radius:10px;filter:blur(16px);" +
+      "transform:scale(1.03);transition:opacity 0.4s ease;"
     );
 
     var full = document.createElement("img");
     full.setAttribute(
       "style",
-      "position:absolute;inset:0;margin:auto;max-width:92vw;max-height:88vh;" +
-      "width:auto;height:auto;display:block;border-radius:10px;opacity:0;" +
-      "transition:opacity 0.45s ease;box-shadow:0 24px 60px -20px rgba(0,0,0,0.7);"
+      "grid-area:1/1;max-width:92vw;max-height:88vh;width:auto;height:auto;" +
+      "display:block;border-radius:10px;opacity:0;transition:opacity 0.45s ease;" +
+      "box-shadow:0 24px 60px -20px rgba(0,0,0,0.7);"
     );
+
+    // Loading spinner — centered over the stage while the high-res image
+    // is still downloading. Hidden as soon as it loads (or errors out).
+    var spinner = document.createElement("div");
+    spinner.setAttribute(
+      "style",
+      "position:fixed;top:50%;left:50%;margin:-24px 0 0 -24px;" +
+      "width:48px;height:48px;border-radius:9999px;" +
+      "border:4px solid rgba(255,255,255,0.25);border-top-color:#fff;" +
+      "animation:fdcp-spin 0.8s linear infinite;pointer-events:none;display:none;"
+    );
+    // Inject the keyframes once (inline @keyframes can't live in a style attr).
+    if (!document.getElementById("fdcp-lightbox-kf")) {
+      var kf = document.createElement("style");
+      kf.id = "fdcp-lightbox-kf";
+      kf.textContent = "@keyframes fdcp-spin{to{transform:rotate(360deg)}}";
+      document.head.appendChild(kf);
+    }
 
     // Close button.
     var close = document.createElement("button");
@@ -689,12 +709,49 @@
       "position:fixed;top:18px;right:20px;width:44px;height:44px;border:0;" +
       "border-radius:9999px;background:rgba(255,255,255,0.12);color:#fff;" +
       "display:flex;align-items:center;justify-content:center;cursor:pointer;" +
-      "backdrop-filter:blur(4px);"
+      "backdrop-filter:blur(4px);z-index:2;"
+    );
+
+    // Prev / Next arrows — fixed to the left/right edges, vertically centered.
+    // Hidden when there's only one photo in the set.
+    function navBtn(side, svg, label) {
+      var b = document.createElement("button");
+      b.setAttribute("aria-label", label);
+      b.innerHTML = svg;
+      b.setAttribute(
+        "style",
+        "position:fixed;top:50%;transform:translateY(-50%);" + side + ":20px;" +
+        "width:48px;height:48px;border:0;border-radius:9999px;" +
+        "background:rgba(255,255,255,0.12);color:#fff;cursor:pointer;" +
+        "display:flex;align-items:center;justify-content:center;" +
+        "backdrop-filter:blur(4px);z-index:2;transition:background 0.2s ease,opacity 0.2s ease;"
+      );
+      return b;
+    }
+    var prev = navBtn("left",
+      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
+      "Previous photo");
+    var next = navBtn("right",
+      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+      "Next photo");
+
+    // Counter pill (e.g. "3 / 8").
+    var counter = document.createElement("div");
+    counter.setAttribute(
+      "style",
+      "position:fixed;top:24px;left:50%;transform:translateX(-50%);" +
+      "padding:6px 14px;border-radius:9999px;background:rgba(0,0,0,0.5);" +
+      "color:#fff;font-size:13px;font-weight:600;letter-spacing:0.04em;" +
+      "backdrop-filter:blur(4px);z-index:2;display:none;"
     );
 
     stage.appendChild(blur);
     stage.appendChild(full);
     overlay.appendChild(stage);
+    overlay.appendChild(spinner);
+    overlay.appendChild(prev);
+    overlay.appendChild(next);
+    overlay.appendChild(counter);
     overlay.appendChild(close);
     document.body.appendChild(overlay);
 
@@ -707,31 +764,84 @@
       }, 250);
     }
     overlay.addEventListener("click", function (e) {
-      // Click anywhere outside the sharp image closes it.
-      if (e.target === full) return;
+      // Click anywhere outside the sharp image / controls closes it.
+      if (e.target === full || e.target === prev || e.target === next ||
+          prev.contains(e.target) || next.contains(e.target)) return;
       hide();
     });
     close.addEventListener("click", hide);
+    prev.addEventListener("click", function (e) { e.stopPropagation(); step(-1); });
+    next.addEventListener("click", function (e) { e.stopPropagation(); step(1); });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && overlay.style.display !== "none") hide();
+      if (overlay.style.display === "none") return;
+      if (e.key === "Escape")     hide();
+      if (e.key === "ArrowLeft")  step(-1);
+      if (e.key === "ArrowRight") step(1);
     });
 
-    _lightbox = { overlay: overlay, blur: blur, full: full, hide: hide };
+    _lightbox = {
+      overlay: overlay, blur: blur, full: full, spinner: spinner,
+      prev: prev, next: next, counter: counter, hide: hide,
+      photos: [], index: 0, alt: ""
+    };
     return _lightbox;
   }
 
-  function openLightbox(thumbSrc, fullSrc, alt) {
-    var lb = buildLightbox();
-    lb.blur.src = thumbSrc;
-    lb.blur.alt = alt || "";
+  // Load the photo at the current index into the lightbox (blur-up + spinner).
+  function lightboxShow() {
+    var lb = _lightbox;
+    var p = lb.photos[lb.index];
+    if (!p) return;
+
+    lb.blur.src = p.thumb;
+    lb.blur.alt = lb.alt || "";
     lb.blur.style.opacity = "1";
-    lb.full.alt = alt || "";
+    lb.full.alt = lb.alt || "";
     lb.full.style.opacity = "0";
+    lb.spinner.style.display = "block"; // show while the high-res downloads
     // Fade the sharp image in once it's decoded; keep the blur underneath
     // until then so the modal is never empty.
-    lb.full.onload = function () { lb.full.style.opacity = "1"; };
-    lb.full.onerror = function () { /* keep showing the blurred thumb */ };
-    lb.full.src = fullSrc;
+    lb.full.onload = function () {
+      lb.full.style.opacity = "1";
+      lb.blur.style.opacity = "0";       // drop the blurred layer so no halo shows
+      lb.spinner.style.display = "none"; // done loading
+    };
+    lb.full.onerror = function () {
+      lb.spinner.style.display = "none"; // keep showing the blurred thumb
+    };
+    lb.full.src = p.full;
+
+    // Update counter + arrow visibility/disabled state.
+    var multi = lb.photos.length > 1;
+    lb.prev.style.display = multi ? "flex" : "none";
+    lb.next.style.display = multi ? "flex" : "none";
+    lb.counter.style.display = multi ? "block" : "none";
+    if (multi) lb.counter.textContent = (lb.index + 1) + " / " + lb.photos.length;
+    lb.prev.disabled = lb.index <= 0;
+    lb.next.disabled = lb.index >= lb.photos.length - 1;
+    lb.prev.style.opacity = lb.prev.disabled ? "0.3" : "1";
+    lb.next.style.opacity = lb.next.disabled ? "0.3" : "1";
+    lb.prev.style.cursor  = lb.prev.disabled ? "default" : "pointer";
+    lb.next.style.cursor  = lb.next.disabled ? "default" : "pointer";
+  }
+
+  function step(delta) {
+    var lb = _lightbox;
+    if (!lb) return;
+    var ni = lb.index + delta;
+    if (ni < 0 || ni >= lb.photos.length) return;
+    lb.index = ni;
+    lightboxShow();
+  }
+
+  // Open the gallery lightbox at a given photo. `photos` is the full array so
+  // the viewer can page prev/next through the whole set.
+  function openLightbox(photos, index, alt) {
+    var lb = buildLightbox();
+    lb.photos = photos || [];
+    lb.index = index || 0;
+    lb.alt = alt || "";
+    lightboxShow();
 
     document.body.style.overflow = "hidden"; // lock background scroll
     lb.overlay.style.display = "flex";
@@ -861,7 +971,7 @@
           "style",
           "display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px;"
         );
-        photos.forEach(function (p) {
+        photos.forEach(function (p, idx) {
           var a = document.createElement("a");
           // Real href to the full image so the tile stays right-clickable /
           // openable in a new tab, but a left click opens the lightbox modal
@@ -878,7 +988,7 @@
             // Let modified clicks (new tab / new window) behave normally.
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
             e.preventDefault();
-            openLightbox(p.thumb, p.full, title);
+            openLightbox(photos, idx, title);
           });
           var img = document.createElement("img");
           img.src = p.thumb;

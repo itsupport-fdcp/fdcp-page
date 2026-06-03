@@ -788,7 +788,10 @@
         if (!(isHls(asset.src) && !canPlayNativeHls())) {
           mediaEl.src = asset.src;
         }
-        mediaEl.controls = true;
+        // Mobile: hide native controls (no play/pause/scrub) so a story just
+        // autoplays — only a spinner shows while it buffers. Desktop keeps full
+        // controls. See fdcpIsMobile() + the spinner wiring below.
+        mediaEl.controls = !fdcpIsMobile();
         mediaEl.autoplay = true;
         mediaEl.playsInline = true;
         mediaEl.setAttribute("playsinline", "");
@@ -844,6 +847,7 @@
       // Player API for accurate timing; Vimeo/Drive iframes fall back to a fixed
       // timer (their playback time isn't readable across origins).
       if (asset.type === "video") {
+        if (fdcpIsMobile()) kickMobileAutoplay(mediaEl);
         startVideoAutoAdvance(mediaEl);
       } else if (ytVideoId) {
         startYouTubeAutoAdvance(mediaEl, ytVideoId);
@@ -1299,6 +1303,28 @@
         AUTO.raf = requestAnimationFrame(tick);
       }
       AUTO.raf = requestAnimationFrame(tick);
+    }
+
+    // True on phone-width viewports — mirrors the 768px CSS breakpoint. Used to
+    // strip the focus video's native controls so stories just autoplay.
+    function fdcpIsMobile() {
+      return !!(window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+    }
+
+    // Mobile story video: controls are hidden, so force-kick autoplay. If the
+    // browser blocks autoplay-with-sound on a programmatic auto-advance, fall
+    // back to muted so the story never stalls.
+    function kickMobileAutoplay(video) {
+      function kick() {
+        var p = video.play();
+        if (p && p.catch) {
+          p.catch(function () {
+            video.muted = true;
+            video.play().catch(function () {});
+          });
+        }
+      }
+      if (video.readyState >= 1) kick(); else video.addEventListener("loadedmetadata", kick, { once: true });
     }
 
     function startVideoAutoAdvance(video) {
