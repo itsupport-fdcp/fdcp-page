@@ -3064,7 +3064,21 @@
       var el;
       var ytVideoId = "";   // set when this asset is a YouTube (incl. Shorts) embed
       var interactive = (asset.type === "video" || asset.type === "iframe");
-      if (asset.type === "video") {
+      var usePlayerIframe = false;
+      if (asset.type === "video" && isHls(asset.src) && STORY_PLAYER_BASE) {
+        // Self-hosted player iframe: uniform ⚙ quality menu + sharp start, with
+        // nothing for Drupal's CSP to strip. It posts playback time back so the
+        // segment bar + auto-advance still work (startIframePlayerAutoAdvance).
+        usePlayerIframe = true;
+        el = document.createElement("iframe");
+        el.src = STORY_PLAYER_BASE + (STORY_PLAYER_BASE.indexOf("?") >= 0 ? "&" : "?")
+          + "src=" + encodeURIComponent(asset.src) + "&autoplay=1&fit=cover"
+          + (fdcpIsMobile() ? "&muted=1&controls=0" : "&controls=1");
+        el.setAttribute("allow", "autoplay; fullscreen; encrypted-media");
+        el.setAttribute("allowfullscreen", "");
+        el.className = "fdcp-focus-media";
+        el.style.cssText = "width:100%;height:100%;border:0;display:block;background:#000;";
+      } else if (asset.type === "video") {
         el = document.createElement("video");
         // HLS on non-Safari browsers is wired up by hls.js after append (see
         // setupHlsPlayback) — leave src unset there so hls.js owns the source.
@@ -3125,10 +3139,11 @@
       if (tapPrev) tapPrev.style.pointerEvents = interactive ? "none" : "";
       if (tapNext) tapNext.style.pointerEvents = interactive ? "none" : "";
 
-      // HLS (.m3u8) story video on a non-Safari browser: attach hls.js and add
-      // the quality gear menu. Native-HLS browsers already have src set above
-      // and stream with native ABR (no gear). No-op for every other asset type.
-      if (asset.type === "video" && isHls(asset.src) && !canPlayNativeHls()) {
+      // HLS (.m3u8) story video on a non-Safari browser, inline-player path only:
+      // attach hls.js and add the quality gear. (The self-hosted iframe player
+      // owns its own hls.js.) Native-HLS browsers already have src set above and
+      // stream with native ABR. No-op for every other asset type.
+      if (asset.type === "video" && !usePlayerIframe && isHls(asset.src) && !canPlayNativeHls()) {
         setupHlsPlayback(el, asset.src);
       }
 
@@ -3149,8 +3164,12 @@
       // uses the IFrame Player API for accurate timing; Vimeo/Drive iframes
       // can't expose playback time, so they fall back to a fixed timer.
       if (asset.type === "video") {
-        if (fdcpIsMobile()) kickMobileAutoplay(el);
-        startVideoAutoAdvance(el);
+        if (usePlayerIframe) {
+          startIframePlayerAutoAdvance(el);
+        } else {
+          if (fdcpIsMobile()) kickMobileAutoplay(el);
+          startVideoAutoAdvance(el);
+        }
       } else if (ytVideoId) {
         startYouTubeAutoAdvance(el, ytVideoId);
       } else if (asset.type === "iframe") {
@@ -3169,6 +3188,16 @@
     var HLS_CDN = "https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
     var ACTIVE_HLS = null;   // the live Hls instance, so it can be torn down
     var _hlsPromise = null;  // memoized loader; resolves to window.Hls or null
+
+    // Self-hosted story player (optional). Set this to the URL where you've
+    // uploaded fdcp-hls-player.html on FDCP's own S3/CloudFront. When set, HLS
+    // story videos play inside that <iframe> (uniform ⚙ quality menu + sharp
+    // start) instead of the inline native player — no third-party embed and
+    // nothing for Drupal's CSP to strip. Leave "" to use the inline player.
+    var STORY_PLAYER_BASE = "https://d2gve1gf1khwxe.cloudfront.net/uploads/2026-06/aws-test-2026/1780471060520-fdcp-hls-player.html";
+    var STORY_PLAYER_ORIGIN = (function () {
+      try { return STORY_PLAYER_BASE ? new URL(STORY_PLAYER_BASE).origin : ""; } catch (e) { return ""; }
+    })();
 
     function isHls(url) {
       return /\.m3u8(\?|#|$)/i.test(String(url || ""));
@@ -3217,20 +3246,31 @@
     }
 
     // Attach hls.js to a <video> for an .m3u8 source, then (once the manifest
-    // parses) build the quality gear menu from the renditions it exposes. On any
-    // failure we fall back to a plain src set so Safari-class browsers still play
-    // and others at least show the native error rather than a blank frame.
+    // parses) build the self-contained quality gear from the renditions it
+    // exposes. On any failure we fall back to a plain src set so Safari-class
+    // browsers still play and others at least show the native error.
     function setupHlsPlayback(video, url) {
       ensureHls().then(function (Hls) {
         // The viewer may have moved on (or closed) while the CDN loaded.
         if (!video.isConnected) return;
         if (!Hls) { video.src = url; return; }
 
-        var hls = new Hls({ enableWorker: true });
+        // Start near the top rendition instead of hls.js's default low-res ramp:
+        // testBandwidth:false skips the deliberate lowest-quality probe fragment
+        // hls.js otherwise loads first, and the high initial estimate biases the
+        // opening auto pick upward. Still fully adaptive after, so a genuinely
+        // slow line drops back down on its own.
+        var hls = new Hls({
+          enableWorker: true,
+          testBandwidth: false,
+          abrEwmaDefaultEstimate: 5000000
+        });
         ACTIVE_HLS = hls;
         var recovered = false;
 
         hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          // Self-contained quality gear — only needs hls.js (no external player
+          // CDN that Drupal's CSP can block).
           buildQualityMenu(video, hls, Hls);
           var p = video.play(); if (p && p.catch) p.catch(function () {});
         });
@@ -3251,25 +3291,44 @@
       });
     }
 
-    // Build the ⚙ gear button + quality popover for an hls.js stream. Levels are
-    // deduped by height and listed high→low under an "Auto" (adaptive) default.
-    // Everything is styled inline so Drupal's filter can't strip the controls.
+    // Build the ⚙ gear button + quality popover for an hls.js stream. Renditions
+    // are listed high→low under an "Auto" (adaptive) default. Everything is
+    // styled inline so Drupal's filter can't strip the controls.
     function buildQualityMenu(video, hls, Hls) {
       var host = video.parentNode;
       if (!host) return;
 
-      // Collapse renditions to distinct heights, remembering one level index per
-      // height (the menu pins a specific level; Auto restores adaptive mode).
-      var seen = {};
-      var heights = [];
-      (hls.levels || []).forEach(function (lvl, i) {
-        var h = lvl.height || 0;
-        if (!h || seen[h] != null) return;
-        seen[h] = i;
-        heights.push(h);
+      // Label a rendition by its height ("720p"). When a master omits RESOLUTION
+      // (variants distinguished by BANDWIDTH only), fall back to a bitrate label
+      // so the gear still appears instead of silently bailing.
+      function levelLabel(lvl, i) {
+        if (lvl && lvl.height) return lvl.height + "p";
+        var bps = lvl && (lvl.bitrate || lvl.bandwidth);
+        if (bps) {
+          return bps >= 1e6 ? (Math.round(bps / 1e5) / 10) + " Mbps"
+                            : Math.round(bps / 1e3) + " kbps";
+        }
+        return "Level " + (i + 1);
+      }
+
+      // Collect levels high→low, deduped by their visible label (so identical
+      // renditions don't repeat). Each row pins a specific level index; Auto
+      // restores adaptive mode.
+      var levels = hls.levels || [];
+      var seenLabel = {};
+      var items = [];   // {label, level, height, bitrate}
+      levels.forEach(function (lvl, i) {
+        var label = levelLabel(lvl, i);
+        if (seenLabel[label] != null) return;
+        seenLabel[label] = i;
+        items.push({
+          label: label, level: i,
+          height: lvl.height || 0,
+          bitrate: lvl.bitrate || lvl.bandwidth || 0
+        });
       });
-      heights.sort(function (a, b) { return b - a; });
-      if (heights.length < 2) return;   // nothing meaningful to choose
+      items.sort(function (a, b) { return (b.height - a.height) || (b.bitrate - a.bitrate); });
+      if (items.length < 2) return;   // single rendition: nothing to choose
 
       var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
@@ -3317,9 +3376,9 @@
       }
 
       addRow("Auto", -1, null);
-      heights.forEach(function (h) { addRow(h + "p", seen[h], h); });
+      items.forEach(function (it) { addRow(it.label, it.level, it.height); });
 
-      // Highlight the active row; for Auto, show the height it's currently at.
+      // Highlight the active row; for Auto, show the rendition it's currently at.
       function setActive(value) {
         rows.forEach(function (r) {
           var on = r.value === value;
@@ -3330,7 +3389,7 @@
       function refreshAutoLabel() {
         var autoRow = rows[0];
         if (hls.autoLevelEnabled && hls.currentLevel >= 0 && hls.levels[hls.currentLevel]) {
-          autoRow.el.textContent = "Auto (" + hls.levels[hls.currentLevel].height + "p)";
+          autoRow.el.textContent = "Auto (" + levelLabel(hls.levels[hls.currentLevel], hls.currentLevel) + ")";
         } else if (hls.autoLevelEnabled) {
           autoRow.el.textContent = "Auto";
         }
@@ -3358,7 +3417,7 @@
     // stream to be CORS-enabled (Access-Control-Allow-Origin); a tainted canvas
     // throws on toDataURL and we resolve null → the card keeps its dark bg.
     var HLS_FRAME_CACHE = {};   // url -> Promise<dataURL|null>
-    var HLS_COVER_MAXW  = 360;  // capture downscale width (serves 160px card + 56px circle)
+    var HLS_COVER_MAXW  = 480;  // capture downscale width (retina-crisp for the 160px card + 56px circle)
 
     // Draw a video frame to an offscreen canvas no wider than maxW (keeping
     // aspect), then export a compressed JPEG data-URL so the thumbnail is a tiny
@@ -3394,15 +3453,16 @@
     }
 
     var HLS_MIN_BRIGHT  = 16;   // frames dimmer than this ≈ black; keep scanning
-    var HLS_TARGET_SECS = 2;    // skip the fade-in: don't grab a cover before this point
-    var HLS_SCAN_SECS   = 6;    // stop hunting for a good frame after this
-    var HLS_FF_RATE     = 8;    // fast-forward the muted capture video to the target
+    var HLS_TARGET_SECS = 2;    // grab the cover ~2s in: past the fade-in, near the opening shot
+    var HLS_SCAN_PAD    = 6;    // keep scanning this many secs past the target for a non-black frame
+    var HLS_FF_RATE     = 4;    // fast-forward the muted capture video to the target (lower = lands nearer 2s)
+    var HLS_COVER_MINH  = 480;  // capture from a rendition ≥ this tall → crisp cover, not the 240p floor
 
     // Persistent thumbnail cache (localStorage). A capture plays a couple
     // seconds of video, so once a cover is grabbed we keep it forever, keyed by
     // stream URL. Repeat visits — and the other stories strip on the same origin
     // — then paint instantly with no capture and no fade-in flash.
-    var HLS_THUMB_PREFIX = "fdcp_hls_thumb_v1::";
+    var HLS_THUMB_PREFIX = "fdcp_hls_thumb_v3::";   // v3: ~2s target + crisp mid rendition (v2 = mid-clip/240p)
 
     function thumbStoreGet(url) {
       try {
@@ -3433,11 +3493,42 @@
       } catch (e3) { /* give up; the in-memory cache still serves this session */ }
     }
 
-    // One capture at a time. iOS historically decodes only a single <video> at
-    // once, so concurrent captures would leave all-but-one black; serializing
-    // also keeps mobile CPU/battery sane. Covers are lazy + cached, so the queue
-    // drains fast enough.
-    var _hlsCaptureChain = Promise.resolve();
+    // Capture pool. iOS historically decodes only a single <video> at once, so
+    // concurrent captures there leave all-but-one black — cap it to 1. Every
+    // other platform happily decodes several at a time, so run a small pool:
+    // the old strict one-at-a-time chain was the main reason every HLS cover
+    // painted late (each waited for all the ones before it). Covers are lazy +
+    // cached, so the pool drains fast and never re-captures.
+    var HLS_MAX_PARALLEL = (function () {
+      var ua = navigator.userAgent || "";
+      var iOS = /iP(hone|ad|od)/.test(ua) ||
+                (/Macintosh/.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
+      return iOS ? 1 : 2;
+    })();
+    var _hlsActive = 0;
+    var _hlsQueue  = [];
+    var HLS_TAINTED = {};   // urls whose canvas is CORS-blocked — never retry these
+
+    function _hlsPump() {
+      while (_hlsActive < HLS_MAX_PARALLEL && _hlsQueue.length) {
+        var job = _hlsQueue.shift();
+        _hlsActive++;
+        // run() never rejects (see captureHlsFrame), so a single broken/CORS
+        // stream frees its slot and the pool keeps draining.
+        job.run().then(job.resolve, job.resolve).then(function () {
+          _hlsActive--;
+          _hlsPump();
+        });
+      }
+    }
+
+    // Enqueue a capture; resolves with the job's result when a slot opens.
+    function scheduleHlsCapture(run) {
+      return new Promise(function (resolve) {
+        _hlsQueue.push({ run: run, resolve: resolve });
+        _hlsPump();
+      });
+    }
 
     function captureHlsFrame(url) {
       if (HLS_FRAME_CACHE[url]) return HLS_FRAME_CACHE[url];
@@ -3489,14 +3580,18 @@
             function grab() {
               if (done) return;
               if (video.readyState < 2 || !video.videoWidth) return;
+              // Grab the cover ~2s in — past the fade-in, near the opening shot.
+              // The brightness gate below still skips any black lead-in frames.
+              var tgt = HLS_TARGET_SECS;
               var b = frameBrightness(video);
               if (b === "taint") {
                 if (window.console) console.warn("[FDCP gallery] HLS cover capture blocked (CORS?)");
+                HLS_TAINTED[url] = true;   // permanent — don't retry a CORS-blocked stream
                 finish(null); return;
               }
               if (b < 0) return;                       // frame not decodable yet
-              // Past the fade-in and bright enough → this is the thumbnail.
-              if (video.currentTime >= HLS_TARGET_SECS && b >= HLS_MIN_BRIGHT) {
+              // Past the target and bright enough → this is the thumbnail.
+              if (video.currentTime >= tgt && b >= HLS_MIN_BRIGHT) {
                 try { finish(frameToCompressedDataURL(video, HLS_COVER_MAXW)); }
                 catch (e) {
                   if (window.console) console.warn("[FDCP gallery] HLS cover capture blocked (CORS?)");
@@ -3511,7 +3606,7 @@
                 try { bestData = frameToCompressedDataURL(video, HLS_COVER_MAXW); }
                 catch (e) { finish(null); return; }
               }
-              if (video.currentTime >= HLS_SCAN_SECS) finish(bestData);
+              if (video.currentTime >= tgt + HLS_SCAN_PAD) finish(bestData);
             }
 
             // requestVideoFrameCallback only fires for frames actually painted
@@ -3528,12 +3623,18 @@
             }
             video.addEventListener("error", function () { finish(bestData); });
             video.addEventListener("ended", function () { finish(bestData); });   // short clip
-            timer = setTimeout(function () { finish(bestData); }, 12000);
+            timer = setTimeout(function () { finish(bestData); }, 8000);
 
             if (Hls) {
-              hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
+              hls = new Hls({ enableWorker: true });
               hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                try { hls.currentLevel = 0; } catch (e) {}   // lowest rendition: fast + light
+                // Capture from a mid rendition (≥ HLS_COVER_MINH) so the cover is
+                // crisp — not the blurry 240p floor, nor the heavy top rendition.
+                try {
+                  var lv = hls.levels || [], pick = lv.length ? lv.length - 1 : 0;
+                  for (var li = 0; li < lv.length; li++) { if ((lv[li].height || 0) >= HLS_COVER_MINH) { pick = li; break; } }
+                  hls.currentLevel = pick;
+                } catch (e) {}
                 try { video.playbackRate = HLS_FF_RATE; } catch (e) {}   // fast-forward to the target
                 video.play().catch(function () {});
               });
@@ -3550,14 +3651,22 @@
         }).catch(function () { return null; });
       }
 
-      // Run captures one after another (see _hlsCaptureChain note). run() never
-      // rejects, so the chain can't stall on a single broken stream. Persist the
-      // result so it's never re-captured (and never re-shows a fade-in flash).
-      var p = _hlsCaptureChain.then(run, run).then(function (dataUrl) {
-        if (dataUrl) thumbStoreSet(url, dataUrl);
-        return dataUrl;
-      });
-      _hlsCaptureChain = p.catch(function () {});
+      // Run through the capture pool (parallel off iOS). run() never rejects, so
+      // a single broken stream can't stall the pool. Persist the result so it's
+      // never re-captured (and never re-shows a fade-in flash).
+      // A blank result that isn't a CORS taint usually means the decoder was
+      // starved while others ran in parallel — by now the pool has drained, so
+      // one solo-ish retry reliably recovers it. Tainted streams can never
+      // succeed, so they're never retried.
+      var p = scheduleHlsCapture(run)
+        .then(function (dataUrl) {
+          if (!dataUrl && !HLS_TAINTED[url]) return scheduleHlsCapture(run);
+          return dataUrl;
+        })
+        .then(function (dataUrl) {
+          if (dataUrl) thumbStoreSet(url, dataUrl);
+          return dataUrl;
+        });
       HLS_FRAME_CACHE[url] = p;
       return p;
     }
@@ -3695,6 +3804,28 @@
         video.removeEventListener("timeupdate", onTime);
         video.removeEventListener("ended", onEnded);
       };
+    }
+
+    // Auto-advance for the self-hosted player <iframe>. It can't be read across
+    // the origin boundary, so the inner player posts timeupdate/ended messages
+    // (mirrors startVideoAutoAdvance, and startYouTubeAutoAdvance's API bridge).
+    function startIframePlayerAutoAdvance(iframe) {
+      clearAuto();
+      var fill = currentSegFill();
+      function onMsg(e) {
+        if (STORY_PLAYER_ORIGIN && e.origin !== STORY_PLAYER_ORIGIN) return;
+        if (e.source !== iframe.contentWindow) return;
+        var d = e.data;
+        if (!d || d.source !== "fdcp-hls-player") return;
+        if (d.event === "timeupdate") {
+          if (d.duration && isFinite(d.duration)) setSegWidth(fill, (d.currentTime / d.duration) * 100);
+        } else if (d.event === "ended") {
+          setSegWidth(fill, 100);
+          advanceAuto();
+        }
+      }
+      window.addEventListener("message", onMsg);
+      AUTO.cancel = function () { window.removeEventListener("message", onMsg); };
     }
 
     // Loads the YouTube IFrame Player API once (shared across all players) and

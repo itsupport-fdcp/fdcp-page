@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<title>FDCP Story Player</title>
+<!--
+  FDCP self-hosted HLS story player.
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #wrap { position: fixed; inset: 0; background: #000; }
+  #v { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+  #v.fit-contain { object-fit: contain; }
+
+  /* Spinner while the first frame buffers. */
+  #spin {
+    position: absolute; top: 50%; left: 50%; width: 42px; height: 42px;
+    margin: -21px 0 0 -21px; border: 3px solid rgba(255,255,255,0.25);
+    border-top-color: #fff; border-radius: 50%; animation: fdcp-spin 0.8s linear infinite;
+    display: none; z-index: 4;
+  }
+  @keyframes fdcp-spin { to { transform: rotate(360deg); } }
+
+  /* Quality gear + menu (built in JS; these only carry hover states). */
+  .q-btn:hover { background: rgba(0,0,0,0.78) !important; }
+  .q-menu button:hover { background: rgba(255,255,255,0.10) !important; }
+
+  /* "Tap for sound" pill, shown only when autoplay-with-sound was blocked. */
+  #unmute {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 7; display: none; align-items: center; gap: 7px;
+    padding: 9px 14px; border: 0; border-radius: 9999px; cursor: pointer;
+    background: rgba(0,0,0,0.6); color: #fff; font: 600 13px/1 system-ui, sans-serif;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <video id="v" playsinline webkit-playsinline disablepictureinpicture></video>
+  <div id="spin"></div>
+  <button id="unmute" type="button" aria-label="Unmute">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+    <span>Tap for sound</span>
+  </button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var qs        = new URLSearchParams(location.search);
+  var SRC       = qs.get("src") || "";
+  var AUTOPLAY  = qs.get("autoplay") !== "0";
+  var WANT_MUTE = qs.get("muted") === "1";
+  var CONTROLS  = qs.get("controls") !== "0";
+  var FIT       = qs.get("fit") === "contain" ? "contain" : "cover";
+
+  var wrap   = document.getElementById("wrap");
+  var v      = document.getElementById("v");
+  var spin   = document.getElementById("spin");
+  var unmute = document.getElementById("unmute");
+
+  if (FIT === "contain") v.classList.add("fit-contain");
+  v.controls = CONTROLS;
+  v.setAttribute("playsinline", "");
+  v.disablePictureInPicture = true;
+
+
+  function post(event, extra) {
+    var msg = { source: "fdcp-hls-player", event: event };
+    if (extra) { for (var k in extra) if (extra.hasOwnProperty(k)) msg[k] = extra[k]; }
+    try { parent.postMessage(msg, "*"); } catch (e) {}
+  }
+
+  v.addEventListener("loadedmetadata", function () {
+    post("loadedmetadata", { duration: v.duration });
+  });
+  v.addEventListener("timeupdate", function () {
+    post("timeupdate", { currentTime: v.currentTime, duration: v.duration });
+  });
+  v.addEventListener("ended",  function () { post("ended"); });
+  v.addEventListener("play",   function () { post("play"); });
+  v.addEventListener("pause",  function () { post("pause"); });
+  v.addEventListener("waiting",  function () { spin.style.display = "block"; });
+  v.addEventListener("playing",  function () { spin.style.display = "none"; });
+  v.addEventListener("canplay",  function () { spin.style.display = "none"; });
+
+  //  commands from the parent 
+  window.addEventListener("message", function (e) {
+    var d = e.data;
+    if (!d || d.source !== "fdcp-stories") return;
+    if (d.cmd === "play")   { v.play().catch(function () {}); }
+    if (d.cmd === "pause")  { try { v.pause(); } catch (x) {} }
+    if (d.cmd === "mute")   { v.muted = true; }
+    if (d.cmd === "unmute") { v.muted = false; v.play().catch(function () {}); }
+  });
+
+  //autoplay (with sound fall back to muted)
+  function startPlayback() {
+    if (!AUTOPLAY) return;
+    v.muted = WANT_MUTE;
+    var p = v.play();
+    if (p && p.catch) {
+      p.catch(function () {
+     
+        v.muted = true;
+        v.play().catch(function () {});
+        if (!WANT_MUTE) unmute.style.display = "flex";
+      });
+    }
+  }
+  unmute.addEventListener("click", function () {
+    v.muted = false;
+    unmute.style.display = "none";
+    v.play().catch(function () {});
+  });
+
+  //quality gear 
+
+  function buildQualityMenu(hls, Hls) {
+    function levelLabel(lvl, i) {
+      if (lvl && lvl.height) return lvl.height + "p";
+      var bps = lvl && (lvl.bitrate || lvl.bandwidth);
+      if (bps) {
+        return bps >= 1e6 ? (Math.round(bps / 1e5) / 10) + " Mbps"
+                          : Math.round(bps / 1e3) + " kbps";
+      }
+      return "Level " + (i + 1);
+    }
+
+    var levels = hls.levels || [];
+    var seenLabel = {}, items = [];
+    levels.forEach(function (lvl, i) {
+      var label = levelLabel(lvl, i);
+      if (seenLabel[label] != null) return;
+      seenLabel[label] = i;
+      items.push({ label: label, level: i, height: lvl.height || 0, bitrate: lvl.bitrate || lvl.bandwidth || 0 });
+    });
+    items.sort(function (a, b) { return (b.height - a.height) || (b.bitrate - a.bitrate); });
+    if (items.length < 2) return;
+
+    var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+
+    var btnBottom = CONTROLS ? "58px" : "calc(16px + env(safe-area-inset-bottom,0px))";
+    var menuBottom = CONTROLS ? "106px" : "calc(64px + env(safe-area-inset-bottom,0px))";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "q-btn";
+    btn.setAttribute("aria-label", "Video quality");
+    btn.innerHTML = GEAR;
+    btn.style.cssText = "position:absolute;bottom:" + btnBottom + ";right:12px;z-index:6;"
+      + "width:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;border:0;"
+      + "border-radius:9999px;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;"
+      + "-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);";
+
+    var menu = document.createElement("div");
+    menu.className = "q-menu";
+    menu.style.cssText = "position:absolute;bottom:" + menuBottom + ";right:12px;z-index:6;display:none;"
+      + "min-width:128px;padding:6px;border-radius:12px;background:rgba(20,20,20,0.96);color:#fff;"
+      + "box-shadow:0 8px 24px rgba(0,0,0,0.5);font:13px/1.2 system-ui,sans-serif;"
+      + "-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);";
+
+    var rows = [];
+    function addRow(label, value) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.textContent = label;
+      item.style.cssText = "display:block;width:100%;text-align:left;padding:8px 12px;border:0;border-radius:8px;"
+        + "background:transparent;color:#fff;cursor:pointer;font:13px/1.2 system-ui,sans-serif;white-space:nowrap;";
+      item.addEventListener("click", function () {
+        hls.currentLevel = value;   // -1 → Auto (adaptive)
+        setActive(value);
+        closeMenu();
+      });
+      menu.appendChild(item);
+      rows.push({ value: value, el: item });
+    }
+    addRow("Auto", -1);
+    items.forEach(function (it) { addRow(it.label, it.level); });
+
+    function setActive(value) {
+      rows.forEach(function (r) {
+        var on = r.value === value;
+        r.el.style.background = on ? "rgba(255,255,255,0.16)" : "transparent";
+        r.el.style.fontWeight = on ? "700" : "400";
+      });
+    }
+    function refreshAutoLabel() {
+      if (hls.autoLevelEnabled && hls.currentLevel >= 0 && hls.levels[hls.currentLevel]) {
+        rows[0].el.textContent = "Auto (" + levelLabel(hls.levels[hls.currentLevel], hls.currentLevel) + ")";
+      } else if (hls.autoLevelEnabled) {
+        rows[0].el.textContent = "Auto";
+      }
+    }
+    hls.on(Hls.Events.LEVEL_SWITCHED, refreshAutoLabel);
+
+    function openMenu()  { menu.style.display = "block"; document.addEventListener("click", onDoc, true); }
+    function closeMenu() { menu.style.display = "none";  document.removeEventListener("click", onDoc, true); }
+    function onDoc(e)    { if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closeMenu(); }
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (menu.style.display === "block") closeMenu(); else openMenu();
+    });
+
+    setActive(-1);
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+  }
+
+
+  function isHls(url) { return /\.m3u8(\?|#|$)/i.test(String(url || "")); }
+  function canPlayNativeHls() {
+  return !!(v.canPlayType && (v.canPlayType("application/vnd.apple.mpegurl")
+  || v.canPlayType("application/x-mpegURL")));
+  }
+
+  if (!SRC) { post("error", { reason: "missing src" }); return; }
+
+  spin.style.display = "block";
+
+  if (isHls(SRC) && window.Hls && window.Hls.isSupported()) {
+
+    var hls = new window.Hls({ enableWorker: true, testBandwidth: false, abrEwmaDefaultEstimate: 5000000 });
+    var recovered = false;
+    hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
+      buildQualityMenu(hls, window.Hls);
+      post("ready");
+      startPlayback();
+    });
+    hls.on(window.Hls.Events.ERROR, function (evt, data) {
+      if (!data || !data.fatal) return;
+      if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR && !recovered) {
+        recovered = true;
+        try { hls.recoverMediaError(); return; } catch (e) {}
+      }
+      post("error", { reason: data.type });
+      try { hls.destroy(); } catch (e) {}
+    });
+    hls.loadSource(SRC);
+    hls.attachMedia(v);
+  } else {
+    // Native HLS (iOS Safari, where hls.js/MSE isn't used) or a progressive
+    // file: let the browser play it directly. No manual quality menu here.
+    v.src = SRC;
+    post("ready");
+    startPlayback();
+  }
+})();
+</script>
+</body>
+</html>

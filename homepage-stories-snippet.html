@@ -781,22 +781,37 @@
       var mediaEl;
       var ytVideoId = "";   // set when this asset is a YouTube (incl. Shorts) embed
       var interactive = (asset.type === "video" || asset.type === "iframe");
+      var usePlayerIframe = false;
       if (asset.type === "video") {
-        mediaEl = document.createElement("video");
-        // HLS on non-Safari is wired by hls.js after append (setupHlsPlayback) —
-        // leave src unset there. Native-HLS browsers + progressive files set it.
-        if (!(isHls(asset.src) && !canPlayNativeHls())) {
-          mediaEl.src = asset.src;
+        if (isHls(asset.src) && STORY_PLAYER_BASE) {
+          // Self-hosted player iframe: uniform ⚙ quality menu + sharp start, with
+          // nothing for Drupal's CSP to strip. It posts playback time back so the
+          // segment bar + auto-advance still work (startIframePlayerAutoAdvance).
+          usePlayerIframe = true;
+          mediaEl = document.createElement("iframe");
+          mediaEl.src = STORY_PLAYER_BASE + (STORY_PLAYER_BASE.indexOf("?") >= 0 ? "&" : "?")
+            + "src=" + encodeURIComponent(asset.src) + "&autoplay=1&fit=cover"
+            + (fdcpIsMobile() ? "&muted=1&controls=0" : "&controls=1");
+          mediaEl.setAttribute("allow", "autoplay; fullscreen; encrypted-media");
+          mediaEl.setAttribute("allowfullscreen", "");
+          mediaEl.style.border = "0";
+        } else {
+          mediaEl = document.createElement("video");
+          // HLS on non-Safari is wired by hls.js after append (setupHlsPlayback) —
+          // leave src unset there. Native-HLS browsers + progressive files set it.
+          if (!(isHls(asset.src) && !canPlayNativeHls())) {
+            mediaEl.src = asset.src;
+          }
+          // Mobile: hide native controls (no play/pause/scrub) so a story just
+          // autoplays — only a spinner shows while it buffers. Desktop keeps full
+          // controls. See fdcpIsMobile() + the spinner wiring below.
+          mediaEl.controls = !fdcpIsMobile();
+          mediaEl.autoplay = true;
+          mediaEl.playsInline = true;
+          mediaEl.setAttribute("playsinline", "");
+          mediaEl.disablePictureInPicture = true;
+          mediaEl.setAttribute("disablepictureinpicture", "");
         }
-        // Mobile: hide native controls (no play/pause/scrub) so a story just
-        // autoplays — only a spinner shows while it buffers. Desktop keeps full
-        // controls. See fdcpIsMobile() + the spinner wiring below.
-        mediaEl.controls = !fdcpIsMobile();
-        mediaEl.autoplay = true;
-        mediaEl.playsInline = true;
-        mediaEl.setAttribute("playsinline", "");
-        mediaEl.disablePictureInPicture = true;
-        mediaEl.setAttribute("disablepictureinpicture", "");
       } else if (asset.type === "iframe" && /youtube\.com\/embed\/([\w-]{11})/.test(asset.src)) {
         // YouTube (incl. Shorts): mount a <div> the IFrame Player API replaces
         // with its iframe, so we get real playback time + an ENDED event for
@@ -822,16 +837,19 @@
       }
       mediaEl.className = "fdcp-home-focus-media";
       refs.viewport.appendChild(mediaEl);
-      // HLS (.m3u8) story on a non-Safari browser: attach hls.js + quality gear.
+      // HLS (.m3u8) story on a non-Safari browser, inline-player path only: attach
+      // hls.js + quality gear. (The self-hosted iframe player owns its own hls.js.)
       // Native-HLS browsers already have src set and stream with native ABR.
-      if (asset.type === "video" && isHls(asset.src) && !canPlayNativeHls()) {
+      if (asset.type === "video" && !usePlayerIframe && isHls(asset.src) && !canPlayNativeHls()) {
         setupHlsPlayback(mediaEl, asset.src);
       }
-      // Tap zones always navigate prev/next, even over videos/iframes. They only
-      // cover the upper part of the frame (see .fdcp-home-focus-tap CSS bottom
-      // offset), so the player's bottom control bar stays clickable underneath.
-      if (refs.tapPrev) refs.tapPrev.style.pointerEvents = "";
-      if (refs.tapNext) refs.tapNext.style.pointerEvents = "";
+      // Tap zones navigate prev/next over still images only. Over an interactive
+      // asset (video / iframe player) they're disabled so clicks reach the
+      // player's own controls underneath — notably the ⚙ quality gear, which the
+      // self-hosted player iframe renders in its bottom-right corner. (Navigation
+      // over videos still works via the side arrows + keyboard.) Mirrors gallery.html.
+      if (refs.tapPrev) refs.tapPrev.style.pointerEvents = interactive ? "none" : "";
+      if (refs.tapNext) refs.tapNext.style.pointerEvents = interactive ? "none" : "";
       // Bottom caption removed — the story title already shows in the header,
       // so the duplicated text at the bottom is suppressed. Hidden outright for
       // YouTube Shorts so it never overlaps the player's own bottom UI.
@@ -847,8 +865,12 @@
       // Player API for accurate timing; Vimeo/Drive iframes fall back to a fixed
       // timer (their playback time isn't readable across origins).
       if (asset.type === "video") {
-        if (fdcpIsMobile()) kickMobileAutoplay(mediaEl);
-        startVideoAutoAdvance(mediaEl);
+        if (usePlayerIframe) {
+          startIframePlayerAutoAdvance(mediaEl);
+        } else {
+          if (fdcpIsMobile()) kickMobileAutoplay(mediaEl);
+          startVideoAutoAdvance(mediaEl);
+        }
       } else if (ytVideoId) {
         startYouTubeAutoAdvance(mediaEl, ytVideoId);
       } else if (asset.type === "iframe") {
@@ -865,6 +887,16 @@
     var HLS_CDN = "https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
     var ACTIVE_HLS = null;
     var _hlsPromise = null;
+
+    // Self-hosted story player (optional). Set this to the URL where you've
+    // uploaded fdcp-hls-player.html on FDCP's own S3/CloudFront. When set, HLS
+    // story videos play inside that <iframe> (uniform ⚙ quality menu + sharp
+    // start) instead of the inline native player — no third-party embed and
+    // nothing for Drupal's CSP to strip. Leave "" to use the inline player.
+    var STORY_PLAYER_BASE = "https://d2gve1gf1khwxe.cloudfront.net/uploads/2026-06/aws-test-2026/1780471060520-fdcp-hls-player.html";
+    var STORY_PLAYER_ORIGIN = (function () {
+      try { return STORY_PLAYER_BASE ? new URL(STORY_PLAYER_BASE).origin : ""; } catch (e) { return ""; }
+    })();
 
     function canPlayNativeHls() {
       var v = document.createElement("video");
@@ -906,11 +938,22 @@
         if (!video.isConnected) return;
         if (!Hls) { video.src = url; return; }
 
-        var hls = new Hls({ enableWorker: true });
+        // Start near the top rendition instead of hls.js's default low-res ramp:
+        // testBandwidth:false skips the deliberate lowest-quality probe fragment
+        // hls.js otherwise loads first, and the high initial estimate biases the
+        // opening auto pick upward. Still fully adaptive after, so a genuinely
+        // slow line drops back down on its own.
+        var hls = new Hls({
+          enableWorker: true,
+          testBandwidth: false,
+          abrEwmaDefaultEstimate: 5000000
+        });
         ACTIVE_HLS = hls;
         var recovered = false;
 
         hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          // Self-contained quality gear — only needs hls.js (no external player
+          // CDN that Drupal's CSP can block).
           buildQualityMenu(video, hls, Hls);
           var p = video.play(); if (p && p.catch) p.catch(function () {});
         });
@@ -931,20 +974,44 @@
       });
     }
 
+    // Build the ⚙ gear button + quality popover for an hls.js stream. Renditions
+    // are listed high→low under an "Auto" (adaptive) default. Everything is
+    // styled inline so Drupal's filter can't strip the controls.
     function buildQualityMenu(video, hls, Hls) {
       var host = video.parentNode;
       if (!host) return;
 
-      var seen = {};
-      var heights = [];
-      (hls.levels || []).forEach(function (lvl, i) {
-        var h = lvl.height || 0;
-        if (!h || seen[h] != null) return;
-        seen[h] = i;
-        heights.push(h);
+      // Label a rendition by its height ("720p"). When a master omits RESOLUTION
+      // (variants distinguished by BANDWIDTH only), fall back to a bitrate label
+      // so the gear still appears instead of silently bailing.
+      function levelLabel(lvl, i) {
+        if (lvl && lvl.height) return lvl.height + "p";
+        var bps = lvl && (lvl.bitrate || lvl.bandwidth);
+        if (bps) {
+          return bps >= 1e6 ? (Math.round(bps / 1e5) / 10) + " Mbps"
+                            : Math.round(bps / 1e3) + " kbps";
+        }
+        return "Level " + (i + 1);
+      }
+
+      // Collect levels high→low, deduped by their visible label (so identical
+      // renditions don't repeat). Each row pins a specific level index; Auto
+      // restores adaptive mode.
+      var levels = hls.levels || [];
+      var seenLabel = {};
+      var items = [];   // {label, level, height, bitrate}
+      levels.forEach(function (lvl, i) {
+        var label = levelLabel(lvl, i);
+        if (seenLabel[label] != null) return;
+        seenLabel[label] = i;
+        items.push({
+          label: label, level: i,
+          height: lvl.height || 0,
+          bitrate: lvl.bitrate || lvl.bandwidth || 0
+        });
       });
-      heights.sort(function (a, b) { return b - a; });
-      if (heights.length < 2) return;
+      items.sort(function (a, b) { return (b.height - a.height) || (b.bitrate - a.bitrate); });
+      if (items.length < 2) return;   // single rendition: nothing to choose
 
       var GEAR = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
@@ -992,7 +1059,7 @@
       }
 
       addRow("Auto", -1, null);
-      heights.forEach(function (h) { addRow(h + "p", seen[h], h); });
+      items.forEach(function (it) { addRow(it.label, it.level, it.height); });
 
       function setActive(value) {
         rows.forEach(function (r) {
@@ -1004,7 +1071,7 @@
       function refreshAutoLabel() {
         var autoRow = rows[0];
         if (hls.autoLevelEnabled && hls.currentLevel >= 0 && hls.levels[hls.currentLevel]) {
-          autoRow.el.textContent = "Auto (" + hls.levels[hls.currentLevel].height + "p)";
+          autoRow.el.textContent = "Auto (" + levelLabel(hls.levels[hls.currentLevel], hls.currentLevel) + ")";
         } else if (hls.autoLevelEnabled) {
           autoRow.el.textContent = "Auto";
         }
@@ -1032,7 +1099,7 @@
     // compressed so the data-URL is tiny and paints instantly. Needs the stream
     // to be CORS-enabled; a tainted canvas resolves null → card keeps dark bg.
     var HLS_FRAME_CACHE = {};   // url -> Promise<dataURL|null>
-    var HLS_COVER_MAXW  = 360;  // capture downscale width (serves 160px card + 56px circle)
+    var HLS_COVER_MAXW  = 480;  // capture downscale width (retina-crisp for the 160px card + 56px circle)
 
     // Draw a video frame to an offscreen canvas no wider than maxW (keeping
     // aspect), then export a compressed JPEG data-URL. Throws if the canvas is
@@ -1067,15 +1134,16 @@
     }
 
     var HLS_MIN_BRIGHT  = 16;   // frames dimmer than this ≈ black; keep scanning
-    var HLS_TARGET_SECS = 2;    // skip the fade-in: don't grab a cover before this point
-    var HLS_SCAN_SECS   = 6;    // stop hunting for a good frame after this
-    var HLS_FF_RATE     = 8;    // fast-forward the muted capture video to the target
+    var HLS_TARGET_SECS = 2;    // grab the cover ~2s in: past the fade-in, near the opening shot
+    var HLS_SCAN_PAD    = 6;    // keep scanning this many secs past the target for a non-black frame
+    var HLS_FF_RATE     = 4;    // fast-forward the muted capture video to the target (lower = lands nearer 2s)
+    var HLS_COVER_MINH  = 480;  // capture from a rendition ≥ this tall → crisp cover, not the 240p floor
 
     // Persistent thumbnail cache (localStorage). A capture plays a couple
     // seconds of video, so once a cover is grabbed we keep it forever, keyed by
     // stream URL. Repeat visits — and the gallery stories strip on the same
     // origin — then paint instantly with no capture and no fade-in flash.
-    var HLS_THUMB_PREFIX = "fdcp_hls_thumb_v1::";
+    var HLS_THUMB_PREFIX = "fdcp_hls_thumb_v3::";   // v3: ~2s target + crisp mid rendition (v2 = mid-clip/240p)
 
     function thumbStoreGet(url) {
       try {
@@ -1150,19 +1218,23 @@
             }
             function finish(val) { if (done) return; done = true; cleanup(); resolve(val); }
             // Inspect the current frame. Bail on a CORS taint; otherwise, once
-            // we're past the ~2s fade-in, take the first non-black frame as the
-            // cover. Track the brightest frame as a fallback for short/dark clips.
+            // we're past the per-clip target (a fraction of the duration so reels
+            // sharing an intro still differ), take the first non-black frame as
+            // the cover. Track the brightest frame as a fallback for short/dark clips.
             function grab() {
               if (done) return;
               if (video.readyState < 2 || !video.videoWidth) return;
+              // Grab the cover ~2s in — past the fade-in, near the opening shot.
+              // The brightness gate below still skips any black lead-in frames.
+              var tgt = HLS_TARGET_SECS;
               var b = frameBrightness(video);
               if (b === "taint") {
                 if (window.console) console.warn("[FDCP home stories] HLS cover capture blocked (CORS?)");
                 finish(null); return;
               }
               if (b < 0) return;                       // frame not decodable yet
-              // Past the fade-in and bright enough → this is the thumbnail.
-              if (video.currentTime >= HLS_TARGET_SECS && b >= HLS_MIN_BRIGHT) {
+              // Past the target and bright enough → this is the thumbnail.
+              if (video.currentTime >= tgt && b >= HLS_MIN_BRIGHT) {
                 try { finish(frameToCompressedDataURL(video, HLS_COVER_MAXW)); }
                 catch (e) {
                   if (window.console) console.warn("[FDCP home stories] HLS cover capture blocked (CORS?)");
@@ -1171,13 +1243,13 @@
                 return;
               }
               // Fallback: keep the brightest frame, used if the clip ends or the
-              // scan times out before we get a clean post-fade frame.
+              // scan times out before we get a clean post-target frame.
               if (b > bestBright) {
                 bestBright = b;
                 try { bestData = frameToCompressedDataURL(video, HLS_COVER_MAXW); }
                 catch (e) { finish(null); return; }
               }
-              if (video.currentTime >= HLS_SCAN_SECS) finish(bestData);
+              if (video.currentTime >= tgt + HLS_SCAN_PAD) finish(bestData);
             }
 
             // requestVideoFrameCallback only fires for frames actually painted
@@ -1196,9 +1268,15 @@
             timer = setTimeout(function () { finish(bestData); }, 12000);
 
             if (Hls) {
-              hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
+              hls = new Hls({ enableWorker: true });
               hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                try { hls.currentLevel = 0; } catch (e) {}   // lowest rendition: fast + light
+                // Capture from a mid rendition (≥ HLS_COVER_MINH) so the cover is
+                // crisp — not the blurry 240p floor, nor the heavy top rendition.
+                try {
+                  var lv = hls.levels || [], pick = lv.length ? lv.length - 1 : 0;
+                  for (var li = 0; li < lv.length; li++) { if ((lv[li].height || 0) >= HLS_COVER_MINH) { pick = li; break; } }
+                  hls.currentLevel = pick;
+                } catch (e) {}
                 try { video.playbackRate = HLS_FF_RATE; } catch (e) {}   // fast-forward to the target
                 video.play().catch(function () {});
               });
@@ -1342,6 +1420,28 @@
         video.removeEventListener("timeupdate", onTime);
         video.removeEventListener("ended", onEnded);
       };
+    }
+
+    // Auto-advance for the self-hosted player <iframe>. It can't be read across
+    // the origin boundary, so the inner player posts timeupdate/ended messages
+    // (mirrors startVideoAutoAdvance, and startYouTubeAutoAdvance's API bridge).
+    function startIframePlayerAutoAdvance(iframe) {
+      clearAuto();
+      var fill = currentSegFill();
+      function onMsg(e) {
+        if (STORY_PLAYER_ORIGIN && e.origin !== STORY_PLAYER_ORIGIN) return;
+        if (e.source !== iframe.contentWindow) return;
+        var d = e.data;
+        if (!d || d.source !== "fdcp-hls-player") return;
+        if (d.event === "timeupdate") {
+          if (d.duration && isFinite(d.duration)) setSegWidth(fill, (d.currentTime / d.duration) * 100);
+        } else if (d.event === "ended") {
+          setSegWidth(fill, 100);
+          advanceAuto();
+        }
+      }
+      window.addEventListener("message", onMsg);
+      AUTO.cancel = function () { window.removeEventListener("message", onMsg); };
     }
 
     // Loads the YouTube IFrame Player API once (shared across all players) and
