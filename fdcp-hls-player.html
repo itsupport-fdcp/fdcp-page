@@ -12,6 +12,7 @@
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   #wrap { position: fixed; inset: 0; background: #000; }
   #v { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+  #v.is-initial-buffering { opacity: 0; }
   #v.fit-contain { object-fit: contain; }
 
   /* Spinner while the first frame buffers. */
@@ -66,9 +67,23 @@
   var unmute = document.getElementById("unmute");
 
   if (FIT === "contain") v.classList.add("fit-contain");
-  v.controls = CONTROLS;
+  v.controls = false;
   v.setAttribute("playsinline", "");
   v.disablePictureInPicture = true;
+  var HAS_FRAME = false;
+
+  function showLoader() {
+    spin.style.display = "block";
+    v.controls = false;
+    if (!HAS_FRAME) v.classList.add("is-initial-buffering");
+  }
+
+  function hideLoader() {
+    HAS_FRAME = true;
+    spin.style.display = "none";
+    v.classList.remove("is-initial-buffering");
+    v.controls = CONTROLS;
+  }
 
 
   function post(event, extra) {
@@ -86,9 +101,10 @@
   v.addEventListener("ended",  function () { post("ended"); });
   v.addEventListener("play",   function () { post("play"); });
   v.addEventListener("pause",  function () { post("pause"); });
-  v.addEventListener("waiting",  function () { spin.style.display = "block"; });
-  v.addEventListener("playing",  function () { spin.style.display = "none"; });
-  v.addEventListener("canplay",  function () { spin.style.display = "none"; });
+  v.addEventListener("waiting",  showLoader);
+  v.addEventListener("loadeddata", hideLoader);
+  v.addEventListener("playing",  hideLoader);
+  v.addEventListener("canplay",  hideLoader);
 
   //  commands from the parent 
   window.addEventListener("message", function (e) {
@@ -222,11 +238,16 @@
 
   if (!SRC) { post("error", { reason: "missing src" }); return; }
 
-  spin.style.display = "block";
+  showLoader();
 
   if (isHls(SRC) && window.Hls && window.Hls.isSupported()) {
 
-    var hls = new window.Hls({ enableWorker: true, testBandwidth: false, abrEwmaDefaultEstimate: 5000000 });
+    var hls = new window.Hls({
+      enableWorker: true,
+      capLevelToPlayerSize: true,
+      startLevel: -1,
+      abrEwmaDefaultEstimate: 1000000
+    });
     var recovered = false;
     hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
       buildQualityMenu(hls, window.Hls);

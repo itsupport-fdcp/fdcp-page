@@ -3207,7 +3207,7 @@
     // story videos play inside that <iframe> (uniform ⚙ quality menu + sharp
     // start) instead of the inline native player — no third-party embed and
     // nothing for Drupal's CSP to strip. Leave "" to use the inline player.
-    var STORY_PLAYER_BASE = "https://d2gve1gf1khwxe.cloudfront.net/uploads/2026-06/aws-test-2026/1780471060520-fdcp-hls-player.html";
+    var STORY_PLAYER_BASE = "https://fdcp-images.s3.ap-southeast-1.amazonaws.com/uploads/2026-06/multihls-2026/1780473127943-fdcp-hls-player-1.html";
     var STORY_PLAYER_ORIGIN = (function () {
       try { return STORY_PLAYER_BASE ? new URL(STORY_PLAYER_BASE).origin : ""; } catch (e) { return ""; }
     })();
@@ -3268,15 +3268,14 @@
         if (!video.isConnected) return;
         if (!Hls) { video.src = url; return; }
 
-        // Start near the top rendition instead of hls.js's default low-res ramp:
-        // testBandwidth:false skips the deliberate lowest-quality probe fragment
-        // hls.js otherwise loads first, and the high initial estimate biases the
-        // opening auto pick upward. Still fully adaptive after, so a genuinely
-        // slow line drops back down on its own.
+        // Let hls.js probe bandwidth normally so Auto can step down on slower
+        // links. The player-size cap prevents a small story frame from pulling
+        // a rendition larger than it can visibly use.
         var hls = new Hls({
           enableWorker: true,
-          testBandwidth: false,
-          abrEwmaDefaultEstimate: 5000000
+          capLevelToPlayerSize: true,
+          startLevel: -1,
+          abrEwmaDefaultEstimate: 1000000
         });
         ACTIVE_HLS = hls;
         var recovered = false;
