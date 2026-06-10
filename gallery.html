@@ -50,7 +50,7 @@
     ]
   }
   </script>
-  <!--  END SEO / SOCIAL META  ======================================== -->
+  <!--  END SEO / SOCIAL META   -->
 
   <!-- LOCAL-PREVIEW ONLY — delete before pasting into Drupal. -->
   <meta charset="utf-8">
@@ -326,7 +326,7 @@
       padding-top: 8px !important;
     }
 
-    /* ----- LEFT SIDEBAR (stories list) ----- */
+    /*  LEFT SIDEBAR (stories list)  */
     .fdcp-focus-sidebar {
       flex: 0 0 300px !important;
       background: rgba(0,0,0,0.45) !important;
@@ -1867,7 +1867,17 @@
           </div>
         </div>
 
+        <!-- View toggle: scrolling event feed vs Facebook-style album covers -->
+        <div id="fdcp-photo-view-tabs" role="tablist" aria-label="Photo gallery view"
+            style="display:flex;align-items:center;border-bottom:1px solid #E5E7EB;margin-bottom:8px;">
+          <button type="button" id="fdcp-tab-photos" role="tab" aria-selected="true" data-photo-view="photos"
+              style="background:none;border:0;border-bottom:3px solid #E200A9;padding:10px 4px;margin:0 24px 0 0;font-family:inherit;font-size:14px;font-weight:700;color:#580076;cursor:pointer;">Photos</button>
+          <button type="button" id="fdcp-tab-albums" role="tab" aria-selected="false" data-photo-view="albums"
+              style="background:none;border:0;border-bottom:3px solid transparent;padding:10px 4px;margin:0;font-family:inherit;font-size:14px;font-weight:600;color:#6b7280;cursor:pointer;">Albums</button>
+        </div>
+
         <div id="fdcp-photo-blocks-host"></div>
+        <div id="fdcp-albums-host" style="display:none;"></div>
         <div id="fdcp-photo-pagination"
             style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:40px;"></div>
 
@@ -2434,6 +2444,8 @@
     var FEATURED_VIDEOS = [];
     var PHOTO_EVENTS    = [];
     var FILTER_STATE    = { query: "", page: 0 };
+    var PHOTO_VIEW      = "photos";   // "photos" (event feed) | "albums" (cover grid)
+    var ALBUM_LIST      = [];         // current albums view: [{ title, items }]
     var PAGE_SIZE       = 5;   // photo blocks per page
 
     //  DATA LOADER 
@@ -2955,7 +2967,7 @@
       }
       host.innerHTML = html;
     }
-
+ 
     // Signature of the currently-built sidebar list, so we only rebuild its DOM
     // (and re-request the thumbnails) when the story set actually changes — not
     // on every navigation. Rebuilding each time made the circle thumbnails
@@ -2978,7 +2990,7 @@
         var thumb = btn.querySelector(".fdcp-focus-story-thumb");
         if (thumb) thumb.style.borderColor = active ? "#E200A9" : "transparent";
       });
-    }
+    } 1
 
     // Renders the left-sidebar list of all stories. Click switches story.
     function renderStoryList() {
@@ -4904,11 +4916,132 @@
       });
     }
 
+    //  ALBUMS VIEW (Facebook-style: one cover card per event, title below)
+
+    // Build the lightbox/grid item list for an event — mirrors the photo-card
+    // build in blockHTMLForEvent (poster prepended, src = full-res for the
+    // lightbox, thumb = compressed for grid display) so an opened album shows
+    // exactly the same photos as the event's "View all".
+    function itemsForEvent(e) {
+      var allPhotos = e.photos.slice();
+      if (e.poster) {
+        var posterSrc  = e.poster;
+        var posterFull = fullResFromThumb(e.poster);
+        var alreadyFirst = allPhotos.length &&
+          (allPhotos[0].src === posterSrc || allPhotos[0].thumb === posterSrc || allPhotos[0].full === posterSrc);
+        if (!alreadyFirst) {
+          allPhotos.unshift({ src: posterSrc, thumb: posterSrc, full: posterFull,
+            caption: e.title + " — Event Poster", alt: e.title + " — Event Poster" });
+        }
+      }
+      return allPhotos.map(function (p) {
+        var caption  = p.caption || p.alt || "";
+        var thumbSrc = p.thumb || p.src || p.full || "";
+        var fullSrc  = p.full  || p.src || p.thumb || "";
+        return { src: fullSrc, thumb: thumbSrc, full: fullSrc, alt: caption, caption: caption };
+      });
+    }
+
+    function albumCardHTML(a, i) {
+      var cover = a.items.length ? (a.items[0].thumb || a.items[0].src) : "";
+      var count = a.items.length;
+      return ''
+        + '<button type="button" class="fdcp-album-card" data-album-idx="' + i + '"'
+        +   ' aria-label="Open album: ' + escapeAttr(a.title) + '"'
+        +   ' style="display:block;width:100%;background:none;border:0;padding:0;margin:0;text-align:left;font-family:inherit;cursor:pointer;">'
+        +   '<div class="fdcp-album-thumb" style="position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:#F5F2FF;box-shadow:0 6px 18px rgba(88,0,118,0.12);">'
+        +     '<img src="' + escapeAttr(cover) + '" alt="' + escapeAttr(a.title) + '" loading="lazy" decoding="async"'
+        +       ' style="width:100%;height:100%;object-fit:cover;display:block;"></div>'
+        +   '<div class="fdcp-album-title" style="margin:10px 2px 0;font-size:14px;font-weight:700;color:#1f2937;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'
+        +     escapeAttr(a.title) + '</div>'
+        +   '<div class="fdcp-album-count" style="margin:3px 2px 0;font-size:12px;font-weight:600;color:#9ca3af;">'
+        +     count + ' item' + (count === 1 ? '' : 's') + '</div>'
+        + '</button>';
+    }
+
+    function renderAlbumsSection() {
+      var blocksHost = document.getElementById("fdcp-photo-blocks-host");
+      var albumsHost = document.getElementById("fdcp-albums-host");
+      var pager      = document.getElementById("fdcp-photo-pagination");
+      var searchHost = document.querySelector(".fdcp-photos-toolbar-controls");
+      if (blocksHost) blocksHost.style.display = "none";
+      if (pager) pager.innerHTML = "";
+      if (!albumsHost) return;
+      albumsHost.style.display = "";
+
+      if (!PHOTO_EVENTS.length) {
+        if (searchHost) searchHost.style.display = "none";
+        albumsHost.innerHTML = renderPhotoEmptyState(
+          "Albums from the next FDCP event will appear here.");
+        return;
+      }
+      if (searchHost) searchHost.style.display = "";
+
+      var visible = applyPhotoFilter(PHOTO_EVENTS, FILTER_STATE);
+      if (!visible.length) {
+        albumsHost.innerHTML = renderPhotoEmptyState(
+          "No albums match your search. Press Esc or clear the field to see all.");
+        return;
+      }
+
+      ALBUM_LIST = visible.map(function (e) {
+        return { title: e.title, items: itemsForEvent(e) };
+      });
+
+      var w = window.innerWidth;
+      var cols = w <= 600 ? 2 : (w <= 900 ? 3 : (w <= 1200 ? 4 : 6));
+      albumsHost.innerHTML =
+        '<div class="fdcp-albums-grid" style="display:grid;grid-template-columns:repeat(' +
+          cols + ',minmax(0,1fr));gap:24px 16px;margin-top:8px;">' +
+        ALBUM_LIST.map(albumCardHTML).join("") +
+        '</div>';
+
+      Array.prototype.forEach.call(albumsHost.querySelectorAll("[data-album-idx]"), function (el) {
+        el.addEventListener("click", function () {
+          var i = parseInt(el.dataset.albumIdx, 10);
+          var a = ALBUM_LIST[isNaN(i) ? 0 : i];
+          if (a && a.items.length) openPhotoGrid(a.items, a.title);
+        });
+      });
+    }
+
+    // Switch between the event feed and the albums cover grid. Resets to page 0
+    // and re-renders through the single renderPhotoSection entry point so search
+    // state stays shared between the two views.
+    function setPhotoView(view) {
+      PHOTO_VIEW = (view === "albums") ? "albums" : "photos";
+      var tabs = { photos: document.getElementById("fdcp-tab-photos"),
+                   albums: document.getElementById("fdcp-tab-albums") };
+      Object.keys(tabs).forEach(function (k) {
+        var btn = tabs[k];
+        if (!btn) return;
+        var active = (k === PHOTO_VIEW);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+        btn.style.setProperty("color", active ? "#580076" : "#6b7280");
+        btn.style.setProperty("font-weight", active ? "700" : "600");
+        btn.style.setProperty("border-bottom", active ? "3px solid #E200A9" : "3px solid transparent");
+      });
+      FILTER_STATE.page = 0;
+      renderPhotoSection();
+    }
+
+    function wirePhotoViewToggle() {
+      Array.prototype.forEach.call(document.querySelectorAll("[data-photo-view]"), function (btn) {
+        btn.addEventListener("click", function () { setPhotoView(btn.dataset.photoView); });
+      });
+    }
+
     function renderPhotoSection() {
       var host = document.getElementById("fdcp-photo-blocks-host");
       var pager = document.getElementById("fdcp-photo-pagination");
       var searchInput = document.getElementById("fdcp-photo-search");
       if (!host) return;
+
+      // Albums view owns its own host + empty/search states.
+      if (PHOTO_VIEW === "albums") { renderAlbumsSection(); return; }
+      var albumsHostEl = document.getElementById("fdcp-albums-host");
+      if (albumsHostEl) albumsHostEl.style.display = "none";
+      host.style.display = "";
 
       var searchHost = document.querySelector(".fdcp-photos-toolbar-controls");
 
@@ -6221,6 +6354,7 @@
       wireVideosControls();
       wireVideoDescMore();
       wirePhotoSearch();
+      wirePhotoViewToggle();
       wirePhotoLightboxControls();
       wirePhotoGridControls();
       wireVideoFocusControls();
@@ -6243,27 +6377,26 @@
           lastIsMobile = nowIsMobile;
           renderVideosCarousel();
         }
-        // Re-flow the photo blocks (description bottom on mobile, top on desktop)
-        // whenever we cross the 992px boundary. The render path itself calls
-        // reorderPhotosForMobile, so a re-render across the breakpoint is enough.
         var nowPhotoStack = window.innerWidth <= 992;
         if (nowPhotoStack !== lastPhotoStack) {
           lastPhotoStack = nowPhotoStack;
           if (typeof renderPhotoSection === "function") renderPhotoSection();
+        } else if (PHOTO_VIEW === "albums") {
+          // Albums column count keys off finer breakpoints (600/900/1200) than
+          // the feed's 992 stack point — re-render so columns track on resize.
+          renderAlbumsSection();
         }
-        // Keep the video grid columns in sync if it's open
         if (document.getElementById("fdcp-video-grid") &&
             document.getElementById("fdcp-video-grid").classList.contains("is-open")) {
           renderVideoGrid();
         }
-        // Same for the photo grid modal
+        // Same sa photo grid modal
         if (document.getElementById("fdcp-photo-grid") &&
             document.getElementById("fdcp-photo-grid").classList.contains("is-open")) {
           renderPhotoGrid();
         }
       });
     }
-
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", init);
     } else {

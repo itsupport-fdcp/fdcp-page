@@ -550,7 +550,29 @@ const MANILA_FILM_LINKS = {
   "it was just an accident": SITES_BASE + "/programs/world-cinema-2026/it-was-just-an-accident?authuser=0",
   "the secret agent": SITES_BASE + "/programs/world-cinema-2026/the-secret-agent?authuser=0",
   "don't tell mother": SITES_BASE + "/programs/world-cinema-2026/dont-tell-mother?authuser=0",
-  "sound of falling": SITES_BASE + "/programs/world-cinema-2026/sound-of-falling?authuser=0"
+  "sound of falling": SITES_BASE + "/programs/world-cinema-2026/sound-of-falling?authuser=0",
+  // ── Harvested live from the Google Site (exact folder + page slugs) ──
+  // Reel to Real: Pelikula at Panayam
+  "ginauhaw ako ginagutom ako": SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/ginauhaw-ako-ginagutom-ako?authuser=0",
+  // Cinematheque Director Series: Lawrence Fajardo
+  "imbisibol": SITES_BASE + "/programs/cds-lawrence-fajardo/imbisibol?authuser=0",
+  "amok": SITES_BASE + "/programs/cds-lawrence-fajardo/amok?authuser=0",
+  // Pelikulaya 2026
+  "a useful ghost": SITES_BASE + "/programs/pelikulaya-2026/a-useful-ghost?authuser=0",
+  "amoeba": SITES_BASE + "/programs/pelikulaya-2026/amoeba?authuser=0",
+  "blue film": SITES_BASE + "/programs/pelikulaya-2026/blue-film?authuser=0",
+  "dreamboi": SITES_BASE + "/programs/pelikulaya-2026/dreamboi?authuser=0",
+  "girl boy bakla tomboy": SITES_BASE + "/programs/pelikulaya-2026/girl-boy-bakla-tomboy?authuser=0",
+  "macho dancer": SITES_BASE + "/programs/pelikulaya-2026/macho-dancer?authuser=0",
+  "muy lejos": SITES_BASE + "/programs/pelikulaya-2026/muy-lejos?authuser=0",
+  "mysterious skin": SITES_BASE + "/programs/pelikulaya-2026/mysterious-skin?authuser=0",
+  "pelikulaya shorts set a": SITES_BASE + "/programs/pelikulaya-2026/pelikulaya-shorts-set-a?authuser=0",
+  "pelikulaya shorts set b": SITES_BASE + "/programs/pelikulaya-2026/pelikulaya-shorts-set-b?authuser=0",
+  "petrang kabayo": SITES_BASE + "/programs/pelikulaya-2026/petrang-kabayo?authuser=0",
+  "some nights i feel like walking": SITES_BASE + "/programs/pelikulaya-2026/some-nights-i-feel-like-walking?authuser=0",
+  "the chronology of water": SITES_BASE + "/programs/pelikulaya-2026/the-chronology-of-water?authuser=0",
+  "the mysterious gaze of the flamingo": SITES_BASE + "/programs/pelikulaya-2026/the-mysterious-gaze-of-the-flamingo?authuser=0",
+  "tomboy": SITES_BASE + "/programs/pelikulaya-2026/tomboy?authuser=0"
 };
 
 function normalizeFilmTitle(s) {
@@ -572,10 +594,13 @@ const PROGRAM_SLUGS = {
   "pamanang pelikula: a tribute to nora aunor":  { folder: "pamanang-pelikula-nora-aunor" },
   "cinematheque director series: joel lamangan": { folder: "cds-joel-lamangan" },
   "cinematheque director series: lawrence fajardo": { folder: "cds-lawrence-fajardo" },
+  // The calendar emits the bare program name (no director) — map it to the
+  // current director's folder.
+  "cinematheque director series":                 { folder: "cds-lawrence-fajardo" },
   "norwegian film matinee":                       { folder: "norwegian-film-matinee", prefix: "nfm-" },
   "fdcp presents: a curation of world cinema":    { folder: "world-cinema-2026" },
-  "reel to real: pelikula at panayam":            { folder: "reel-to-real" },
-  "pelikulaya":                                   { folder: "pelikulaya" },
+  "reel to real: pelikula at panayam":            { folder: "reel-to-real-pelikula-at-panayam" },
+  "pelikulaya":                                   { folder: "pelikulaya-2026" },
   "pelikula ng bayan":                            { folder: "pelikula-ng-bayan" }
 };
 
@@ -616,6 +641,101 @@ const CALENDAR_URLS = {
   "Davao":  ""
 };
 
+
+// ─── LIVE MANILA SCHEDULE (Google Calendar) ──────────────────────────────────
+// Manila screenings are pulled LIVE from the SAME public Google Calendar that
+// powers the Cinematheque Manila Google Site (sites.google.com/.../calendar).
+// This makes the Google Site the source of truth for Manila; the baked
+// CC_SCHEDULE above is used ONLY as a fallback when the calendar can't be
+// reached (no key, network error, CSP block, quota, etc).
+//
+// ONE-TIME SETUP (FDCP IT) — until done, the page silently uses the sheet:
+//   1. Google Cloud Console → create an API key with the *Calendar API*
+//      enabled. Restrict it to HTTP referrer https://fdcp.gov.ph/* and to the
+//      Calendar API only (so the key is safe to ship in the page).
+//   2. Paste the key into MANILA_CAL_KEY below.
+//   3. Drupal CSP must allow:  connect-src https://www.googleapis.com
+const MANILA_CAL_ID  = "c_297715d58563f4dc6de17c9db206013d959c7d422b00f1a65fd73329bd9579d2@group.calendar.google.com";
+const MANILA_CAL_KEY = "";  // ← paste Google API key here to enable live updates
+
+// The calendar has no price field, so admission is derived from the program.
+// Anything not listed here defaults to "Free".
+const PAID_PROGRAMS = {
+  "fdcp presents: a curation of world cinema": "Php 150.00",
+  "pelikula ng bayan": "Php 150.00"
+};
+
+const _MONTHS = ["January","February","March","April","May","June",
+  "July","August","September","October","November","December"];
+const _DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+// Convert a calendar start (UTC ISO or all-day date) to PH-time parts.
+function _phPartsFromStart(start) {
+  var iso = start && (start.dateTime || (start.date ? start.date + "T00:00:00Z" : null));
+  if (!iso) return null;
+  var ph = new Date(new Date(iso).getTime() + 8 * 3600 * 1000); // UTC+8, read via getUTC*
+  var y = ph.getUTCFullYear(), mo = ph.getUTCMonth(), d = ph.getUTCDate();
+  var dateISO = y + "-" + String(mo + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+  var date = _MONTHS[mo] + " " + String(d).padStart(2, "0") + ", " + y;
+  var time = "";
+  if (start.dateTime) {
+    var h = ph.getUTCHours(), m = ph.getUTCMinutes();
+    var ampm = h >= 12 ? "PM" : "AM", h12 = h % 12 || 12;
+    time = h12 + ":" + String(m).padStart(2, "0") + " " + ampm;
+  }
+  return { dateISO: dateISO, date: date, time: time, day: _DAYS[ph.getUTCDay()] };
+}
+
+function _decodeEntities(s) {
+  return (s || "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&nbsp;/g, " ");
+}
+
+// Calendar DESCRIPTION is "<b>Director</b><br>Program<br><br>Synopsis".
+// We only need the program (2nd line).
+function _programFromDesc(html) {
+  var parts = _decodeEntities(html || "")
+    .replace(/<\/?b>/gi, "")
+    .split(/<br\s*\/?>/i)
+    .map(function (s) { return s.trim(); })
+    .filter(Boolean);
+  return parts.length > 1 ? parts[1] : "";
+}
+
+function _eventToRow(ev) {
+  var p = _phPartsFromStart(ev.start);
+  if (!p) return null;
+  var film = _decodeEntities((ev.summary || "").trim());
+  if (!film) return null;
+  var program = _programFromDesc(ev.description);
+  var admission = PAID_PROGRAMS[program.toLowerCase()] || "Free";
+  return {
+    date: p.date, dateISO: p.dateISO, day: p.day, location: "Manila",
+    time: p.time, film: film, program: program, admission: admission
+  };
+}
+
+// Working schedule the renderer reads. Starts as the baked sheet; Manila is
+// swapped for live calendar rows once they load.
+var CC_MERGED = CC_SCHEDULE.slice();
+
+function loadManilaLive() {
+  if (!MANILA_CAL_KEY) return Promise.resolve(null);
+  var timeMin = new Date(Date.now() - 2 * 86400000).toISOString();
+  var url = "https://www.googleapis.com/calendar/v3/calendars/"
+    + encodeURIComponent(MANILA_CAL_ID) + "/events"
+    + "?key=" + MANILA_CAL_KEY
+    + "&singleEvents=true&orderBy=startTime&maxResults=2500"
+    + "&timeMin=" + encodeURIComponent(timeMin);
+  return fetch(url)
+    .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(function (data) {
+      var rows = (data.items || []).map(_eventToRow).filter(Boolean);
+      return rows.length ? rows : null;
+    })
+    .catch(function () { return null; }); // any failure → keep baked sheet
+}
 
 const ALT_PROGRAMS = new Set(["Negros", "Davao"]);
 const PAGE_SIZE = 10;
@@ -710,7 +830,7 @@ function renderFilms(location) {
   var endPH = new Date(nowPH.getTime());
   endPH.setDate(endPH.getDate() + LOOKAHEAD_DAYS);
   var endISO = _isoFromDate(endPH);
-  var list = CC_SCHEDULE.filter(function (r) {
+  var list = CC_MERGED.filter(function (r) {
     return r.location === location &&
       r.dateISO >= todayPH &&
       r.dateISO <= endISO;
@@ -788,7 +908,17 @@ function ccInit() {
   }
   var heroImg = findOne("ccHeroImg", "cc-hero__img");
   if (heroImg) setHeroImage(heroImg, "Manila");
-  renderFilms("Manila");
+  renderFilms("Manila"); // instant paint from baked sheet
+
+  // Then upgrade Manila in place with live Google Calendar data.
+  loadManilaLive().then(function (rows) {
+    if (!rows) return; // fallback: keep baked sheet
+    CC_MERGED = CC_SCHEDULE.filter(function (r) { return r.location !== "Manila"; }).concat(rows);
+    var active = document.querySelector(".cc-loc-card.is-active");
+    var loc = active ? active.getAttribute("data-loc") : "Manila";
+    ccCurrentPage = 1;
+    renderFilms(loc);
+  });
 }
 
 if (document.readyState === "loading") {
