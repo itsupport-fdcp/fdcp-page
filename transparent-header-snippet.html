@@ -57,6 +57,22 @@
     outline: none !important;
     box-shadow: none !important;
   }
+  /* The slide-out hamburger drawer (role="dialog") is a white panel that lives
+     INSIDE this same nav. The white-text override above would render its menu
+     items white-on-white (looks empty / "no contents"). Keep the drawer on the
+     theme's own dark text and restore its panel shadow so it matches the real
+     sidebar. JS paint() also skips it (see below). */
+  body nav.fixed.top-0 [role="dialog"],
+  body nav.fixed.top-0 [role="dialog"] a,
+  body nav.fixed.top-0 [role="dialog"] span,
+  body nav.fixed.top-0 [role="dialog"] button,
+  body nav.fixed.top-0 [role="dialog"] svg {
+    color: #1a1a1a !important;
+  }
+  body nav.fixed.top-0 [role="dialog"] [class*="shadow-xl"] {
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,.1),
+                0 8px 10px -6px rgba(0,0,0,.1) !important;
+  }
 </style>
 <script>
   (function () {
@@ -102,6 +118,9 @@
       );
       n.style.setProperty('color', '#ffffff', 'important');
       n.querySelectorAll('a, span, button, svg').forEach(function (el) {
+        // Leave the slide-out menu drawer alone — it's a white panel with its
+        // own dark text; forcing it white makes it look empty.
+        if (el.closest('[role="dialog"]')) return;
         el.style.setProperty('color', '#ffffff', 'important');
       });
       var logo = n.querySelector('img[alt="FDCP Logo"], img[src*="fdcp-logo"]');
