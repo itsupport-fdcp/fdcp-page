@@ -1,0 +1,146 @@
+<!-- =====================================================================
+     FDCP TRANSPARENT WHITE HEADER — reusable snippet
+     =====================================================================
+     Drop this block anywhere inside a Basic Page snippet body (top is fine).
+     It forces the global theme header — an Alpine <nav class="fixed top-0 ...">
+     — into the transparent + white-text look the custom about-us page uses,
+     even though interior/Basic pages normally render it light
+     (bg-[#F8F8F8] text-black) with the black logo.
+
+     WHY IT'S NEEDED
+     - The header is rendered by the theme OUTSIDE your pasted snippet, so you
+       can't style it with normal page CSS — but a snippet that only lives on
+       this page can reach it via JS/CSS, and that scope is automatically
+       limited to this page only.
+     - The theme uses Alpine `:class` to re-bind the nav's classes on scroll,
+       so class-based overrides get clobbered. We override with INLINE styles
+       (which Alpine's :class never touches) + a few !important CSS rules.
+
+     HOW IT BEHAVES (mirrors the live about-us header)
+     - At top of page : header transparent, white text/icons, white logo.
+     - Scrolled       : header solid black + subtle shadow, text stays white.
+     - A blue backdrop fills Drupal's white `article.card` chrome that sits
+       above your hero, so white text never lands on white while at the top.
+
+     CONFIG — edit the two CONFIG values below per page:
+       BACKDROP_COLOR : colour of the band shown behind the header at the top.
+                        Set to the top colour of your hero so it's seamless.
+                        Set to '' (empty string) to disable the backdrop
+                        entirely (use this if your page already has a dark hero
+                        reaching y=0 and you don't get a white gap).
+       HERO_SELECTOR  : the element whose top edge marks where your real
+                        content begins; the backdrop is sized to cover
+                        everything above it. Defaults to the snippet's <main>.
+                        Pick something unique on your page if there's no <main>.
+
+     REQUIRES: the white logo asset to exist at WHITE_LOGO below (it ships with
+     fdcp_theme). If your build uses a different filename, update WHITE_LOGO.
+     ===================================================================== -->
+<style>
+  /* Instant base paint (no flash) — JS toggles solid black on scroll. */
+  body nav.fixed.top-0 {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
+  }
+  body nav.fixed.top-0 a,
+  body nav.fixed.top-0 span,
+  body nav.fixed.top-0 button,
+  body nav.fixed.top-0 svg {
+    color: #ffffff !important;
+  }
+  /* Forcing currentColor white can turn a currentColor-based border/outline
+     white — kill any border/outline/ring on the header so no box appears. */
+  body nav.fixed.top-0,
+  body nav.fixed.top-0 * {
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  /* The slide-out hamburger drawer (role="dialog") is a white panel that lives
+     INSIDE this same nav. The white-text override above would render its menu
+     items white-on-white (looks empty / "no contents"). Keep the drawer on the
+     theme's own dark text and restore its panel shadow so it matches the real
+     sidebar. JS paint() also skips it (see below). */
+  body nav.fixed.top-0 [role="dialog"],
+  body nav.fixed.top-0 [role="dialog"] a,
+  body nav.fixed.top-0 [role="dialog"] span,
+  body nav.fixed.top-0 [role="dialog"] button,
+  body nav.fixed.top-0 [role="dialog"] svg {
+    color: #1a1a1a !important;
+  }
+  body nav.fixed.top-0 [role="dialog"] [class*="shadow-xl"] {
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,.1),
+                0 8px 10px -6px rgba(0,0,0,.1) !important;
+  }
+</style>
+<script>
+  (function () {
+    // === CONFIG ===
+    var BACKDROP_COLOR = '#005D8C';                 // '' to disable the backdrop
+    var HERO_SELECTOR  = 'main[class*="005D8C"], main'; // element marking content start
+    var WHITE_LOGO =
+      '/themes/custom/fdcp_theme/assets/images/home/fdcp-logo-update-white.webp';
+    // === END CONFIG ===
+
+    var backdrop;
+    function getNav() { return document.querySelector('nav.fixed.top-0'); }
+    function getHero() { return document.querySelector(HERO_SELECTOR); }
+
+    // Fixed colour panel placed BEHIND the transparent header (z-40 < the
+    // header's z-50) covering Drupal's white card chrome above the hero.
+    function ensureBackdrop() {
+      if (backdrop || !BACKDROP_COLOR) return backdrop;
+      backdrop = document.createElement('div');
+      backdrop.id = 'fdcp-header-backdrop';
+      backdrop.style.cssText =
+        'position:fixed;top:0;left:0;width:100%;z-index:40;' +
+        'background:' + BACKDROP_COLOR + ';pointer-events:none;display:none;';
+      document.body.appendChild(backdrop);
+      return backdrop;
+    }
+
+    function heroTopGap() {
+      var hero = getHero();
+      if (!hero) return 0;
+      var r = hero.getBoundingClientRect();
+      return Math.max(r.top + (window.pageYOffset || 0), 0);
+    }
+
+    function paint() {
+      var n = getNav();
+      if (!n) return;
+      var atTop = (window.pageYOffset || document.documentElement.scrollTop || 0) <= 0;
+
+      n.style.setProperty('background', atTop ? 'transparent' : '#000000', 'important');
+      n.style.setProperty(
+        'box-shadow', atTop ? 'none' : '0 2px 8px rgba(0,0,0,.25)', 'important'
+      );
+      n.style.setProperty('color', '#ffffff', 'important');
+      n.querySelectorAll('a, span, button, svg').forEach(function (el) {
+        // Leave the slide-out menu drawer alone — it's a white panel with its
+        // own dark text; forcing it white makes it look empty.
+        if (el.closest('[role="dialog"]')) return;
+        el.style.setProperty('color', '#ffffff', 'important');
+      });
+      var logo = n.querySelector('img[alt="FDCP Logo"], img[src*="fdcp-logo"]');
+      if (logo && logo.src.indexOf('white') === -1) logo.src = WHITE_LOGO;
+
+      var b = ensureBackdrop();
+      if (b) {
+        if (atTop) {
+          b.style.height = Math.max(heroTopGap(), n.offsetHeight) + 'px';
+          b.style.display = 'block';
+        } else {
+          b.style.display = 'none';
+        }
+      }
+    }
+
+    paint();
+    document.addEventListener('DOMContentLoaded', paint);
+    window.addEventListener('load', paint);
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+  })();
+</script>
