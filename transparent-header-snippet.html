@@ -87,15 +87,22 @@
     function getNav() { return document.querySelector('nav.fixed.top-0'); }
     function getHero() { return document.querySelector(HERO_SELECTOR); }
 
-    // Fixed colour panel placed BEHIND the transparent header (z-40 < the
-    // header's z-50) covering Drupal's white card chrome above the hero.
+    // Colour filler covering the white/#F8F8F8 gap the theme leaves above the
+    // hero. It is position:ABSOLUTE (NOT fixed), so it lives in the scrolling
+    // flow: at the top it fills the gap behind the transparent header; as you
+    // scroll it slides away with the page. Because it's plain content — never
+    // toggled by JS per frame — there is no repaint-lag frame where the white
+    // gap flashes through on a fast scroll. (A fixed + JS-toggled backdrop had
+    // exactly that flash: on a quick scroll the compositor ran a frame ahead of
+    // the scroll handler, so the nav was still transparent while the backdrop
+    // was already hidden, exposing the white strip.)
     function ensureBackdrop() {
       if (backdrop || !BACKDROP_COLOR) return backdrop;
       backdrop = document.createElement('div');
       backdrop.id = 'fdcp-header-backdrop';
       backdrop.style.cssText =
-        'position:fixed;top:0;left:0;width:100%;z-index:40;' +
-        'background:' + BACKDROP_COLOR + ';pointer-events:none;display:none;';
+        'position:absolute;top:0;left:0;width:100%;z-index:1;' +
+        'background:' + BACKDROP_COLOR + ';pointer-events:none;';
       document.body.appendChild(backdrop);
       return backdrop;
     }
@@ -126,15 +133,12 @@
       var logo = n.querySelector('img[alt="FDCP Logo"], img[src*="fdcp-logo"]');
       if (logo && logo.src.indexOf('white') === -1) logo.src = WHITE_LOGO;
 
+      // Size the filler to the gap (or header height, whichever is taller).
+      // Never hide it: when scrolled it scrolls off with the page, and the
+      // solid header covers this strip anyway. Not toggling it per frame is
+      // what removes the fast-scroll white flash.
       var b = ensureBackdrop();
-      if (b) {
-        if (atTop) {
-          b.style.height = Math.max(heroTopGap(), n.offsetHeight) + 'px';
-          b.style.display = 'block';
-        } else {
-          b.style.display = 'none';
-        }
-      }
+      if (b) b.style.height = Math.max(heroTopGap(), n.offsetHeight) + 'px';
     }
 
     paint();

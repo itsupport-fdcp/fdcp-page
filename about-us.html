@@ -84,17 +84,23 @@
                  document.querySelector('[class*="005D8C"]');
         }
 
-        // A fixed blue panel placed *behind* the transparent header (z-40 < the
-        // header's z-50) that covers Drupal's white article.card chrome at the
-        // top of a Basic Page. Sized to the gap above the hero; only shown at
-        // the top, where the header is transparent.
+        // A blue filler covering the ~112px #F8F8F8 gap the theme leaves above
+        // our hero (theme #main-content pt-28). It is position:ABSOLUTE (not
+        // fixed), so it lives in the scrolling flow: at the top it fills the gap
+        // behind the transparent header; as you scroll it slides away with the
+        // page. Because it's plain content — never toggled by JS per frame —
+        // there is no repaint-lag frame where the white gap flashes through on a
+        // fast scroll. (The old fixed + JS-toggled backdrop had exactly that
+        // flash: on a quick scroll the compositor ran a frame ahead of the
+        // scroll handler, so the nav was still transparent while the backdrop
+        // was already hidden, exposing the white strip.)
         function ensureBackdrop() {
           if (backdrop) return backdrop;
           backdrop = document.createElement('div');
           backdrop.id = 'fdcp-header-backdrop';
           backdrop.style.cssText =
-            'position:fixed;top:0;left:0;width:100%;z-index:40;' +
-            'background:' + HERO_BLUE + ';pointer-events:none;display:none;';
+            'position:absolute;top:0;left:0;width:100%;z-index:1;' +
+            'background:' + HERO_BLUE + ';pointer-events:none;';
           document.body.appendChild(backdrop);
           return backdrop;
         }
@@ -125,14 +131,12 @@
           var logo = n.querySelector('img[alt="FDCP Logo"], img[src*="fdcp-logo"]');
           if (logo && logo.src.indexOf('white') === -1) logo.src = WHITE_LOGO;
 
+          // Size the filler to the white gap (or the header height, whichever
+          // is taller). Never hide it: when scrolled it simply scrolls off with
+          // the page, and the solid black header covers this strip anyway. Not
+          // toggling it per frame is what removes the fast-scroll white flash.
           var b = ensureBackdrop();
-          if (atTop) {
-            // Cover at least the header height, or the full white gap if taller.
-            b.style.height = Math.max(heroTopGap(), n.offsetHeight) + 'px';
-            b.style.display = 'block';
-          } else {
-            b.style.display = 'none';
-          }
+          b.style.height = Math.max(heroTopGap(), n.offsetHeight) + 'px';
         }
 
         paint();
