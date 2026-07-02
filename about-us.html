@@ -217,9 +217,15 @@
     @keyframes fdcp-orb-drift-a { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(18vw,14vh) scale(1.2); } }
     @keyframes fdcp-orb-drift-b { 0%,100% { transform:translate(0,0) scale(1.1); } 50% { transform:translate(-16vw,-10vh) scale(0.9); } }
     @keyframes fdcp-orb-drift-c { 0%,100% { transform:translate(0,0) scale(0.95); } 50% { transform:translate(-12vw,-12vh) scale(1.25); } }
-    #fdcp-mgmt-orb-a { animation: fdcp-orb-drift-a 22s ease-in-out infinite; }
-    #fdcp-mgmt-orb-b { animation: fdcp-orb-drift-b 28s ease-in-out infinite; }
-    #fdcp-mgmt-orb-c { animation: fdcp-orb-drift-c 34s ease-in-out infinite; }
+    /* Gradient backgrounds live HERE, not on the inline style= attribute: Drupal's
+       stored-content CSS sanitizer strips radial-gradient() from inline `background`
+       (verified on the live /about page — every other inline prop survives, only the
+       gradient is dropped), but it passes <style> blocks through untouched. A JS guard
+       below re-asserts these inline as a second belt in case a stricter filter ever
+       sanitizes this block too. */
+    #fdcp-mgmt-orb-a { animation: fdcp-orb-drift-a 22s ease-in-out infinite; background: radial-gradient(circle at center,#580076 0%,rgba(88,0,118,0) 70%); }
+    #fdcp-mgmt-orb-b { animation: fdcp-orb-drift-b 28s ease-in-out infinite; background: radial-gradient(circle at center,#0096E2 0%,rgba(0,150,226,0) 70%); }
+    #fdcp-mgmt-orb-c { animation: fdcp-orb-drift-c 34s ease-in-out infinite; background: radial-gradient(circle at center,#E200A9 0%,rgba(226,0,169,0) 70%); }
     @media (prefers-reduced-motion: reduce) {
       #fdcp-mgmt-orb-a, #fdcp-mgmt-orb-b, #fdcp-mgmt-orb-c { animation: none; }
     }
@@ -231,6 +237,22 @@
     <div id="fdcp-mgmt-orb-b" style="position:absolute;top:30%;right:-10%;width:40vw;height:40vw;min-width:300px;min-height:300px;border-radius:9999px;background:radial-gradient(circle at center,#0096E2 0%,rgba(0,150,226,0) 70%);filter:blur(100px);opacity:.4;pointer-events:none;"></div>
     <div id="fdcp-mgmt-orb-c" style="position:absolute;bottom:0;left:25%;width:42vw;height:42vw;min-width:300px;min-height:300px;border-radius:9999px;background:radial-gradient(circle at center,#E200A9 0%,rgba(226,0,169,0) 70%);filter:blur(100px);opacity:.45;pointer-events:none;"></div>
   </div>
+  <script>
+  /* Belt-and-braces (CKEditor constraint #5/#11): Drupal strips radial-gradient()
+     from inline style= on the orbs, so re-apply each orb's gradient at runtime.
+     Harmless in local preview (identical to the inline value). */
+  (function () {
+    var orbs = {
+      'fdcp-mgmt-orb-a': 'radial-gradient(circle at center,#580076 0%,rgba(88,0,118,0) 70%)',
+      'fdcp-mgmt-orb-b': 'radial-gradient(circle at center,#0096E2 0%,rgba(0,150,226,0) 70%)',
+      'fdcp-mgmt-orb-c': 'radial-gradient(circle at center,#E200A9 0%,rgba(226,0,169,0) 70%)'
+    };
+    Object.keys(orbs).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.style.setProperty('background', orbs[id], 'important'); }
+    });
+  })();
+  </script>
   <h3 class="bg-gradient-to-r from-[#E200A9] to-[#0096E2] bg-clip-text text-transparent text-[36px] lg:text-[72px] font-bold text-center mb-20" style="position:relative;z-index:20;">
     MEET THE MANAGEMENT
   </h3>
@@ -2155,7 +2177,12 @@
                timeline line behind this heading, fading to transparent at the edges so no
                box shows. Text is the brand gradient with a solid #580076 fallback (CKEditor
                constraint #13). Sits above the line via the parent's z-10. -->
-          <div class="gsap-fade-up px-4 pt-5 pb-10 text-center" style="background:radial-gradient(150% 140% at 50% 50%, #F8F8F8 0%, #F8F8F8 80%, rgba(248,248,248,0) 100%);">
+          <style>
+            /* Gradient in a <style> rule, not inline: Drupal strips radial-gradient()
+               from inline style= (same sanitizer that drops the orb backgrounds). */
+            #fdcp-story-mask { background: radial-gradient(150% 140% at 50% 50%, #F8F8F8 0%, #F8F8F8 80%, rgba(248,248,248,0) 100%); }
+          </style>
+          <div id="fdcp-story-mask" class="gsap-fade-up px-4 pt-5 pb-10 text-center" style="background:radial-gradient(150% 140% at 50% 50%, #F8F8F8 0%, #F8F8F8 80%, rgba(248,248,248,0) 100%);">
               <h3 class="text-3xl font-bold bg-gradient-to-r from-[#580076] to-[#E200A9] bg-clip-text text-transparent" style="color:#580076;">2002 - Present:</h3>
               <h3 class="text-3xl font-bold bg-gradient-to-r from-[#580076] to-[#E200A9] bg-clip-text text-transparent" style="color:#580076;">Film Development Council of the Philippines</h3>
           </div>
