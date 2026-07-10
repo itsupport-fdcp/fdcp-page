@@ -787,14 +787,14 @@
 
         <div class="w-full h-auto pb-40 lg:py-40 lg:space-y-44" style="color:#1F2937;">
 
-            <div x-data="{ activeModal: null, isFullScreen: false }" class="w-full h-auto space-y-16 lg:space-y-44 relative max-lg:text-center">
+            <div class="w-full h-auto space-y-16 lg:space-y-44 relative max-lg:text-center">
 
                 <div class="max-w-screen-2xl mx-auto px-4">
           <h3 class="text-[32px] lg:text-[72px] font-bold leading-tight">
             <span class="bg-gradient-to-r from-[#E200A9] to-[#0096E2] bg-clip-text text-transparent">BOARD </span>OF TRUSTEES
           </h3>
           <button
-            @click="activeModal = 'trustees'"
+            id="fdcp-bot-open"
             class="bg-[#FFCC00] px-10 py-2 text-sm text-black rounded-full hover:bg-[#ffdb4d] transition mt-4"
           >
             Learn More
@@ -806,7 +806,7 @@
             <span class="bg-gradient-to-r from-[#E200A9] to-[#0096E2] bg-clip-text text-transparent">ORGANIZATIONAL </span>CHARTS
           </h3>
           <button
-            @click="activeModal = 'charts'"
+            id="fdcp-org-open"
             class="bg-[#FFCC00] px-10 py-2 text-sm text-black rounded-full hover:bg-[#ffdb4d] transition mt-4"
           >
             Learn More
@@ -823,31 +823,23 @@
         </div>
 
                 <div
-          x-show="activeModal"
-          x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0"
-          x-transition:enter-end="opacity-100"
-          x-transition:leave="transition ease-in duration-200"
-          x-transition:leave-start="opacity-100"
-          x-transition:leave-end="opacity-0"
-          @keydown.escape.window="activeModal = null; isFullScreen = false"
+          id="fdcp-bot-modal"
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm -translate-y-16 lg:-translate-y-44 h-[100svh]"
           style="display: none;"
         >
 
                     <div
-            @click.outside="activeModal = null; isFullScreen = false"
-            :class="isFullScreen ? 'w-screen h-[100svh] max-w-none rounded-none m-0 p-0' : 'w-full max-w-7xl max-h-[80svh] rounded-2xl -translate-y-0'"
-            class="bg-white text-black overflow-y-auto shadow-2xl relative transition-all duration-300 ease-in-out flex flex-col"
+            id="fdcp-modal-box"
+            class="w-full max-w-7xl max-h-[80svh] rounded-2xl bg-white text-black overflow-y-auto shadow-2xl relative transition-all duration-300 ease-in-out flex flex-col"
           >
-                        <button @click="activeModal = null; isFullScreen = false" class="absolute top-12 left-10 p-2 z-10 rounded-full transition" :class="activeModal === 'trustees' ? 'bg-black text-white' : 'bg-white text-black'">
+                        <button id="fdcp-modal-close" class="absolute top-12 left-10 p-2 z-10 rounded-full transition" style="background:#000;color:#fff;">
               <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
                 <path d="M7.08138 17.8646L17.2897 28.0729C17.7064 28.4896 17.9064 28.9757 17.8897 29.5312C17.873 30.0868 17.6557 30.5729 17.2376 30.9896C16.821 31.3715 16.3349 31.5715 15.7793 31.5896C15.2237 31.6076 14.7376 31.4076 14.321 30.9896L0.570961 17.2396C0.362628 17.0312 0.214711 16.8056 0.127211 16.5625C0.0397113 16.3194 -0.00264957 16.059 0.000128206 15.7812C0.00290598 15.5035 0.0466554 15.2431 0.131378 15C0.2161 14.7569 0.363323 14.5312 0.573045 14.3229L14.323 0.572916C14.705 0.190971 15.1828 0 15.7564 0C16.33 0 16.8244 0.190971 17.2397 0.572916C17.6564 0.989582 17.8647 1.48472 17.8647 2.05833C17.8647 2.63194 17.6564 3.12639 17.2397 3.54167L7.08138 13.6979H30.3626C30.9529 13.6979 31.448 13.8979 31.848 14.2979C32.248 14.6979 32.4473 15.1924 32.446 15.7812C32.4446 16.3701 32.2446 16.8653 31.846 17.2667C31.4473 17.6681 30.9529 17.8674 30.3626 17.8646H7.08138Z" fill="currentColor"/>
               </svg>
             </button>
 
                         <div
-              x-show="activeModal === 'trustees'"
+              id="fdcp-panel-trustees"
               x-data="{
                 imgBase: 'https://fdcp.ph/themes/custom/fdcp_theme/assets/images/about-us/logo/',
                 board: [
@@ -2031,7 +2023,7 @@
                             
                                         </div>
 
-                        <div x-show="activeModal === 'charts'" class="p-12 text-end h-full flex flex-col">
+                        <div id="fdcp-panel-charts" class="p-12 text-end h-full flex flex-col" style="display:none;">
               <h2 class="text-xl md:text-[34px] lg:text-[44px] font-bold mb-5 text-center text-[#E200A9] mt-14 lg:mt-0">Organizational Chart</h2>
 
               <div class="flex justify-center items-center flex-grow bg-white relative">
@@ -2050,9 +2042,10 @@
 
 
 <img
+  id="fdcp-org-img"
   src="https://fdcp.ph/sites/default/files/2026-06/ORG%20CHART_0.png"
-  class="object-contain transition-all duration-300 "
-  :class="isFullScreen ? 'h-full w-auto' : 'h-[550px] w-[95%]'"
+  class="object-contain transition-all duration-300"
+  style="height:550px;width:95%;"
   alt="Organizational Chart"
 />
 
@@ -2067,10 +2060,10 @@
 
               <div class="mt-4 flex justify-end shrink-0 pb-10">
                 <button
-                    @click="isFullScreen = !isFullScreen"
+                    id="fdcp-fs-btn"
                     class="bg-gradient-to-r from-[#580076] to-[#E200A9] text-white px-10 py-2 rounded-full text-sm font-bold hover:shadow-lg transition z-20 relative"
                 >
-                    <span x-text="isFullScreen ? 'Exit Full Screen' : 'View Full Screen'"></span>
+                    <span id="fdcp-fs-label">View Full Screen</span>
                 </button>
               </div>
             </div>
@@ -2080,6 +2073,63 @@
       </div>
 
     </div>
+
+    <!-- Board / Org-chart modal controller (plain JS — Drupal strips Alpine's
+         @click/x-show/:class attributes on the live page, so the "Learn More"
+         buttons did nothing there. Same plain-JS pattern as the bio modal). -->
+    <script>
+    (function () {
+      var modal = document.getElementById('fdcp-bot-modal');
+      if (!modal || modal.dataset.fdcpInit) { return; }
+      modal.dataset.fdcpInit = '1';
+      var box = document.getElementById('fdcp-modal-box');
+      var pTrustees = document.getElementById('fdcp-panel-trustees');
+      var pCharts = document.getElementById('fdcp-panel-charts');
+      var closeBtn = document.getElementById('fdcp-modal-close');
+      var fsBtn = document.getElementById('fdcp-fs-btn');
+      var fsLabel = document.getElementById('fdcp-fs-label');
+      var orgImg = document.getElementById('fdcp-org-img');
+      var fs = false;
+
+      function applyFs() {
+        if (fs) {
+          box.style.cssText = 'width:100vw;height:100svh;max-width:none;max-height:none;border-radius:0;';
+          if (orgImg) { orgImg.style.height = '100%'; orgImg.style.width = 'auto'; }
+          if (fsLabel) { fsLabel.textContent = 'Exit Full Screen'; }
+        } else {
+          box.style.cssText = '';
+          if (orgImg) { orgImg.style.height = '550px'; orgImg.style.width = '95%'; }
+          if (fsLabel) { fsLabel.textContent = 'View Full Screen'; }
+        }
+      }
+      function open(which) {
+        if (pTrustees) { pTrustees.style.display = which === 'trustees' ? '' : 'none'; }
+        if (pCharts) { pCharts.style.display = which === 'charts' ? '' : 'none'; }
+        if (closeBtn) {
+          closeBtn.style.background = which === 'trustees' ? '#000' : '#fff';
+          closeBtn.style.color = which === 'trustees' ? '#fff' : '#000';
+        }
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function close() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        fs = false; applyFs();
+      }
+
+      var bT = document.getElementById('fdcp-bot-open');
+      var bC = document.getElementById('fdcp-org-open');
+      if (bT) { bT.addEventListener('click', function () { open('trustees'); }); }
+      if (bC) { bC.addEventListener('click', function () { open('charts'); }); }
+      if (closeBtn) { closeBtn.addEventListener('click', close); }
+      if (fsBtn) { fsBtn.addEventListener('click', function () { fs = !fs; applyFs(); }); }
+      modal.addEventListener('click', function (e) { if (e.target === modal) { close(); } });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || e.keyCode === 27) { close(); }
+      });
+    })();
+    </script>
 
         <div class="w-full h-auto py-40 overflow-hidden" style="color:#1F2937;">
       <div class="gsap-section pt-20">
