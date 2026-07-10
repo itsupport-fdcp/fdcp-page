@@ -1,0 +1,150 @@
+<div id="fdcp-jf-root">&nbsp;</div>
+
+<script>
+(function () {
+
+  // =====================================================================
+  // CONFIG
+  // =====================================================================
+  var BASE = location.protocol === "file:" ? "https://fdcp.ph" : "";
+  var IMG_BANNER = BASE + "/sites/default/files/2025-12/juan-flix.png"; // 1528x706
+  var IMG_LOGO   = BASE + "/themes/custom/fdcp_theme/assets/images/home/juanflix-logo-updated.webp";
+  var TAGLINE    = "NANDITO ANG KUWENTO MO";
+  var CTA_URL    = "https://juanflix.com.ph";
+  var CTA_LABEL  = "Start Watching";
+
+  // =====================================================================
+  // STYLES — injected via createElement so the block filter can't strip
+  // them. Desktop: banner at its natural aspect ratio (the old template
+  // had NO height on lg, so the section collapsed to the leftover margins
+  // of a blanked-out description and squashed the banner into a strip).
+  // Mobile: overlay content defines the height, banner covers behind it.
+  // =====================================================================
+  var CSS = [
+    ".fdcp-jf-wrap{background:transparent;padding:72px 0;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;}",
+    /* Desktop: a fixed-height band just tall enough for the overlay; the
+       banner covers it (center crop). Mobile: overlay content defines the
+       height instead. */
+    ".fdcp-jf-box{position:relative;overflow:hidden;background:#0d0d0d;height:clamp(420px,34vw,540px);}",
+    ".fdcp-jf-banner{position:absolute;top:0;left:0;display:block;width:100%;height:100%;object-fit:cover;}",
+    ".fdcp-jf-overlay{position:absolute;right:7%;top:50%;transform:translateY(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:26px;}",
+    ".fdcp-jf-logo{display:block;width:438px;max-width:76vw;height:auto;}",
+    ".fdcp-jf-tagline{margin:0;color:#fff;font-size:28px;font-weight:300;text-align:center;letter-spacing:0.02em;}",
+    ".fdcp-jf-cta{background:linear-gradient(135deg,#CC8500 0%,#FFCC00 100%);color:#111;font-weight:600;font-size:15px;padding:10px 40px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,0.4);transition:opacity .2s ease,transform .2s ease;}",
+    ".fdcp-jf-cta:hover{color:#111;text-decoration:none;opacity:0.9;transform:translateY(-1px);}",
+    "@media (max-width:1023px){",
+    "  .fdcp-jf-wrap{padding:48px 0;}",
+    "  .fdcp-jf-box{height:auto;}",
+    "  .fdcp-jf-overlay{position:relative;right:auto;top:auto;transform:none;padding:88px 24px;gap:22px;}",
+    "  .fdcp-jf-logo{width:300px;}",
+    "  .fdcp-jf-tagline{font-size:22px;}",
+    "}"
+  ].join("\n");
+
+  function injectStyles() {
+    if (document.getElementById("fdcp-jf-styles")) return;
+    var s = document.createElement("style");
+    s.id = "fdcp-jf-styles";
+    s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        var v = attrs[k];
+        if (v == null) continue;
+        if (k === "className")        node.className = v;
+        else if (k === "textContent") node.textContent = v;
+        else node.setAttribute(k, v);
+      }
+    }
+    if (children) {
+      for (var i = 0; i < children.length; i++) node.appendChild(children[i]);
+    }
+    return node;
+  }
+
+  // =====================================================================
+  // Hide the theme's broken JuanFlix block: the section holding the old
+  // banner, plus the spacer paragraphs whose text is only invisible
+  // left-to-right marks (U+200E). Runs BEFORE we build our own DOM.
+  // =====================================================================
+  function hideOldJF() {
+    var imgs = document.querySelectorAll('img[src*="juan-flix"]');
+    for (var i = 0; i < imgs.length; i++) {
+      var sec = imgs[i].closest ? imgs[i].closest("section") : null;
+      if (sec) sec.style.display = "none";
+    }
+    var divs = document.querySelectorAll("div");
+    for (var j = 0; j < divs.length; j++) {
+      var d = divs[j];
+      if (d.className && String(d.className).indexOf("max-w-4xl") !== -1 &&
+          d.textContent.replace(/[‎ \s]/g, "") === "") {
+        d.style.display = "none";
+      }
+    }
+  }
+
+  // =====================================================================
+  // MOUNT
+  // =====================================================================
+  function mount() {
+    injectStyles();
+    hideOldJF();
+
+    var root = document.getElementById("fdcp-jf-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "fdcp-jf-root";
+      var scripts = document.getElementsByTagName("script");
+      var here = scripts[scripts.length - 1];
+      if (here && here.parentNode) here.parentNode.insertBefore(root, here);
+      else document.body.appendChild(root);
+    }
+    root.textContent = "";
+
+    var banner = el("img", {
+      className: "fdcp-jf-banner",
+      src: IMG_BANNER,
+      alt: "JuanFlix — The FDCP Channel",
+      width: "1528", height: "706",
+      loading: "lazy"
+    });
+
+    var overlay = el("div", { className: "fdcp-jf-overlay" }, [
+      el("img", {
+        className: "fdcp-jf-logo",
+        src: IMG_LOGO,
+        alt: "JuanFlix logo",
+        loading: "lazy"
+      }),
+      el("p", { className: "fdcp-jf-tagline", textContent: TAGLINE }),
+      el("a", {
+        className: "fdcp-jf-cta",
+        href: CTA_URL,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        textContent: CTA_LABEL
+      })
+    ]);
+
+    var box = el("div", { className: "fdcp-jf-box" }, [banner, overlay]);
+    var wrap = el("div", {
+      className: "fdcp-jf-wrap",
+      role: "region",
+      "aria-label": "JuanFlix — The FDCP Channel"
+    }, [box]);
+
+    root.appendChild(wrap);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount);
+  } else {
+    mount();
+  }
+})();
+</script>

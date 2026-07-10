@@ -1,0 +1,63 @@
+<!--
+  Careers listing title line-break fix.
+  The theme renders each job title (a plain-text Drupal field, so no <br>
+  allowed in it) as <h3 class="text-2xl font-medium">Title (Subtitle)</h3>.
+  This script moves the trailing "(...)" onto its own line and keeps it on
+  ONE line, shrinking its font just enough to fit the card width.
+  Deploy via a Basic content block placed in any region (Block Layout);
+  the path guard keeps it inert outside /careers.
+-->
+<script>
+(function () {
+  // Safe to place site-wide: only acts on the careers section, so job-style
+  // "Title (Subtitle)" headings elsewhere are never touched.
+  if (location.pathname.indexOf("/careers") !== 0 &&
+      location.protocol !== "file:") return;
+
+  function splitCareerTitles() {
+    var hs = document.querySelectorAll("h3");
+    for (var i = 0; i < hs.length; i++) {
+      var h = hs[i];
+      if (h.getAttribute("data-fdcp-title-split")) continue;
+      // Only titles that END with a parenthetical: "Job Title (Plantilla)"
+      var m = h.textContent.trim().match(/^([^(]*\S)\s*(\(.+\))$/);
+      if (!m) continue;
+      h.setAttribute("data-fdcp-title-split", "1");
+      h.textContent = "";
+      h.appendChild(document.createTextNode(m[1]));
+      h.appendChild(document.createElement("br"));
+      var sub = document.createElement("span");
+      sub.style.whiteSpace = "nowrap";
+      sub.textContent = m[2];
+      h.appendChild(sub);
+    }
+    fitSubtitles();
+  }
+
+  // Shrink each nowrap "(...)" line to fit its card; re-fit on resize.
+  function fitSubtitles() {
+    var subs = document.querySelectorAll("h3[data-fdcp-title-split] span");
+    for (var i = 0; i < subs.length; i++) {
+      var s = subs[i];
+      s.style.fontSize = "100%";
+      var need = s.getBoundingClientRect().width;
+      var avail = s.parentElement.clientWidth;
+      if (need > avail && need > 0) {
+        s.style.fontSize = Math.floor((avail / need) * 100) + "%";
+      }
+    }
+  }
+
+  var t = null;
+  window.addEventListener("resize", function () {
+    if (t) clearTimeout(t);
+    t = setTimeout(fitSubtitles, 120);
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", splitCareerTitles);
+  } else {
+    splitCareerTitles();
+  }
+})();
+</script>
