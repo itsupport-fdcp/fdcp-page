@@ -684,7 +684,13 @@
         "Before assuming her current role, Florence was part of the Education Division, where she helped develop and manage local and international programs focused on industry learning, professional development, and capacity building. Her experience in both education and festival programs reflects her commitment to supporting the growth of film practitioners and strengthening the Philippine film industry.",
         "A graduate of Far Eastern University with a Bachelor's Degree in Communication, major in Convergent Media, Florence brings together a deep appreciation for both the creative and developmental aspects of the industry. Beyond her professional work, she was also an independent filmmaker whose storytelling is grounded in a strong sense of community and cultural engagement. In 2024, her short film Mahirap Ang Makinarya, Banal Ang May Kita (Holy Is He Who Earns) received the Kidlat Kapwa Award at the Montañosa Film Festival, reflecting her commitment to storytelling and creative excellence."
       ],
-      "JARIENILL CHO": [],
+      "JARIENILL CHO": [
+      "Jarienill Cho graduated with the degree of Bachelor of Science in Development Communication major in Educational Communication from the University of the Philippines Los Banos. At present, Cho is a graduating student of Juris Doctor at the Arellano University School of Law.",
+      "During her years in UP, she took active part in the UPLB official student publication, the UPLB Perspective where she published multiple articles spanning from Creatives to News.",
+      "Cho also published works in multiple magazines and local newspapers. Her biggest breakthrough in writing came in 2017 when she became the story consultant for an American Indie Film ‘Home Away from Home’ which screened in local cinemas of Ohio, USA in 2017.",
+      "Cho joined the government service in 2018. In her years of service, she had served in several agencies catering different industries - construction, trade and industry, intellectual property, and the film industry.",
+      "In 2023, Cho joined the FDCP as a Planning Officer and eventually was promoted as the Head of the Policy and Planning Division (PPD) while concurrently managing the IT Section.  Cho now serves as the president of the Kapisanan ng Kawani ng Film Development Council of the Philippines, or the FDCP’s Employee’s Association and sole bargaining unit."
+      ],
       "LIZA OFIANGA": [
         "Liza Ofianga is currently the Head of the CreatePHFilms Funding Program at the Film Development Council of the Philippines (FDCP). She leads the implementation of local film grants and incentive programs that support Filipino filmmakers from project development to production. She is also currently pursuing a Juris Doctor at the Arellano University School of Law.",
         "Ofianga began her public service career in 2018. Prior to her current role, she worked with the Cultural Center of the Philippines and the Cinemalaya Philippine Independent Film Festival, one of the country’s leading independent film festivals that champions Philippine cinema on the global stage. Her experience spans film production, festival operations, film labs, and stage management."
@@ -2368,20 +2374,20 @@
         var track = document.getElementById('fdcp-fha-track');
         if (!track || track.dataset.fdcpFhaInit) { return; }
         track.dataset.fdcpFhaInit = '1';
-        var imgBase = 'https://fdcp.ph/themes/custom/fdcp_theme/assets/images/about-us/colored/';
+        var imgBase = 'https://fdcp.ph/sites/default/files/2026-07/';
         var items = [
-          { name: 'Imee Marcos',     role: 'ECP Director General',   years: '1982', img: 'imee-marcos.webp' },
-          { name: 'Cirio Santiago',  role: 'FDFPI Chairman',         years: '1986', img: 'cirio-santiago.webp' },
-          { name: 'Marichu Maceda',  role: 'FDFPI President',        years: '1998', img: 'marichu-maceda.webp' },
-          { name: 'Laurice Guillen', role: 'FDFPI President',        years: '2001', role2: 'FDCP Chairman & CEO', years2: '2003', img: 'laurice-guillen.webp' },
-          { name: 'Rolando Atienza', role: 'FDCP Chairman & CEO',    years: '2005', img: 'rolando-atienza.webp' },
-          { name: 'Briccio Santos',  role: 'FDCP Chairman & CEO',    years: '2010', img: 'briccio-santos.webp' },
-          { name: 'Mary Liza Diño',  role: 'FDCP Chairperson & CEO', years: '2016', img: 'mary-liza-dino.webp' },
-          { name: 'Tirso Cruz III',  role: 'FDCP Chairman & CEO',    years: '2022', img: 'tirso-cruz.webp' }
+          { name: 'Imee Marcos',     role: 'ECP Director General',   years: '1982', img: '1.png' },
+          { name: 'Cirio Santiago',  role: 'FDFPI Chairman',         years: '1986', img: '2.png' },
+          { name: 'Marichu Maceda',  role: 'FDFPI President',        years: '1998', img: '3.png' },
+          { name: 'Laurice Guillen', role: 'FDFPI President',        years: '2001', role2: 'FDCP Chairman & CEO', years2: '2003', img: '4.png' },
+          { name: 'Rolando Atienza', role: 'FDCP Chairman & CEO',    years: '2005', img: '5.png' },
+          { name: 'Briccio Santos',  role: 'FDCP Chairman & CEO',    years: '2010', img: '6.png' },
+          { name: 'Mary Liza Diño',  role: 'FDCP Chairperson & CEO', years: '2016', img: '7.png' },
+          { name: 'Tirso Cruz III',  role: 'FDCP Chairman & CEO',    years: '2022', img: '8.png' }
         ];
         function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function cardHTML(item, i) {
-          var h = (((i + 1) % 2) !== 0) ? '25rem' : '20rem'; /* staggered baseline, matches original even:h-[20rem] */
+          var h = '25rem'; /* uniform height for every card so all images match */
           var extra = '';
           if (item.role2) {
             extra = '<div style="margin-top:0.5rem;">'
@@ -2390,7 +2396,7 @@
               + '</div>';
           }
           return '<div style="width:16rem;height:' + h + ';display:flex;flex-direction:column;gap:1rem;text-align:center;flex-shrink:0;">'
-            + '<div style="flex:1 1 auto;min-height:0;border:1px solid rgba(0,0,0,0.1);background:#1f2937;overflow:hidden;">'
+            + '<div style="flex:1 1 auto;min-height:0;background:#1f2937;overflow:hidden;">'
             + '<img src="' + imgBase + item.img + '" alt="' + esc(item.name) + '" draggable="false" style="width:100%;height:100%;object-fit:cover;display:block;" />'
             + '</div>'
             + '<div style="color:#1F2937;height:5rem;">'
@@ -2404,7 +2410,7 @@
         function groupHTML() {
           var inner = '';
           for (var i = 0; i < items.length; i++) { inner += cardHTML(items[i], i); }
-          return '<div style="display:flex;align-items:baseline;gap:2rem;padding:0 1rem;flex-shrink:0;">' + inner + '</div>';
+          return '<div style="display:flex;align-items:flex-start;gap:2rem;padding:0 1rem;flex-shrink:0;">' + inner + '</div>';
         }
         /* Two identical groups so the auto-scroll loops seamlessly. */
         track.innerHTML = groupHTML() + groupHTML();
@@ -2448,6 +2454,24 @@
         track.addEventListener('touchstart', function (e) { dragStart(e.touches[0].pageX); }, { passive: true });
         track.addEventListener('touchmove', function (e) { if (isDragging) { dragMove(e.touches[0].pageX); } }, { passive: true });
         track.addEventListener('touchend', dragEnd);
+
+        /* Touchpad horizontal swipe. The auto-scroll tick rewrites scrollLeft from
+           `pos` every frame, so native wheel scrolling would be clobbered — feed the
+           delta into `pos` ourselves. Only act on horizontal-dominant gestures
+           (two-finger sideways swipe, deltaX); a vertical scroll (deltaY-dominant)
+           is left entirely alone so scrolling down the page never nudges the
+           carousel and the page scrolls normally. */
+        track.addEventListener('wheel', function (e) {
+          var half = track.scrollWidth / 2;
+          if (half <= 0) { return; }
+          if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) { return; } // vertical → let page scroll
+          if (!e.deltaX) { return; }
+          e.preventDefault();
+          pos += e.deltaX;
+          if (pos < 0) { pos += half; }
+          else if (pos >= half) { pos -= half; }
+          track.scrollLeft = pos;
+        }, { passive: false });
       })();
       </script>
     </div>
