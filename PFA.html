@@ -1,0 +1,164 @@
+<div id="fdcp-pfa-root">&nbsp;</div>
+
+<script>
+(function () {
+
+  // =====================================================================
+  // CONFIG
+  // =====================================================================
+  // Same images the old block uploaded to Drupal. The domain prefix is
+  // only added for file:// local preview; on the live site paths stay
+  // relative.
+  var BASE = location.protocol === "file:" ? "https://fdcp.ph" : "";
+  var IMG_DESKTOP = BASE + "/sites/default/files/2025-12/pfa-bg.png";   // 3840x952
+  var IMG_MOBILE  = BASE + "/sites/default/files/2025-12/pfa-image.png"; // 440x463
+  var CTA_URL   = "https://philippinefilmarchive.fdcp.ph";
+  var CTA_LABEL = "Explore More";
+  var DESC =
+    "The Philippine Film Archive invites you to discover the nation’s " +
+    "cinematic heritage through a vast collection of films and materials that " +
+    "safeguard the artistry, culture, and history of our people. This dedicated " +
+    "space ensures that timeless classics, contemporary works, and invaluable " +
+    "film records are preserved and made accessible for future generations, " +
+    "allowing audiences to celebrate the legacy and evolution of Philippine cinema.";
+
+  // =====================================================================
+  // STYLES — injected via createElement so the block filter can't strip
+  // them. Section height follows the image's natural aspect ratio (the
+  // old template forced lg:h-[100svh] + object-contain, which opened the
+  // huge white gaps above/below the banner).
+  // =====================================================================
+  var CSS = [
+    ".fdcp-pfa-wrap{background:transparent;padding:48px 0 64px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1a1a1a;}",
+    ".fdcp-pfa-desc{max-width:896px;margin:0 auto 40px;padding:0 24px;text-align:center;font-size:20px;line-height:1.7;}",
+    ".fdcp-pfa-banner-box{position:relative;}",
+    ".fdcp-pfa-banner{display:block;width:100%;height:auto;}",
+    ".fdcp-pfa-banner-mobile{display:none;}",
+    /* CTA overlays the banner, anchored under the PFA logo: the logo sits
+       around the 20% mark of the desktop artwork, centered on mobile. */
+    ".fdcp-pfa-cta-row{position:absolute;left:20%;top:72%;transform:translateX(-50%);z-index:2;}",
+    "@media (max-width:1023px){",
+    "  .fdcp-pfa-wrap{padding:32px 0 48px;}",
+    "  .fdcp-pfa-desc{font-size:16px;margin-bottom:28px;}",
+    "  .fdcp-pfa-banner{display:none;}",
+    "  .fdcp-pfa-banner-mobile{display:block;width:100%;height:auto;}",
+    "  .fdcp-pfa-cta-row{left:50%;top:70%;}",
+    "}",
+    ".fdcp-pfa-cta{background:linear-gradient(135deg,#CC8500 0%,#FFCC00 100%);color:#111;font-weight:600;font-size:15px;padding:10px 40px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(204,133,0,0.35);transition:opacity .2s ease,transform .2s ease;}",
+    ".fdcp-pfa-cta:hover{color:#111;text-decoration:none;opacity:0.9;transform:translateY(-1px);}"
+  ].join("\n");
+
+  function injectStyles() {
+    if (document.getElementById("fdcp-pfa-styles")) return;
+    var s = document.createElement("style");
+    s.id = "fdcp-pfa-styles";
+    s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      for (var k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        var v = attrs[k];
+        if (v == null) continue;
+        if (k === "className")        node.className = v;
+        else if (k === "textContent") node.textContent = v;
+        else node.setAttribute(k, v);
+      }
+    }
+    if (children) {
+      for (var i = 0; i < children.length; i++) node.appendChild(children[i]);
+    }
+    return node;
+  }
+
+  // =====================================================================
+  // Hide the theme's broken PFA block (100svh section + the stray mobile
+  // description div its template renders outside the section). Runs
+  // BEFORE we build our own DOM, so our own pfa-* images never match.
+  // =====================================================================
+  function hideOldPFA() {
+    var imgs = document.querySelectorAll('img[src*="pfa-bg"], img[src*="pfa-image"]');
+    for (var i = 0; i < imgs.length; i++) {
+      var sec = imgs[i].closest ? imgs[i].closest("section") : null;
+      if (sec) sec.style.display = "none";
+    }
+    var divs = document.querySelectorAll("div");
+    for (var j = 0; j < divs.length; j++) {
+      var d = divs[j];
+      if (d.children.length <= 1 &&
+          d.textContent.indexOf("Philippine Film Archive invites") !== -1 &&
+          !d.closest("section") &&
+          d.id !== "fdcp-pfa-root" && !d.querySelector("#fdcp-pfa-root")) {
+        d.style.display = "none";
+      }
+    }
+  }
+
+  // =====================================================================
+  // MOUNT
+  // =====================================================================
+  function mount() {
+    injectStyles();
+    hideOldPFA();
+
+    var root = document.getElementById("fdcp-pfa-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "fdcp-pfa-root";
+      var scripts = document.getElementsByTagName("script");
+      var here = scripts[scripts.length - 1];
+      if (here && here.parentNode) here.parentNode.insertBefore(root, here);
+      else document.body.appendChild(root);
+    }
+    root.textContent = "";
+
+    var desc = el("p", { className: "fdcp-pfa-desc", textContent: DESC });
+
+    var bannerDesktop = el("img", {
+      className: "fdcp-pfa-banner",
+      src: IMG_DESKTOP,
+      alt: "Philippine Film Archive — preserving the nation’s cinematic heritage",
+      width: "3840", height: "952",
+      loading: "lazy"
+    });
+    var bannerMobile = el("img", {
+      className: "fdcp-pfa-banner-mobile",
+      src: IMG_MOBILE,
+      alt: "Philippine Film Archive — preserving the nation’s cinematic heritage",
+      width: "440", height: "463",
+      loading: "lazy"
+    });
+
+    var cta = el("div", { className: "fdcp-pfa-cta-row" }, [
+      el("a", {
+        className: "fdcp-pfa-cta",
+        href: CTA_URL,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        textContent: CTA_LABEL
+      })
+    ]);
+
+    var bannerBox = el("div", { className: "fdcp-pfa-banner-box" }, [
+      bannerDesktop, bannerMobile, cta
+    ]);
+
+    var wrap = el("div", {
+      className: "fdcp-pfa-wrap",
+      role: "region",
+      "aria-label": "Philippine Film Archive"
+    }, [desc, bannerBox]);
+
+    root.appendChild(wrap);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mount);
+  } else {
+    mount();
+  }
+})();
+</script>

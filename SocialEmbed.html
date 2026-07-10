@@ -5,51 +5,64 @@
 <script>
 (function () {
 
-  var FB_HANDLE     = "fdcpofficial";
-  var FB_FOLLOWERS  = "145K followers";
+  // =====================================================================
+  // CONFIG — one entry per Facebook page card. Order = display order.
+  // "sub" is the default subtitle; replaced by the live follower count
+  // when SOCIAL_STATS_SHEET_URL provides a row whose platform column
+  // matches "statsKey".
+  // =====================================================================
+  var PAGES = [
+    { handle: "fdcpofficial", name: "FDCP",     sub: "145K followers", statsKey: "face"     },
+    { handle: "juanflixph",   name: "JuanFlix", sub: "@juanflixph",    statsKey: "juanflix" }
+  ];
 
-
-  var FB_FILL_CARD  = true;
-  var FB_MAX_SCALE  = 1.5;
+  var FB_FILL_CARD = true;
   var SOCIAL_STATS_SHEET_URL = "";
+
+  // Native size Meta serves the page plugin at (width is capped at 500).
+  var FB_NATIVE_W = 500, FB_NATIVE_H = 520;
 
   // =====================================================================
   // STYLES — plain string, injected via createElement (no markup for
   // CKEditor to parse).
   // =====================================================================
   var CSS = [
-    ".fdcp-social-wrap{background:#f8f8f8;padding:112px 0 56px;font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0d0d0d;}",
-    ".fdcp-social-shell{max-width:1080px;margin:0 auto;padding:0 24px;}",
-    ".fdcp-social-title{margin:0 0 36px;text-align:center;font-size:72px;font-weight:800;letter-spacing:0.04em;text-transform:none;color:#0d0d0d;}",
+    ".fdcp-social-wrap{background:transparent;padding:104px 0 64px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0d0d0d;}",
+    ".fdcp-social-shell{max-width:1120px;margin:0 auto;padding:0 24px;}",
+    ".fdcp-social-title{margin:0 0 12px;text-align:center;font-size:clamp(28px,5.5vw,64px);font-weight:800;letter-spacing:-0.01em;color:#0d0d0d;}",
+    ".fdcp-social-sub{margin:0 auto 40px;text-align:center;font-size:15px;color:#6b7280;max-width:60ch;}",
 
-    /* Single centered card — wider than before, capped so the FB iframe
-       (Meta limits width to 500px) sits comfortably inside with breathing
-       room. The card itself stretches up to 760px on desktop. */
-    ".fdcp-social-stage{display:flex;justify-content:center;}",
-    ".fdcp-social-card{background:#fff;border:1px solid #efefef;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 22px rgba(15,15,15,0.05);width:100%;max-width:640px;min-height:640px;}",
-    "@media (max-width:768px){.fdcp-social-title{font-size:22px;margin-bottom:24px;}.fdcp-social-wrap{padding:72px 0 40px;}.fdcp-social-card{min-height:560px;}}",
+    /* Two-up grid: cards sit side by side whenever there's room for two
+       340px columns, and stack automatically below that. min(100%,340px)
+       prevents horizontal overflow on very narrow phones. */
+    ".fdcp-social-stage{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:28px;align-items:start;justify-content:center;}",
+    ".fdcp-social-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 22px rgba(88,0,118,0.06);transition:box-shadow .25s ease,transform .25s ease;}",
+    ".fdcp-social-card:hover{box-shadow:0 10px 32px rgba(88,0,118,0.12);transform:translateY(-2px);}",
+    "@media (max-width:768px){.fdcp-social-wrap{padding:72px 0 40px;}.fdcp-social-sub{margin-bottom:28px;}}",
 
     /* Header */
-    ".fdcp-social-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f1f1f1;background:#fff;border-radius:14px 14px 0 0;}",
+    ".fdcp-social-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f1f1;background:#fff;}",
     ".fdcp-social-head-left{display:flex;align-items:center;gap:10px;min-width:0;}",
-    ".fdcp-social-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 36px;background:#1877F2;}",
-    ".fdcp-social-avatar svg{width:18px;height:18px;display:block;color:#fff;}",
-    ".fdcp-social-handle{display:flex;flex-direction:column;line-height:1.1;min-width:0;}",
-    ".fdcp-social-platform{font-size:13px;font-weight:700;color:#0d0d0d;letter-spacing:-0.01em;}",
-    ".fdcp-social-followers{font-size:11px;color:#737373;margin-top:2px;}",
+    ".fdcp-social-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 38px;background:#1877F2;}",
+    ".fdcp-social-avatar svg{width:19px;height:19px;display:block;color:#fff;}",
+    ".fdcp-social-handle{display:flex;flex-direction:column;line-height:1.15;min-width:0;}",
+    ".fdcp-social-platform{font-size:14px;font-weight:700;color:#0d0d0d;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
+    ".fdcp-social-followers{font-size:11px;color:#737373;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
+    ".fdcp-social-follow{flex:0 0 auto;background:linear-gradient(90deg,#580076 0%,#E200A9 100%);color:#fff;font-size:12px;font-weight:700;letter-spacing:0.02em;padding:7px 16px;border-radius:999px;text-decoration:none;}",
+    ".fdcp-social-follow:hover{color:#fff;opacity:0.9;text-decoration:none;}",
 
     /* Body — Facebook iframe is capped at 500px wide by Meta. To make
        the FB content visually fill the card, we wrap it in a "scaler"
        and apply CSS transform: scale() (sized in JS based on actual card
        width). overflow:hidden keeps any sub-pixel bleed from showing. */
-    ".fdcp-social-body{position:relative;flex:none;height:520px;background:#fff;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;}",
-    ".fdcp-fb-scaler{position:relative;width:500px;height:520px;}",
-    ".fdcp-fb-scaler iframe{display:block;width:500px;height:520px;border:0;background:#fff;transform-origin:top left;}",
+    ".fdcp-social-body{position:relative;flex:none;background:#fff;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;}",
+    ".fdcp-fb-scaler{position:relative;}",
+    ".fdcp-fb-scaler iframe{display:block;width:" + FB_NATIVE_W + "px;height:" + FB_NATIVE_H + "px;border:0;background:#fff;transform-origin:top left;}",
 
     /* Footer */
-    ".fdcp-social-foot{border-top:1px solid #f1f1f1;padding:12px 16px;background:#fff;display:flex;align-items:center;justify-content:center;border-radius:0 0 14px 14px;}",
-    ".fdcp-social-foot-link{font-size:13px;font-weight:600;color:#1877F2;text-decoration:none;}",
-    ".fdcp-social-foot-link:hover{text-decoration:underline;color:#1877F2;}"
+    ".fdcp-social-foot{border-top:1px solid #f1f1f1;padding:13px 16px;background:#fff;display:flex;align-items:center;justify-content:center;}",
+    ".fdcp-social-foot-link{font-size:13px;font-weight:600;color:#580076;text-decoration:none;}",
+    ".fdcp-social-foot-link:hover{text-decoration:underline;color:#E200A9;}"
   ].join("\n");
 
   function injectStyles() {
@@ -116,71 +129,79 @@
   }
 
   // =====================================================================
-  // CARD BUILDERS
+  // CARD BUILDERS — each takes a PAGES entry.
   // =====================================================================
-  function buildHeader() {
+  function buildHeader(page) {
     var avatar = el("div", { className: "fdcp-social-avatar" }, [svgIcon(SVG_FB_GLYPH)]);
     var handle = el("div", { className: "fdcp-social-handle" }, [
-      el("span", { className: "fdcp-social-platform", textContent: "Facebook" }),
+      el("span", { className: "fdcp-social-platform", textContent: page.name }),
       el("span", {
-        id: "fdcp-fb-followers",
+        id: "fdcp-fb-followers-" + page.handle,
         className: "fdcp-social-followers",
-        textContent: FB_FOLLOWERS
+        textContent: page.sub
       })
     ]);
     var left = el("div", { className: "fdcp-social-head-left" }, [avatar, handle]);
-    return el("div", { className: "fdcp-social-head" }, [left]);
+    var follow = el("a", {
+      className: "fdcp-social-follow",
+      href: "https://www.facebook.com/" + page.handle + "/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      textContent: "Follow"
+    });
+    return el("div", { className: "fdcp-social-head" }, [left, follow]);
   }
 
-  function buildBody() {
+  function buildBody(page) {
     var body = el("div", { className: "fdcp-social-body" });
     var src =
       "https://www.facebook.com/plugins/page.php?href=" +
-      encodeURIComponent("https://www.facebook.com/" + FB_HANDLE) +
-      "&tabs=timeline&width=500&height=520&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false";
+      encodeURIComponent("https://www.facebook.com/" + page.handle) +
+      "&tabs=timeline&width=" + FB_NATIVE_W + "&height=" + FB_NATIVE_H +
+      "&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false";
     var iframe = el("iframe", {
       src: src,
-      title: "Facebook timeline for " + FB_HANDLE,
+      title: "Facebook timeline for " + page.name,
       loading: "lazy",
       allow: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
       allowfullscreen: "true",
       scrolling: "no",
       frameborder: "0",
-      width: "500",
-      height: "520"
+      width: String(FB_NATIVE_W),
+      height: String(FB_NATIVE_H)
     });
     var scaler = el("div", { className: "fdcp-fb-scaler" }, [iframe]);
     body.appendChild(scaler);
     return body;
   }
 
-  // Resize the FB iframe via CSS transform so its visual width fills the
-  // card. We compute the scale from the body's actual width on every
-  // resize, so the layout stays correct if the homepage container
-  // changes width on different breakpoints.
-  function fitFBEmbed() {
+  // Resize each FB iframe via CSS transform so its visual width fills its
+  // own card. Scale is computed per card from the body's actual width on
+  // every resize, so side-by-side and stacked layouts both stay correct.
+  function fitFBEmbeds() {
     if (!FB_FILL_CARD) return;
-    var scaler = document.querySelector(".fdcp-fb-scaler");
-    if (!scaler) return;
-    var body = scaler.parentElement;
-    if (!body) return;
-    var cs = (window.getComputedStyle ? getComputedStyle(body) : null);
-    var padL = cs ? parseFloat(cs.paddingLeft)  || 0 : 0;
-    var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
-    var available = body.clientWidth - padL - padR;
-    var nativeW = 500, nativeH = 520;
-    var scale = Math.min(1, available / nativeW);
-    var iframe = scaler.firstElementChild;
-    if (iframe) iframe.style.transform = "scale(" + scale + ")";
-    scaler.style.width  = (nativeW * scale) + "px";
-    scaler.style.height = (nativeH * scale) + "px";
-    body.style.height   = (nativeH * scale) + "px";
+    var scalers = document.querySelectorAll(".fdcp-fb-scaler");
+    for (var i = 0; i < scalers.length; i++) {
+      var scaler = scalers[i];
+      var body = scaler.parentElement;
+      if (!body) continue;
+      var cs = (window.getComputedStyle ? getComputedStyle(body) : null);
+      var padL = cs ? parseFloat(cs.paddingLeft)  || 0 : 0;
+      var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
+      var available = body.clientWidth - padL - padR;
+      var scale = Math.min(1, available / FB_NATIVE_W);
+      var iframe = scaler.firstElementChild;
+      if (iframe) iframe.style.transform = "scale(" + scale + ")";
+      scaler.style.width  = (FB_NATIVE_W * scale) + "px";
+      scaler.style.height = (FB_NATIVE_H * scale) + "px";
+      body.style.height   = (FB_NATIVE_H * scale) + "px";
+    }
   }
 
-  function buildFooter() {
+  function buildFooter(page) {
     var viewMore = el("a", {
       className: "fdcp-social-foot-link",
-      href: "https://www.facebook.com/" + FB_HANDLE + "/",
+      href: "https://www.facebook.com/" + page.handle + "/",
       target: "_blank",
       rel: "noopener noreferrer",
       textContent: "View More on Facebook"
@@ -229,7 +250,15 @@
           var platform  = (r[keys[0]] || "").toLowerCase();
           var followers = (r[keys[1]] || "").trim();
           if (!platform || !followers) return;
-          if (platform.indexOf("face") !== -1) applyFollowerCount("fdcp-fb-followers", followers);
+          // Most specific statsKey wins (e.g. "juanflix" row must not be
+          // eaten by a broader "face" match), so check longer keys first.
+          var pages = PAGES.slice().sort(function (a, b) { return b.statsKey.length - a.statsKey.length; });
+          for (var i = 0; i < pages.length; i++) {
+            if (platform.indexOf(pages[i].statsKey) !== -1) {
+              applyFollowerCount("fdcp-fb-followers-" + pages[i].handle, followers);
+              return;
+            }
+          }
         });
       })
       .catch(function () { /* keep the hardcoded default */ });
@@ -255,29 +284,37 @@
     root.textContent = ""; // clear &nbsp; placeholder
 
     var title = el("h2", { className: "fdcp-social-title", textContent: "Social Updates" });
+    var sub = el("p", {
+      className: "fdcp-social-sub",
+      textContent: "The latest from FDCP and JuanFlix on Facebook."
+    });
 
-    var card = el("div", { className: "fdcp-social-card" }, [
-      buildHeader(),
-      buildBody(),
-      buildFooter()
-    ]);
+    var cards = [];
+    for (var i = 0; i < PAGES.length; i++) {
+      cards.push(el("div", { className: "fdcp-social-card" }, [
+        buildHeader(PAGES[i]),
+        buildBody(PAGES[i]),
+        buildFooter(PAGES[i])
+      ]));
+    }
 
-    var stage = el("div", { className: "fdcp-social-stage" }, [card]);
-    var shell = el("div", { className: "fdcp-social-shell" }, [title, stage]);
-    var wrap  = el("section", {
+    var stage = el("div", { className: "fdcp-social-stage" }, cards);
+    var shell = el("div", { className: "fdcp-social-shell" }, [title, sub, stage]);
+    var wrap  = el("div", {
       className: "fdcp-social-wrap",
-      "aria-label": "Latest social updates from FDCP"
+      role: "region",
+      "aria-label": "Latest social updates from FDCP and JuanFlix"
     }, [shell]);
 
     root.appendChild(wrap);
 
-    // Size the FB iframe to fill the card width; rerun on resize so the
+    // Size each FB iframe to fill its card width; rerun on resize so the
     // scale stays correct across breakpoints.
-    fitFBEmbed();
+    fitFBEmbeds();
     var resizeT = null;
     window.addEventListener("resize", function () {
       if (resizeT) clearTimeout(resizeT);
-      resizeT = setTimeout(fitFBEmbed, 120);
+      resizeT = setTimeout(fitFBEmbeds, 120);
     });
 
     // Kick off the optional dynamic follower-count fetch.
