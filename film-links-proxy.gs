@@ -80,6 +80,7 @@ function eventToRow_(block) {
   var dt = field_(block, "DTSTART");
   if (!summary || !dt) return null;
   summary = unescapeIcs_(summary);
+  if (/^cinematheque director series:/i.test(summary)) return null;
 
   var y, mo, d, h = 0, mi = 0, timed = false, dow;
   if (/^\d{8}T/.test(dt)) {
@@ -112,6 +113,9 @@ function eventToRow_(block) {
 
 // DESCRIPTION is "<b>Director</b><br>Program<br><br>Synopsis" -> 2nd line.
 function programFromDesc_(desc, film) {
+  if (/^cinematheque director series:/i.test(film || "")) {
+    return "Cinematheque Director Series";
+  }
   if (!desc) return "";
   // Split on <br> FIRST so the separators survive, THEN strip tags.
   var parts = unescapeIcs_(desc)

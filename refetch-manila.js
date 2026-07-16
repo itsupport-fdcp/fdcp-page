@@ -19,6 +19,7 @@ const field = (b, n) => { const m = b.match(new RegExp("(?:^|\\n)" + n + "[^:\\n
 const unesc = s => s.replace(/\\n/gi, " ").replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\\\/g, "\\").replace(/\s+/g, " ").trim();
 const pad = n => String(n).length < 2 ? "0" + n : "" + n;
 function prog(d, film) {
+  if (/^cinematheque director series:/i.test(film || "")) return "Cinematheque Director Series";
   if (!d) return "";
   const p = unesc(d).split(/<br\s*\/?>/i).map(s => s.replace(/<[^>]+>/g, "").trim()).filter(Boolean);
   if (p.length < 2) return "";
@@ -29,6 +30,7 @@ function row(b) {
   let s = field(b, "SUMMARY"), dt = field(b, "DTSTART");
   if (!s || !dt) return null;
   s = unesc(s);
+  if (/^cinematheque director series:/i.test(s)) return null;
   if (/closed for private|private event/i.test(s)) return null;
   let y, mo, d, h = 0, mi = 0, timed = false, dow;
   if (/^\d{8}T/.test(dt)) {
