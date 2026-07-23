@@ -20,7 +20,19 @@
   var SOCIAL_STATS_SHEET_URL = "";
 
   // Native size Meta serves the page plugin at (width is capped at 500).
+  // FB_NATIVE_H is the height of *visible feed* we want, after cropping.
   var FB_NATIVE_W = 500, FB_NATIVE_H = 520;
+
+  // Meta's small_header bar is a fixed 72px box, but Meta renders ~110px of
+  // content into it (avatar + page name + follower line), so the feed below
+  // slices the page name in half. No plugin param fixes this. We draw our own
+  // header anyway, so crop Meta's off: request a taller iframe and shift it up
+  // by exactly this much inside the overflow:hidden body.
+  // ponytail: 72 is stable because we always render the iframe at a fixed
+  // 500px wide, so the plugin's internal layout never reflows. If Meta
+  // restyles the header, this is the one number to re-measure.
+  var FB_HEADER_CROP = 72;
+  var FB_IFRAME_H = FB_NATIVE_H + FB_HEADER_CROP;
 
   // =====================================================================
   // STYLES — plain string, injected via createElement (no markup for
@@ -57,7 +69,7 @@
        width). overflow:hidden keeps any sub-pixel bleed from showing. */
     ".fdcp-social-body{position:relative;flex:none;background:#fff;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;}",
     ".fdcp-fb-scaler{position:relative;}",
-    ".fdcp-fb-scaler iframe{display:block;width:" + FB_NATIVE_W + "px;height:" + FB_NATIVE_H + "px;border:0;background:#fff;transform-origin:top left;}",
+    ".fdcp-fb-scaler iframe{display:block;width:" + FB_NATIVE_W + "px;height:" + FB_IFRAME_H + "px;border:0;background:#fff;transform-origin:top left;}",
 
     /* Footer */
     ".fdcp-social-foot{border-top:1px solid #f1f1f1;padding:13px 16px;background:#fff;display:flex;align-items:center;justify-content:center;}",
@@ -157,7 +169,7 @@
     var src =
       "https://www.facebook.com/plugins/page.php?href=" +
       encodeURIComponent("https://www.facebook.com/" + page.handle) +
-      "&tabs=timeline&width=" + FB_NATIVE_W + "&height=" + FB_NATIVE_H +
+      "&tabs=timeline&width=" + FB_NATIVE_W + "&height=" + FB_IFRAME_H +
       "&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false";
     var iframe = el("iframe", {
       src: src,
@@ -168,7 +180,7 @@
       scrolling: "no",
       frameborder: "0",
       width: String(FB_NATIVE_W),
-      height: String(FB_NATIVE_H)
+      height: String(FB_IFRAME_H)
     });
     var scaler = el("div", { className: "fdcp-fb-scaler" }, [iframe]);
     body.appendChild(scaler);
@@ -176,10 +188,15 @@
   }
 
   // Resize each FB iframe via CSS transform so its visual width fills its
-  // own card. Scale is computed per card from the body's actual width on
-  // every resize, so side-by-side and stacked layouts both stay correct.
+  // own card, and shift it up so Meta's broken header is cropped away.
+  // Scale is computed per card from the body's actual width on every resize,
+  // so side-by-side and stacked layouts both stay correct.
+  //
+  // transform-origin is top left and the list applies right-to-left, so
+  // "scale(s) translateY(-crop)" maps iframe y -> (y - crop) * s: the feed's
+  // top lands exactly at the body's top, and the visible height is
+  // FB_NATIVE_H * s (the crop is already excluded).
   function fitFBEmbeds() {
-    if (!FB_FILL_CARD) return;
     var scalers = document.querySelectorAll(".fdcp-fb-scaler");
     for (var i = 0; i < scalers.length; i++) {
       var scaler = scalers[i];
@@ -189,9 +206,14 @@
       var padL = cs ? parseFloat(cs.paddingLeft)  || 0 : 0;
       var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
       var available = body.clientWidth - padL - padR;
-      var scale = Math.min(1, available / FB_NATIVE_W);
+      // Never scale past 1 — the plugin is capped at 500px wide by Meta and
+      // upscaling only blurs it.
+      var scale = FB_FILL_CARD ? Math.min(1, available / FB_NATIVE_W) : 1;
       var iframe = scaler.firstElementChild;
-      if (iframe) iframe.style.transform = "scale(" + scale + ")";
+      if (iframe) {
+        iframe.style.transform =
+          "scale(" + scale + ") translateY(-" + FB_HEADER_CROP + "px)";
+      }
       scaler.style.width  = (FB_NATIVE_W * scale) + "px";
       scaler.style.height = (FB_NATIVE_H * scale) + "px";
       body.style.height   = (FB_NATIVE_H * scale) + "px";
