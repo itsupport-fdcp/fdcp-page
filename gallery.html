@@ -2327,10 +2327,13 @@
     }
 
     //  ALGORITHM 
-    // Latest-first selection of events that carry post-event media. Single
-    // sorted pool is split into two feeds: featuredVideos (events with a
-    // playable Video Link) and photoEvents (events with Photo Links populated).
-    // An event with BOTH appears in BOTH feeds — they're parallel.
+    // Most-recently-finished selection of events that carry post-event media.
+    // End time/Date is the primary ordering date; Start time/Date is the
+    // fallback for rows whose end date is blank. Future events stay hidden
+    // until their ordering date is reached. The sorted pool is split into two
+    // feeds: featuredVideos (events with a playable Video Link) and photoEvents
+    // (events with Photo Links populated). An event with BOTH appears in BOTH
+    // feeds — they're parallel.
 
     function debounce(fn, ms) {
       var t = null;
@@ -2342,7 +2345,8 @@
     }
 
     // Edge case #19: two rows, same event title → same slug. Keep whichever
-    // entry carries more media; tiebreak by latest date; tiebreak by first-seen.
+    // entry carries more media; tiebreak by latest finish/fallback date; then
+    // by first-seen.
     function dedupBySlug(acc, e) {
       for (var i = 0; i < acc.length; i++) {
         if (acc[i].id !== e.id) continue;
@@ -2350,8 +2354,10 @@
         var eScore = e.photos.length + (e.video ? 1 : 0);
         if (eScore > aScore) { acc[i] = e; return acc; }
         if (eScore === aScore) {
-          var at = acc[i].date ? acc[i].date.getTime() : -Infinity;
-          var et = e.date ? e.date.getTime() : -Infinity;
+          var aOrderDate = acc[i].endDate || acc[i].date;
+          var eOrderDate = e.endDate || e.date;
+          var at = aOrderDate ? aOrderDate.getTime() : -Infinity;
+          var et = eOrderDate ? eOrderDate.getTime() : -Infinity;
           if (et > at) acc[i] = e;
         }
         return acc;
@@ -2399,6 +2405,7 @@
           id:       slugify(title),
           title:    title,
           date:     parseSheetDate(r["Start time/Date"] || ""),
+          endDate:  parseSheetDate(r["End time/Date"] || ""),
           descHTML: r["Descriptions_html"] || r["Description_html"] || "",
           descText: r["Descriptions"]      || r["Description"]      || "",
           poster:   poster,
@@ -2410,11 +2417,18 @@
     }
 
     function selectMediaFeeds(rows) {
-      var events = buildMediaEvents(rows);
-      // Newest first. Stable sort keeps sheet row order on date ties.
+      var now = Date.now();
+      var events = buildMediaEvents(rows).filter(function (e) {
+        var orderDate = e.endDate || e.date;
+        return orderDate && orderDate.getTime() <= now;
+      });
+      // Most recently finished first. Start date is the fallback for rows with
+      // no end date. Stable sort keeps sheet row order on date ties.
       events.sort(function (a, b) {
-        var at = a.date ? a.date.getTime() : -Infinity;
-        var bt = b.date ? b.date.getTime() : -Infinity;
+        var aOrderDate = a.endDate || a.date;
+        var bOrderDate = b.endDate || b.date;
+        var at = aOrderDate ? aOrderDate.getTime() : -Infinity;
+        var bt = bOrderDate ? bOrderDate.getTime() : -Infinity;
         return bt - at;
       });
       return {
@@ -2426,8 +2440,8 @@
     }
 
     // Live search filter. Substring match on the event title plus each photo's
-    // alt/caption text. No date filters — the latest-first sort makes the old
-    // "This Week / This Month" chips redundant.
+    // alt/caption text. Completed-event filtering and finish-date ordering are
+    // already applied before this search filter runs.
     function applyPhotoFilter(events, state) {
       if (!state || !state.query) return events.slice();
       var q = state.query.toLowerCase();
