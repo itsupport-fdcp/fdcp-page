@@ -1,10 +1,15 @@
-// Refetch Manila schedule from the live public Google Calendar and rewrite
-// CC_SCHEDULE in cinematheque.html. Run:  node refetch-manila.js
+// Refetch the full cinematheque schedule and rewrite CC_SCHEDULE in
+// cinematheque.html. Run:  node refetch-manila.js
+//   - Manila: from the live public Google Calendar (.ics)
+//   - Negros / Iloilo / Davao: from the schedule Google Sheet (CSV). The page
+//     also re-fetches this sheet live on every visit (loadSheetRegions), so
+//     the baked regional rows are just the instant-paint fallback.
 // ponytail: manual refetch until the Apps Script proxy is deployed.
 const fs = require("fs"), https = require("https");
 
 const CAL = "c_297715d58563f4dc6de17c9db206013d959c7d422b00f1a65fd73329bd9579d2@group.calendar.google.com";
 const ICS = "https://calendar.google.com/calendar/ical/" + encodeURIComponent(CAL) + "/public/basic.ics";
+const SHEET = "https://docs.google.com/spreadsheets/d/1Bu-vxwXmJpTGYH3OpE6Z83Fs7513uPeVZYB7_-fjBl8/gviz/tq?tqx=out:csv";
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const PAID = { "fdcp presents: a curation of world cinema": "Php 150.00", "pelikula ng bayan": "Php 150.00" };
@@ -46,18 +51,58 @@ function row(b) {
     film: s, program: pr, admission: PAID[pr.toLowerCase()] || "Free" };
 }
 
+// Minimal CSV parser (handles quoted fields with embedded commas/newlines).
+function csvRows(text) {
+  const rows = [[""]]; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], r = rows[rows.length - 1];
+    if (q) {
+      if (ch === '"') { if (text[i + 1] === '"') { r[r.length - 1] += '"'; i++; } else q = false; }
+      else r[r.length - 1] += ch;
+    }
+    else if (ch === '"') q = true;
+    else if (ch === ",") r.push("");
+    else if (ch === "\n") rows.push([""]);
+    else if (ch !== "\r") r[r.length - 1] += ch;
+  }
+  return rows;
+}
+// "5:00 PM" -> minutes since midnight ("12:00 NN" = noon).
+function timeKey(t) {
+  const m = /(\d+):(\d+)\s*(AM|PM|NN|MN)?/i.exec(t || "");
+  if (!m) return 0;
+  let h = (+m[1]) % 12; const ap = (m[3] || "").toUpperCase();
+  if (ap === "PM" || ap === "NN") h += 12;
+  return h * 60 + (+m[2]);
+}
+// Sheet columns: DATE | DAY | (blank) | CINEMATHEQUE | TIME | FILM | PROGRAM | ADMISSION
+function regionRow(c, today) {
+  if (c.length < 8) return null;
+  const clean = s => (s || "").replace(/\s+/g, " ").trim();
+  const loc = clean(c[3]), film = clean(c[5]);
+  if (!loc || /^manila$/i.test(loc) || !film) return null;
+  const d = new Date(clean(c[0]));
+  if (isNaN(d)) return null; // header row / blank date
+  const iso = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  if (iso < today) return null;
+  return { date: MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear(), dateISO: iso,
+    day: DAYS[d.getDay()], location: loc[0].toUpperCase() + loc.slice(1).toLowerCase(),
+    time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) || "Free" };
+}
+
 (async () => {
-  const ics = (await get(ICS)).replace(/\r\n/g, "\n").replace(/\n[ \t]/g, "");
+  const [icsRaw, csv] = await Promise.all([get(ICS), get(SHEET)]);
+  const ics = icsRaw.replace(/\r\n/g, "\n").replace(/\n[ \t]/g, "");
   const today = new Date(Date.now() + 8*3600*1000).toISOString().slice(0, 10); // PH today
-  const manila = ics.split("BEGIN:VEVENT").slice(1).map(row).filter(Boolean).filter(r => r.dateISO >= today)
-    .sort((a, b) => a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : (a.time < b.time ? -1 : 1));
+  const byDateTime = (a, b) => a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : timeKey(a.time) - timeKey(b.time);
+  const manila = ics.split("BEGIN:VEVENT").slice(1).map(row).filter(Boolean).filter(r => r.dateISO >= today).sort(byDateTime);
+  const regions = csvRows(csv).map(c => regionRow(c, today)).filter(Boolean).sort(byDateTime);
 
   let html = fs.readFileSync("cinematheque.html", "utf8");
-  const sched = JSON.parse(html.match(/const CC_SCHEDULE = (\[[\s\S]*?\]);/)[1]);
-  const combined = sched.filter(r => r.location !== "Manila").concat(manila);
-  html = html.replace(/const CC_SCHEDULE = \[[\s\S]*?\];/, "const CC_SCHEDULE = " + JSON.stringify(combined) + ";");
+  html = html.replace(/const CC_SCHEDULE = \[[\s\S]*?\];/, "const CC_SCHEDULE = " + JSON.stringify(regions.concat(manila)) + ";");
   fs.writeFileSync("cinematheque.html", html, "utf8");
 
-  console.log("Refetched " + manila.length + " Manila rows (from " + today + "):");
-  manila.forEach(r => console.log("  " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
+  console.log("Refetched " + manila.length + " Manila rows (calendar) + " + regions.length + " regional rows (sheet), from " + today + ":");
+  manila.forEach(r => console.log("  Manila | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
+  regions.forEach(r => console.log("  " + r.location.padEnd(6) + " | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
 })();
