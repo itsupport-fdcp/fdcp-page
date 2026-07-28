@@ -1,0 +1,684 @@
+<!-- ============================================================
+     ASEAN Film & Television Summit 2026
+     1:1 recreation of Canva design DAHPVKx4QFs (1080 x 4500, desktop).
+     Standalone snippet: inline <style>, plain <div>s (CKEditor constraints #2, #9).
+     Assets: upload assets/asean-summit/* to /sites/default/files/<YYYY-MM>/
+     and repoint --fdcp-asset below.
+     ============================================================ -->
+<!-- LOCAL-PREVIEW ONLY — Drupal supplies its own page chrome. Delete this block before pasting. -->
+<style>html,body{margin:0 !important;padding:0 !important;background:#00509D !important}</style>
+
+<style>
+#fdcp-summit{
+  /* Design tokens sampled from the Canva export */
+  --blue:#00509D;      /* page background            */
+  --gold:#FCC31A;      /* buttons, SPEAKERS, titles  */
+  --card:#F2F2F2;      /* white card fill            */
+  --rule:#446E96;      /* section divider            */
+  --ink:#000;          /* text on white cards        */
+  --asset:./assets/asean-summit;
+
+  background:var(--blue) !important;
+  width:100vw !important;
+  max-width:100vw !important;
+  margin-left:50% !important;
+  transform:translateX(-50%) !important;
+  font-family:'Roboto','Helvetica Neue',Arial,system-ui,-apple-system,sans-serif !important;
+  color:#fff !important;
+  overflow-x:hidden !important;
+}
+#fdcp-summit *{box-sizing:border-box !important;margin:0;padding:0}
+
+/* Wide desktop canvas for local-preview and modern large displays. */
+#fdcp-summit .fdcp-stage{
+  width:100% !important;
+  max-width:1400px !important;
+  margin:0 auto !important;
+  position:relative !important;
+}
+
+/* ---- hero (banner art + logo lockup are brand artwork -> single image) ---- */
+#fdcp-summit .fdcp-hero{
+  display:block !important;
+  width:100vw !important;
+  max-width:none !important;
+  height:auto !important;
+  aspect-ratio:1080/443 !important;
+  object-fit:cover !important;
+  margin-left:50% !important;
+  transform:translateX(-50%) !important;
+}
+
+/* ---- shared text column: widened for a more open, readable composition ---- */
+#fdcp-summit .fdcp-col{
+  width:1440px !important;
+  max-width:calc(100% - 48px) !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+#fdcp-summit .fdcp-headline{
+      margin-top:clamp(64px,6vw,128px) !important;
+  font-size:48px !important;line-height:1.18 !important;
+  font-weight:700 !important;text-align:center !important;
+}
+#fdcp-summit .fdcp-p{
+  font-size:21px !important;line-height:1.68 !important;
+  font-weight:400 !important;text-align:justify !important;
+}
+#fdcp-summit .fdcp-p b{font-weight:700 !important}
+
+/* ---- outline pills ---- */
+#fdcp-summit .fdcp-pill{
+  height:61px !important;border:2px solid #fff !important;border-radius:999px !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  margin-left:auto !important;margin-right:auto !important;
+  font-size:30px !important;font-weight:500 !important;
+  white-space:nowrap !important;
+}
+/* Pill widths are fixed in the source design (AFAN and FILM are both 364px
+   despite different text lengths) — set them explicitly, don't let text size them. */
+#fdcp-summit .fdcp-pill--events{height:54px !important;font-size:26px !important;width:232px !important}
+#fdcp-summit .fdcp-pill--summit{width:604px !important}
+#fdcp-summit .fdcp-pill--afan{width:364px !important}
+#fdcp-summit .fdcp-pill--film{width:364px !important}
+#fdcp-summit .fdcp-datesub{
+  font-size:27px !important;line-height:1.4 !important;
+  font-weight:700 !important;text-align:center !important;
+}
+
+/* ---- horizontal carousels (design shows them cut off at the canvas edge) ---- */
+#fdcp-summit .fdcp-rail{
+  margin-left:80px !important;display:flex !important;
+  overflow-x:auto !important;scrollbar-width:none !important;
+  padding-right:80px !important;
+  overscroll-behavior-inline:contain !important;
+}
+#fdcp-summit .fdcp-rail::-webkit-scrollbar{display:none !important}
+
+/* Four speaker cards fit as one intentional, centered group on wide screens. */
+@media (min-width:1320px){
+  #fdcp-summit .fdcp-rail[aria-label^="Speakers"]{justify-content:center !important}
+}
+
+#fdcp-summit .fdcp-rail[data-drag-rail]{
+  cursor:grab !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
+#fdcp-summit .fdcp-rail[data-drag-rail].is-dragging{cursor:grabbing !important}
+#fdcp-summit .fdcp-rail[data-drag-rail] *,
+#fdcp-summit .fdcp-rail[data-drag-rail] img{
+  user-select:none !important;
+  -webkit-user-select:none !important;
+  -webkit-user-drag:none !important;
+}
+#fdcp-summit .fdcp-rail[data-drag-rail] img{pointer-events:none !important}
+
+/* events cards */
+#fdcp-summit .fdcp-ev{flex:0 0 300px !important;margin-right:24px !important}
+#fdcp-summit .fdcp-ev[data-scroll-target]{
+  display:block !important;
+  color:inherit !important;
+  cursor:pointer !important;
+  text-decoration:none !important;
+}
+#fdcp-summit .fdcp-ev[data-scroll-target]:focus-visible{
+  outline:3px solid var(--gold) !important;
+  outline-offset:6px !important;
+}
+#fdcp-summit .fdcp-ev-card{
+  position:relative !important;width:300px !important;height:169px !important;
+  background:var(--card) !important;overflow:hidden !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+}
+#fdcp-summit .fdcp-ev-card img{
+  position:absolute !important;top:0 !important;width:56px !important;height:169px !important;
+}
+#fdcp-summit .fdcp-ev-card img.l{left:0 !important}
+#fdcp-summit .fdcp-ev-card img.r{right:0 !important}
+#fdcp-summit .fdcp-ev-card span{
+  position:relative !important;z-index:1 !important;
+  /* source uses large type on very tight leading (~0.86) */
+  font-size:28px !important;line-height:.95 !important;font-weight:700 !important;
+  color:var(--ink) !important;text-align:center !important;transform:translateY(-3px) !important;
+}
+#fdcp-summit .fdcp-ev-date{
+  margin-top:14px !important;font-size:16px !important;line-height:22px !important;
+  font-weight:700 !important;color:var(--ink) !important;text-align:center !important;
+}
+
+/* ---- divider rule ---- */
+#fdcp-summit .fdcp-rule{
+  margin-left:auto !important;margin-right:auto !important;width:1440px !important;
+  max-width:calc(100% - 48px) !important;height:4px !important;
+  background:var(--rule) !important;
+}
+
+/* ---- topic banner (ribbon art left/right, live text centred) ---- */
+#fdcp-summit .fdcp-topic{
+  position:relative !important;margin-left:auto !important;margin-right:auto !important;
+  width:1440px !important;max-width:calc(100% - 48px) !important;height:190px !important;
+  background:var(--card) !important;overflow:hidden !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+}
+#fdcp-summit .fdcp-topic img{
+  position:absolute !important;top:0 !important;width:96px !important;height:190px !important;
+}
+#fdcp-summit .fdcp-topic img.l{left:0 !important}
+#fdcp-summit .fdcp-topic img.r{right:0 !important}
+#fdcp-summit .fdcp-topic p{
+  position:relative !important;z-index:1 !important;
+  font-size:28px !important;line-height:1.3 !important;font-weight:500 !important;
+  color:var(--ink) !important;text-align:center !important;
+}
+
+#fdcp-summit .fdcp-bullets{
+  padding-left:22px !important;list-style:disc outside !important;
+  font-size:21px !important;line-height:1.68 !important;
+}
+
+/* ---- speakers ---- */
+#fdcp-summit .fdcp-speakers-h{
+  margin-top:52px !important;font-size:36px !important;line-height:1.3 !important;
+  font-weight:700 !important;color:var(--gold) !important;text-align:center !important;
+  letter-spacing:.5px !important;
+}
+#fdcp-summit .fdcp-spk{
+  flex:0 0 264px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  margin-right:24px !important;
+  text-align:center !important;
+}
+#fdcp-summit .fdcp-spk:last-child{margin-right:0 !important}
+#fdcp-summit .fdcp-spk-photo{
+  position:relative !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:264px !important;
+  height:232px !important;
+}
+#fdcp-summit .fdcp-spk-photo img{
+  display:block !important;width:232px !important;height:232px !important;
+  border-radius:50% !important;margin:0 auto !important;
+}
+/* gold 4-point sparkles flanking each portrait */
+#fdcp-summit .fdcp-spk-photo::before,
+#fdcp-summit .fdcp-spk-photo::after{
+  content:'' !important;position:absolute !important;top:50% !important;
+  width:16px !important;height:18px !important;margin-top:-9px !important;
+  background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 26'%3E%3Cpath d='M12 0c0 7 5 13 12 13-7 0-12 6-12 13 0-7-5-13-12-13 7 0 12-6 12-13z' fill='%23FCC31A'/%3E%3C/svg%3E") !important;
+}
+#fdcp-summit .fdcp-spk-photo::before{left:8px !important}
+#fdcp-summit .fdcp-spk-photo::after{right:8px !important}
+#fdcp-summit .fdcp-spk-name{
+  margin-top:24px !important;font-size:24px !important;line-height:1.35 !important;
+  width:100% !important;font-weight:700 !important;text-align:center !important;letter-spacing:1.6px !important;
+}
+#fdcp-summit .fdcp-spk-pos{
+  margin-top:4px !important;font-size:17px !important;line-height:1.45 !important;
+  width:100% !important;font-weight:400 !important;color:var(--ink) !important;text-align:center !important;
+}
+
+/* ---- solid gold buttons ---- */
+#fdcp-summit .fdcp-btn{
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  margin-left:auto !important;margin-right:auto !important;
+  height:52px !important;border-radius:999px !important;border:0 !important;
+  background:var(--gold) !important;color:#fff !important;
+  font-family:inherit !important;font-size:25px !important;font-weight:600 !important;
+  text-decoration:none !important;white-space:nowrap !important;cursor:pointer !important;
+}
+#fdcp-summit .fdcp-btn--register{width:410px !important}
+#fdcp-summit .fdcp-btn--tickets{width:385px !important}
+
+/* ---- boot camp posters ---- */
+#fdcp-summit .fdcp-poster{
+  flex:0 0 418px !important;margin-right:18px !important;
+  width:418px !important;height:419px !important;display:block !important;
+}
+
+/* ---- film screenings ---- */
+#fdcp-summit .fdcp-film{
+  width:1440px !important;max-width:calc(100% - 48px) !important;
+  margin-left:auto !important;margin-right:auto !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  align-items:center !important;
+  column-gap:clamp(40px,5vw,88px) !important;
+}
+#fdcp-summit .fdcp-film-still{
+  width:100% !important;
+  height:auto !important;
+  aspect-ratio:460/237 !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+#fdcp-summit .fdcp-film-body{width:100% !important;min-width:0 !important}
+#fdcp-summit .fdcp-film-title{
+  font-size:clamp(33px,2.4vw,42px) !important;line-height:1.1 !important;
+  font-weight:700 !important;color:var(--gold) !important;
+}
+#fdcp-summit .fdcp-film-dir{
+  margin-top:6px !important;font-size:16px !important;line-height:20px !important;
+  font-weight:700 !important;color:var(--gold) !important;
+}
+#fdcp-summit .fdcp-film-copy{
+  margin-top:28px !important;font-size:20px !important;line-height:1.7 !important;
+  text-align:left !important;
+}
+#fdcp-summit #fdcp-summit-section,
+#fdcp-summit #fdcp-bootcamp-section,
+#fdcp-summit #fdcp-screenings-section{scroll-margin-top:120px !important}
+
+/* Scale the original 1080px composition proportionally on tablet widths. */
+@media (max-width:1079px){
+  #fdcp-summit .fdcp-col,
+  #fdcp-summit .fdcp-rule,
+  #fdcp-summit .fdcp-topic{
+    margin-left:clamp(24px,5vw,54px) !important;
+    margin-right:clamp(24px,5vw,54px) !important;
+    width:auto !important;
+    max-width:none !important;
+  }
+  #fdcp-summit .fdcp-rail{
+    margin-left:clamp(24px,5vw,54px) !important;
+    padding-right:clamp(24px,5vw,54px) !important;
+  }
+  #fdcp-summit .fdcp-film{
+    width:auto !important;
+    max-width:none !important;
+    margin-left:clamp(24px,5vw,54px) !important;
+    margin-right:clamp(24px,5vw,54px) !important;
+    column-gap:clamp(24px,4vw,52px) !important;
+  }
+  #fdcp-summit .fdcp-film-still{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:460/237 !important;
+    object-fit:cover !important;
+    min-width:0 !important;
+  }
+  #fdcp-summit .fdcp-film-body{width:100% !important;min-width:0 !important}
+}
+
+/* Mobile reflow: preserve the artwork, then give the content a readable single column. */
+@media (max-width:700px){
+  #fdcp-summit .fdcp-col,
+  #fdcp-summit .fdcp-rule,
+  #fdcp-summit .fdcp-topic{
+    margin-left:16px !important;
+    margin-right:16px !important;
+    width:calc(100% - 32px) !important;
+  }
+  #fdcp-summit .fdcp-rail{
+    margin-left:16px !important;
+    padding-right:16px !important;
+    scroll-snap-type:x proximity !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  #fdcp-summit .fdcp-ev,
+  #fdcp-summit .fdcp-spk,
+  #fdcp-summit .fdcp-poster{scroll-snap-align:start !important}
+
+  #fdcp-summit .fdcp-headline{
+        margin-top:52px !important;
+    font-size:clamp(32px,10vw,48px) !important;
+    line-height:1.25 !important;
+  }
+  #fdcp-summit .fdcp-p{
+    font-size:18px !important;
+    line-height:1.75 !important;
+    text-align:left !important;
+  }
+  #fdcp-summit .fdcp-pill{
+    max-width:100% !important;
+    min-height:52px !important;
+    height:auto !important;
+    padding:10px 18px !important;
+    font-size:clamp(18px,5vw,24px) !important;
+    line-height:1.2 !important;
+    text-align:center !important;
+    white-space:normal !important;
+  }
+  #fdcp-summit .fdcp-pill--events{width:200px !important}
+  #fdcp-summit .fdcp-pill--summit{width:100% !important}
+  #fdcp-summit .fdcp-pill--afan,
+  #fdcp-summit .fdcp-pill--film{width:min(100%,364px) !important}
+  #fdcp-summit .fdcp-datesub{font-size:21px !important;line-height:1.45 !important}
+
+  #fdcp-summit .fdcp-topic{
+    min-height:150px !important;
+    height:auto !important;
+    padding:24px 70px !important;
+  }
+  #fdcp-summit .fdcp-topic img{width:62px !important;height:100% !important;object-fit:cover !important}
+  #fdcp-summit .fdcp-topic p{font-size:20px !important;line-height:1.4 !important}
+  #fdcp-summit .fdcp-bullets{font-size:18px !important;line-height:1.75 !important}
+
+  #fdcp-summit .fdcp-btn{
+    width:calc(100% - 32px) !important;
+    max-width:410px !important;
+    min-height:52px !important;
+    height:auto !important;
+    padding:12px 20px !important;
+    font-size:18px !important;
+    text-align:center !important;
+    white-space:normal !important;
+  }
+  #fdcp-summit .fdcp-film{
+    margin-left:16px !important;
+    margin-right:16px !important;
+    width:calc(100% - 32px) !important;
+    display:block !important;
+  }
+  #fdcp-summit .fdcp-film-still{display:block !important;width:100% !important;height:auto !important}
+  #fdcp-summit .fdcp-film-body{width:100% !important;margin-top:26px !important}
+  #fdcp-summit .fdcp-film-title{font-size:30px !important;line-height:1.15 !important}
+  #fdcp-summit .fdcp-film-copy{margin-top:20px !important;font-size:18px !important;line-height:1.75 !important;text-align:left !important}
+}
+
+/* Override the compact source spacing with a calmer vertical rhythm. */
+#fdcp-summit .fdcp-headline + .fdcp-p{margin-top:46px !important}
+#fdcp-summit .fdcp-pill--events{margin-top:48px !important}
+#fdcp-summit .fdcp-rail{margin-top:48px !important}
+#fdcp-summit .fdcp-rule{margin-top:88px !important}
+#fdcp-summit .fdcp-rule + .fdcp-col .fdcp-pill{margin-top:64px !important}
+#fdcp-summit .fdcp-datesub{margin-top:10px !important}
+#fdcp-summit .fdcp-datesub + .fdcp-p{margin-top:38px !important}
+#fdcp-summit .fdcp-topic{margin-top:52px !important}
+#fdcp-summit .fdcp-topic + .fdcp-col > .fdcp-p:first-child{margin-top:48px !important}
+#fdcp-summit .fdcp-btn--register{margin-top:84px !important}
+#fdcp-summit .fdcp-film{margin-top:58px !important}
+#fdcp-summit .fdcp-film + .fdcp-btn{margin-top:44px !important}
+
+@media (max-width:700px){
+  #fdcp-summit .fdcp-headline + .fdcp-p{margin-top:36px !important}
+  #fdcp-summit .fdcp-rule{margin-top:72px !important}
+  #fdcp-summit .fdcp-rule + .fdcp-col .fdcp-pill{margin-top:52px !important}
+  #fdcp-summit .fdcp-topic{margin-top:44px !important}
+}
+</style>
+
+<div id="fdcp-summit">
+<div class="fdcp-stage">
+
+  <img class="fdcp-hero" src="./assets/asean-summit/hero.png"
+       alt="ASEAN Film and Television Summit 2026 — Film Development Council of the Philippines and Asian Film Alliance Network">
+
+  <!-- ================= welcome ================= -->
+  <div class="fdcp-col">
+    <h1 class="fdcp-headline">Lights, Camera, Collaboration:<br>Welcome to the ASEAN Film &amp; Television Summit 2026!</h1>
+
+    <p class="fdcp-p" style="margin-top:37.5px">This August, the heart of Southeast Asian storytelling beats in Metro Manila. Organized by the <b>Film Development Council of the Philippines (FDCP)</b> in close collaboration with the <b>Asian Film Alliance Network (AFAN)</b>, this landmark summit will take place on <b>August 12–14, 2026</b>, running in conjunction with the prestigious ASEAN Summit 2026. Under the guiding theme, <b>“Navigating our Future, Together,”</b> this premier event serves as a dynamic bridge for national film bodies, producers, streamers, cultural institutions, and industry leaders from across Asia. Together, attendees will dive into a rich lineup of forward-thinking talks, high-level panel discussions, the vital AFAN Roundtable, and curated networking activities designed to spark boundary-crossing collaborations. More than just a conference, the summit is a celebration of regional solidarity and creative synergy, offering immersive cultural engagements that honor our shared heritage while charting a bold, unified path forward for the global future of Asian cinema and television.</p>
+
+    <div class="fdcp-pill fdcp-pill--events" style="margin-top:35.2px">Events</div>
+  </div>
+
+  <!-- ================= events rail ================= -->
+  <div class="fdcp-rail" data-drag-rail role="region" tabindex="0"
+       aria-label="Events carousel. Drag horizontally with the mouse or use the arrow keys."
+       style="margin-top:38px">
+    <a class="fdcp-ev" data-scroll-target="fdcp-summit-section" href="#fdcp-summit-section"
+       aria-label="View the ASEAN Film and Television Summit section">
+      <div class="fdcp-ev-card">
+        <img class="l" src="./assets/asean-summit/card-rib-l.png" alt="">
+        <img class="r" src="./assets/asean-summit/card-rib-r.png" alt="">
+        <span>Talks &amp; Panel<br>Discussions</span>
+      </div>
+      <div class="fdcp-ev-date">August 14 - 16, 2026</div>
+    </a>
+    <a class="fdcp-ev" data-scroll-target="fdcp-bootcamp-section" href="#fdcp-bootcamp-section"
+       aria-label="View the AFAN Boot Camp section">
+      <div class="fdcp-ev-card">
+        <img class="l" src="./assets/asean-summit/card-rib-l.png" alt="">
+        <img class="r" src="./assets/asean-summit/card-rib-r.png" alt="">
+        <span>AFAN<br>Boot Camp</span>
+      </div>
+      <div class="fdcp-ev-date">August 14 - 16, 2026</div>
+    </a>
+    <a class="fdcp-ev" data-scroll-target="fdcp-screenings-section" href="#fdcp-screenings-section"
+       aria-label="View the Film Screenings section">
+      <div class="fdcp-ev-card">
+        <img class="l" src="./assets/asean-summit/card-rib-l.png" alt="">
+        <img class="r" src="./assets/asean-summit/card-rib-r.png" alt="">
+        <span>Film Screening<br>&amp; Talkback</span>
+      </div>
+      <div class="fdcp-ev-date">August 14 - 16, 2026</div>
+    </a>
+    <!-- 4th card is cut off by the canvas edge in the source design; title unknown -->
+    <div class="fdcp-ev">
+      <div class="fdcp-ev-card">
+        <img class="l" src="./assets/asean-summit/card-rib-l.png" alt="">
+        <img class="r" src="./assets/asean-summit/card-rib-r.png" alt="">
+        <span>Talks &amp; Panel<br>Discussions</span>
+      </div>
+      <div class="fdcp-ev-date">August 14 - 16, 2026</div>
+    </div>
+  </div>
+
+  <div class="fdcp-rule" style="margin-top:51.1px"></div>
+
+  <!-- ================= summit ================= -->
+  <div class="fdcp-col" id="fdcp-summit-section">
+    <div class="fdcp-pill fdcp-pill--summit" style="margin-top:31px">ASEAN FILM &amp; TELEVISION SUMMIT</div>
+    <div class="fdcp-datesub" style="margin-top:-1px">August 14, 2026 | Philippines</div>
+    <p class="fdcp-p" style="margin-top:36.35px">The ASEAN Film &amp; Television Summit 2026, organized by the Film Development Council of the Philippines (FDCP) in collaboration with the Asian Film Alliance Network (AFAN), will take place on August 12–14, 2026 in Metro Manila, Philippines, in conjunction with the ASEAN Summit 2026.</p>
+  </div>
+
+  <div class="fdcp-topic" style="margin-top:38.7px">
+    <img class="l" src="./assets/asean-summit/topic-rib-l.png" alt="">
+    <img class="r" src="./assets/asean-summit/topic-rib-r.png" alt="">
+    <p>TOPIC 1:<br>The Cross-Media Integration of Asian Content and<br>Liquid IP (Intellectual Property)</p>
+  </div>
+
+  <div class="fdcp-col">
+    <p class="fdcp-p" style="margin-top:38.1px">This discussion will focus on explaining the horizontal chain of value and finding ways to utilize intellectual properties in different media, including brand and content creation and distribution. This may include film, comics, literature, video games and other visual works. Treating IPs as evolving and adaptive assets opens up a new perspective and business model of selling and distributing films and content, revisiting production methodologies, and maximizing the income-generating potential of every original work. A case study may be conducted to portray its possibilities and challenges.</p>
+
+    <p class="fdcp-p" style="margin-top:29px;text-align:left">Discussion points:</p>
+    <ul class="fdcp-bullets">
+      <li>Challenges in the current chain of value of film production</li>
+      <li>Cross-media integration and utilization of IPs</li>
+      <li>Successful integration, IP-based brand, content creation and distribution</li>
+    </ul>
+
+    <div class="fdcp-speakers-h">SPEAKERS</div>
+  </div>
+
+  <!-- ================= speakers rail ================= -->
+  <div class="fdcp-rail" data-drag-rail role="region" tabindex="0"
+       aria-label="Speakers carousel. Drag horizontally with the mouse or use the arrow keys."
+       style="margin-top:14.6px">
+    <div class="fdcp-spk">
+      <div class="fdcp-spk-photo"><img src="./assets/asean-summit/speaker1.png" alt="Speaker portrait"></div>
+      <div class="fdcp-spk-name">NAME</div>
+      <div class="fdcp-spk-pos">POSITION</div>
+    </div>
+    <div class="fdcp-spk">
+      <div class="fdcp-spk-photo"><img src="./assets/asean-summit/speaker2.png" alt="Speaker portrait"></div>
+      <div class="fdcp-spk-name">NAME</div>
+      <div class="fdcp-spk-pos">POSITION</div>
+    </div>
+    <div class="fdcp-spk">
+      <div class="fdcp-spk-photo"><img src="./assets/asean-summit/speaker3.png" alt="Speaker portrait"></div>
+      <div class="fdcp-spk-name">NAME</div>
+      <div class="fdcp-spk-pos">POSITION</div>
+    </div>
+    <div class="fdcp-spk">
+      <div class="fdcp-spk-photo"><img src="./assets/asean-summit/speaker1.png" alt="Speaker portrait"></div>
+      <div class="fdcp-spk-name">NAME</div>
+      <div class="fdcp-spk-pos">POSITION</div>
+    </div>
+  </div>
+
+  <a class="fdcp-btn fdcp-btn--register" href="#" data-placeholder-action aria-disabled="true"
+     title="Registration link coming soon" style="margin-top:69.65px">CLICK HERE TO REGISTER</a>
+
+  <div class="fdcp-rule" style="margin-top:67px"></div>
+
+  <!-- ================= boot camp ================= -->
+  <div class="fdcp-col" id="fdcp-bootcamp-section">
+    <div class="fdcp-pill fdcp-pill--afan" style="margin-top:41.5px">AFAN BOOT CAMP</div>
+    <div class="fdcp-datesub" style="margin-top:3.75px">August 14, 2026 | Philippines</div>
+    <p class="fdcp-p" style="margin-top:28.35px">The ASEAN Film &amp; Television Summit 2026, organized by the Film Development Council of the Philippines (FDCP) in collaboration with the Asian Film Alliance Network (AFAN), will take place on August 12–14, 2026 in Metro Manila, Philippines, in conjunction with the ASEAN Summit 2026.</p>
+  </div>
+
+  <div class="fdcp-rail" style="margin-top:49.5px">
+    <img class="fdcp-poster" src="./assets/asean-summit/poster1.png" alt="AFAN Boot Camp for Young Filmmakers — final selection">
+    <img class="fdcp-poster" src="./assets/asean-summit/poster2.png" alt="AFAN Boot Camp for Young Filmmakers — final selection">
+    <img class="fdcp-poster" src="./assets/asean-summit/poster1.png" alt="AFAN Boot Camp for Young Filmmakers — final selection">
+  </div>
+
+  <div class="fdcp-rule" style="margin-top:57.5px"></div>
+
+  <!-- ================= film screenings ================= -->
+  <div class="fdcp-col" id="fdcp-screenings-section">
+    <div class="fdcp-pill fdcp-pill--film" style="margin-top:33.5px">FILM SCREENINGS</div>
+    <div class="fdcp-datesub" style="margin-top:2.75px">August 14, 2026 | Philippines</div>
+    <p class="fdcp-p" style="margin-top:26.35px">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  </div>
+
+  <div class="fdcp-film" style="margin-top:41.9px">
+    <img class="fdcp-film-still" src="./assets/asean-summit/film-still.png" alt="Film still — play trailer">
+    <div class="fdcp-film-body">
+      <div class="fdcp-film-title">TITLE</div>
+      <div class="fdcp-film-dir">DIRECTOR</div>
+      <p class="fdcp-film-copy">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    </div>
+  </div>
+
+  <a class="fdcp-btn fdcp-btn--tickets" href="#" data-placeholder-action aria-disabled="true"
+     title="Ticket link coming soon" style="margin-top:34px">GET YOUR TICKETS NOW</a>
+
+  <div class="fdcp-film" style="margin-top:53px">
+    <img class="fdcp-film-still" src="./assets/asean-summit/film-still.png" alt="Film still — play trailer">
+    <div class="fdcp-film-body">
+      <div class="fdcp-film-title">TITLE</div>
+      <div class="fdcp-film-dir">DIRECTOR</div>
+      <p class="fdcp-film-copy">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    </div>
+  </div>
+
+  <a class="fdcp-btn fdcp-btn--tickets" href="#" data-placeholder-action aria-disabled="true"
+     title="Ticket link coming soon" style="margin-top:44px;margin-bottom:64px">GET YOUR TICKETS NOW</a>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var root=document.getElementById("fdcp-summit");
+  if(!root)return;
+
+  var rails=root.querySelectorAll(".fdcp-rail[data-drag-rail]");
+  Array.prototype.forEach.call(rails,function(rail){
+    if(rail.getAttribute("data-fdcp-drag-ready")==="true")return;
+    rail.setAttribute("data-fdcp-drag-ready","true");
+    rail.style.setProperty("cursor","grab","important");
+    rail.style.setProperty("user-select","none","important");
+    rail.style.setProperty("-webkit-user-select","none","important");
+
+    Array.prototype.forEach.call(rail.querySelectorAll("img"),function(img){
+      img.setAttribute("draggable","false");
+      img.style.setProperty("pointer-events","none","important");
+      img.style.setProperty("-webkit-user-drag","none","important");
+    });
+
+    var dragging=false;
+    var moved=false;
+    var pendingInteractive=false;
+    var startX=0;
+    var startScroll=0;
+
+    rail.addEventListener("dragstart",function(event){event.preventDefault()});
+    rail.addEventListener("pointerdown",function(event){
+      if(event.pointerType!=="mouse"||event.button!==0)return;
+      moved=false;
+      startX=event.clientX;
+      startScroll=rail.scrollLeft;
+      pendingInteractive=!!event.target.closest(".fdcp-ev[data-scroll-target]");
+      if(pendingInteractive)return;
+      dragging=true;
+      rail.classList.add("is-dragging");
+      rail.style.setProperty("cursor","grabbing","important");
+      rail.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    rail.addEventListener("pointermove",function(event){
+      if(!dragging&&pendingInteractive&&Math.abs(event.clientX-startX)>12){
+        dragging=true;
+        moved=true;
+        pendingInteractive=false;
+        rail.classList.add("is-dragging");
+        rail.style.setProperty("cursor","grabbing","important");
+        rail.setPointerCapture(event.pointerId);
+      }
+      if(!dragging)return;
+      var distance=event.clientX-startX;
+      if(Math.abs(distance)>12)moved=true;
+      rail.scrollLeft=startScroll-distance;
+      event.preventDefault();
+    });
+
+    function endDrag(event){
+      if(!dragging)return;
+      dragging=false;
+      pendingInteractive=false;
+      rail.classList.remove("is-dragging");
+      rail.style.setProperty("cursor","grab","important");
+      if(rail.hasPointerCapture&&rail.hasPointerCapture(event.pointerId)){
+        rail.releasePointerCapture(event.pointerId);
+      }
+    }
+    rail.addEventListener("pointerup",endDrag);
+    rail.addEventListener("pointercancel",endDrag);
+    rail.addEventListener("lostpointercapture",function(){
+      dragging=false;
+      pendingInteractive=false;
+      rail.classList.remove("is-dragging");
+      rail.style.setProperty("cursor","grab","important");
+    });
+    rail.addEventListener("click",function(event){
+      if(moved){
+        event.preventDefault();
+        event.stopPropagation();
+        moved=false;
+      }
+    },true);
+    rail.addEventListener("keydown",function(event){
+      if(event.key!=="ArrowLeft"&&event.key!=="ArrowRight")return;
+      event.preventDefault();
+      rail.scrollBy({
+        left:event.key==="ArrowRight"?320:-320,
+        behavior:"smooth"
+      });
+    });
+  });
+
+  function scrollToSection(trigger){
+    var target=document.getElementById(trigger.getAttribute("data-scroll-target"));
+    if(!target)return;
+    target.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  Array.prototype.forEach.call(root.querySelectorAll(".fdcp-ev[data-scroll-target]"),function(card){
+    card.addEventListener("click",function(event){
+      event.preventDefault();
+      scrollToSection(card);
+    });
+    card.addEventListener("keydown",function(event){
+      if(event.key!=="Enter"&&event.key!==" ")return;
+      event.preventDefault();
+      scrollToSection(card);
+    });
+  });
+
+  /* A # link is only a placeholder and normally resets the page to the top. */
+  Array.prototype.forEach.call(root.querySelectorAll("[data-placeholder-action]"),function(link){
+    link.addEventListener("click",function(event){event.preventDefault()});
+  });
+})();
+</script>
