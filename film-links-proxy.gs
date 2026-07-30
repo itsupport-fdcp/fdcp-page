@@ -44,15 +44,30 @@ var PAID_PROGRAMS = {
   "fdcp presents: a curation of world cinema": "Php 150.00",
   "pelikula ng bayan": "Php 150.00"
 };
+var PROGRAM_BY_FILM = {
+  "the only child in the butchery": "AFAN Boot Camp Film Screenings",
+  "breaking the cycle": "AFAN Boot Camp Film Screenings",
+  "cleaners": "AFAN Boot Camp Film Screenings",
+  "afan shorts": "AFAN Boot Camp Film Screenings",
+  "blooming": "AFAN Boot Camp Film Screenings",
+  "horizon": "AFAN x Mongolian Cinema Days",
+  "public enemy": "AFAN x Mongolian Cinema Days",
+  "disorder": "AFAN x Mongolian Cinema Days",
+  "foggy hilltop": "AFAN x Mongolian Cinema Days"
+};
 
 function doGet(e) {
   var noCache = e && e.parameter && e.parameter.nocache;
   var cache = CacheService.getScriptCache();
   var json = noCache ? null : cache.get("cineData");
   if (!json) {
+    var links = buildLinks_();
+    var schedule = buildSchedule_().filter(function (row) {
+      return !!links[normalize_(row.film)];
+    });
     json = JSON.stringify({
-      schedule: buildSchedule_(),
-      links: buildLinks_()
+      schedule: schedule,
+      links: links
     });
     cache.put("cineData", json, 600); // 10 min
   }
@@ -81,6 +96,7 @@ function eventToRow_(block) {
   if (!summary || !dt) return null;
   summary = unescapeIcs_(summary);
   if (/^cinematheque director series:/i.test(summary)) return null;
+  if (/closed for private|private event/i.test(summary)) return null;
 
   var y, mo, d, h = 0, mi = 0, timed = false, dow;
   if (/^\d{8}T/.test(dt)) {
@@ -113,6 +129,8 @@ function eventToRow_(block) {
 
 // DESCRIPTION is "<b>Director</b><br>Program<br><br>Synopsis" -> 2nd line.
 function programFromDesc_(desc, film) {
+  var known = PROGRAM_BY_FILM[normalize_(film)];
+  if (known) return known;
   if (/^cinematheque director series:/i.test(film || "")) {
     return "Cinematheque Director Series";
   }
@@ -144,16 +162,26 @@ function unescapeIcs_(s) {
 
 function buildLinks_() {
   var links = {};
+  // The Screenings page is the source of truth for currently published film
+  // cards, including programs that are not yet listed on the Programs index.
+  addPathsToLinks_(links, fetch_(SITE + "/screenings?authuser=0"));
+
+  // Keep crawling program pages as well so older links remain available.
   var indexHtml = fetch_(SITE + "/programs?authuser=0");
   extractPaths_(indexHtml, 1).forEach(function (folder) {
     var progHtml = fetch_(SITE + "/programs/" + folder + "?authuser=0");
-    extractPaths_(progHtml, 2).forEach(function (path) {
-      var slug = path.split("/")[1];
-      var key = slug.replace(/-/g, " ").replace(/\s+/g, " ").trim();
-      links[key] = SITE + "/programs/" + path + "?authuser=0";
-    });
+    addPathsToLinks_(links, progHtml);
   });
+  if (links["afan short film set"]) links["afan shorts"] = links["afan short film set"];
   return links;
+}
+
+function addPathsToLinks_(links, html) {
+  extractPaths_(html, 2).forEach(function (path) {
+    var slug = path.split("/")[1];
+    var key = slug.replace(/-/g, " ").replace(/\s+/g, " ").trim();
+    links[key] = SITE + "/programs/" + path + "?authuser=0";
+  });
 }
 
 function extractPaths_(html, depth) {
@@ -172,6 +200,12 @@ function extractPaths_(html, depth) {
 /* ---------------- shared ---------------- */
 
 function pad_(n) { return String(n).length < 2 ? "0" + n : "" + n; }
+function normalize_(s) {
+  return (s || "").toLowerCase()
+    .replace(/[^a-z0-9'": ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function fetch_(url) {
   try {

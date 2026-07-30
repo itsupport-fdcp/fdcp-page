@@ -459,7 +459,7 @@
 </div>
 
 <script>
-const CC_SCHEDULE = [{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"1:00 PM","film":"Bambanti","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"3:45 PM","film":"Paglipay","program":"Cinematheque Director Series","admission":"Free"}];
+const CC_SCHEDULE = [{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"1:00 PM","film":"Bambanti","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"3:45 PM","film":"Paglipay","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"2:30 PM","film":"The Only Child in the Butchery","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"4:45 PM","film":"Breaking the Cycle","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"1:30 PM","film":"Cleaners","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"3:30 PM","film":"AFAN Shorts","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"5:15 PM","film":"Blooming","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Horizon","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"4:45 PM","film":"Public Enemy","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"2:30 PM","film":"Disorder","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"4:45 PM","film":"Foggy Hilltop","program":"AFAN x Mongolian Cinema Days","admission":"Free"}];
 
 // --- DATE WINDOW ---
 // Show all screenings from TODAY onwards -- no upper cutoff.
@@ -537,11 +537,6 @@ function setHeroImage(img, loc) {
 }
 // ---
 
-// --- MANILA "VIEW DETAILS" LINK ---
-// Manila film cards show a "View Details" button. Replace this URL when ready.
-// Other locations show "Walk-in only" instead of a button.
-const MANILA_DETAILS_URL = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/screenings?authuser=0";
-
 // --- PER-FILM DETAIL PAGES (Manila) ---
 // Maps normalised film title -> Google Site URL.
 // The static map below is the instant fallback; when FILM_LINKS_PROXY is set,
@@ -607,7 +602,21 @@ var _siteFilmLinks = {
   "paglipay":                         SITES_BASE + "/programs/cds-zig-dulay/paglipay?authuser=0",
   // Reel to Real: Pelikula at Panayam
   "ginauhaw ako ginagutom ako":       SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/ginauhaw-ako-ginagutom-ako?authuser=0",
-  "pagdating sa dulo":                SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/pagdating-sa-dulo?authuser=0"
+  "pagdating sa dulo":                SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/pagdating-sa-dulo?authuser=0",
+  // BEGIN AUTO-REFETCHED FILM LINKS
+  "afan short film set": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
+  "afan shorts": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
+  "bambanti": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/bambanti?authuser=0",
+  "blooming": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/blooming?authuser=0",
+  "breaking the cycle": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/breaking-the-cycle?authuser=0",
+  "cleaners": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/cleaners?authuser=0",
+  "disorder": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/disorder?authuser=0",
+  "foggy hilltop": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/foggy-hilltop?authuser=0",
+  "horizon": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/horizon?authuser=0",
+  "paglipay": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/paglipay?authuser=0",
+  "public enemy": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/public-enemy?authuser=0",
+  "the only child in the butchery": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/the-only-child-in-the-butchery?authuser=0"
+  // END AUTO-REFETCHED FILM LINKS
 };
 
 function normalizeFilmTitle(s) {
@@ -630,7 +639,7 @@ function getFilmDetailUrl(filmTitle) {
   for (var k in _siteFilmLinks) {
     if (k.split(":")[0].trim() === keyShort) return _siteFilmLinks[k];
   }
-  return MANILA_DETAILS_URL;
+  return "";
 }
 
 
@@ -755,11 +764,14 @@ function buildCard(r, altLoc) {
   card.appendChild(info);
 
   if (r.location === "Manila") {
-    var link = makeEl("a", "cc-cta", "View Details");
-    link.href = getFilmDetailUrl(r.film, r.program);
-    link.target = "_blank";
-    link.rel = "noopener";
-    card.appendChild(link);
+    var detailUrl = getFilmDetailUrl(r.film);
+    if (detailUrl) {
+      var link = makeEl("a", "cc-cta", "View Details");
+      link.href = detailUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      card.appendChild(link);
+    }
   } else {
     card.appendChild(makeEl("span", "cc-walkin", "Walk-in Only"));
   }
@@ -805,7 +817,9 @@ function renderFilms(location) {
   var nowPH = _getPHDate();
   var todayPH = _isoFromDate(nowPH);
   var list = CC_MERGED.filter(function (r) {
-    return r.location === location && r.dateISO >= todayPH;
+    return r.location === location &&
+      r.dateISO >= todayPH &&
+      (r.location !== "Manila" || !!getFilmDetailUrl(r.film));
   });
   var heading = findOne("ccFilmsHeading", "cc-films-heading");
   var count = findOne("ccFilmsCount", "cc-films-count");

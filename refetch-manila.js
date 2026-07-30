@@ -4,15 +4,29 @@
 //   - Negros / Iloilo / Davao: from the schedule Google Sheet (CSV). The page
 //     also re-fetches this sheet live on every visit (loadSheetRegions), so
 //     the baked regional rows are just the instant-paint fallback.
+//   - Manila detail links: from the live Google Sites Screenings page.
 // ponytail: manual refetch until the Apps Script proxy is deployed.
 const fs = require("fs"), https = require("https");
 
 const CAL = "c_297715d58563f4dc6de17c9db206013d959c7d422b00f1a65fd73329bd9579d2@group.calendar.google.com";
 const ICS = "https://calendar.google.com/calendar/ical/" + encodeURIComponent(CAL) + "/public/basic.ics";
 const SHEET = "https://docs.google.com/spreadsheets/d/1Bu-vxwXmJpTGYH3OpE6Z83Fs7513uPeVZYB7_-fjBl8/gviz/tq?tqx=out:csv";
+const SITE = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila";
+const SCREENINGS = SITE + "/screenings?authuser=0";
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const PAID = { "fdcp presents: a curation of world cinema": "Php 150.00", "pelikula ng bayan": "Php 150.00" };
+const PROGRAM_BY_FILM = {
+  "the only child in the butchery": "AFAN Boot Camp Film Screenings",
+  "breaking the cycle": "AFAN Boot Camp Film Screenings",
+  "cleaners": "AFAN Boot Camp Film Screenings",
+  "afan shorts": "AFAN Boot Camp Film Screenings",
+  "blooming": "AFAN Boot Camp Film Screenings",
+  "horizon": "AFAN x Mongolian Cinema Days",
+  "public enemy": "AFAN x Mongolian Cinema Days",
+  "disorder": "AFAN x Mongolian Cinema Days",
+  "foggy hilltop": "AFAN x Mongolian Cinema Days"
+};
 
 function get(url) {
   return new Promise((res, rej) => https.get(url, r => {
@@ -23,7 +37,10 @@ function get(url) {
 const field = (b, n) => { const m = b.match(new RegExp("(?:^|\\n)" + n + "[^:\\n]*:(.*)")); return m ? m[1] : ""; };
 const unesc = s => s.replace(/\\n/gi, " ").replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\\\/g, "\\").replace(/\s+/g, " ").trim();
 const pad = n => String(n).length < 2 ? "0" + n : "" + n;
+const normalize = s => (s || "").toLowerCase().replace(/[^a-z0-9'": ]/g, " ").replace(/\s+/g, " ").trim();
 function prog(d, film) {
+  const known = PROGRAM_BY_FILM[normalize(film)];
+  if (known) return known;
   if (/^cinematheque director series:/i.test(film || "")) return "Cinematheque Director Series";
   if (!d) return "";
   const p = unesc(d).split(/<br\s*\/?>/i).map(s => s.replace(/<[^>]+>/g, "").trim()).filter(Boolean);
@@ -90,19 +107,53 @@ function regionRow(c, today) {
     time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) || "Free" };
 }
 
+function siteFilmLinks(html) {
+  const links = {};
+  const re = /\/fdcp\.gov\.ph\/cinemathequemanila\/programs\/([a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*)/g;
+  let match;
+  while ((match = re.exec(html)) !== null) {
+    const path = match[1];
+    const slug = path.split("/")[1];
+    links[slug.replace(/-/g, " ")] = SITE + "/programs/" + path + "?authuser=0";
+  }
+  if (links["afan short film set"]) links["afan shorts"] = links["afan short film set"];
+  return links;
+}
+
+function renderFilmLinks(links) {
+  const rows = Object.keys(links).sort().map(key =>
+    "  " + JSON.stringify(key) + ": " + JSON.stringify(links[key]) + ","
+  );
+  if (rows.length) rows[rows.length - 1] = rows[rows.length - 1].replace(/,$/, "");
+  return [
+    "  // BEGIN AUTO-REFETCHED FILM LINKS",
+    ...rows,
+    "  // END AUTO-REFETCHED FILM LINKS"
+  ].join("\n");
+}
+
 (async () => {
-  const [icsRaw, csv] = await Promise.all([get(ICS), get(SHEET)]);
+  const [icsRaw, csv, screeningsHtml] = await Promise.all([get(ICS), get(SHEET), get(SCREENINGS)]);
   const ics = icsRaw.replace(/\r\n/g, "\n").replace(/\n[ \t]/g, "");
   const today = new Date(Date.now() + 8*3600*1000).toISOString().slice(0, 10); // PH today
   const byDateTime = (a, b) => a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : timeKey(a.time) - timeKey(b.time);
-  const manila = ics.split("BEGIN:VEVENT").slice(1).map(row).filter(Boolean).filter(r => r.dateISO >= today).sort(byDateTime);
+  const links = siteFilmLinks(screeningsHtml);
+  if (!Object.keys(links).length) throw new Error("No film-detail links found on the Google Sites Screenings page");
+  const manilaAll = ics.split("BEGIN:VEVENT").slice(1).map(row).filter(Boolean).filter(r => r.dateISO >= today).sort(byDateTime);
+  const manila = manilaAll.filter(r => !!links[normalize(r.film)]);
+  const skipped = manilaAll.filter(r => !links[normalize(r.film)]);
   const regions = csvRows(csv).map(c => regionRow(c, today)).filter(Boolean).sort(byDateTime);
 
   let html = fs.readFileSync("cinematheque.html", "utf8");
   html = html.replace(/const CC_SCHEDULE = \[[\s\S]*?\];/, "const CC_SCHEDULE = " + JSON.stringify(regions.concat(manila)) + ";");
+  const linkBlock = /  \/\/ BEGIN AUTO-REFETCHED FILM LINKS[\s\S]*?  \/\/ END AUTO-REFETCHED FILM LINKS/;
+  if (!linkBlock.test(html)) throw new Error("Auto-refetched film-link block not found in cinematheque.html");
+  html = html.replace(linkBlock, renderFilmLinks(links));
   fs.writeFileSync("cinematheque.html", html, "utf8");
 
-  console.log("Refetched " + manila.length + " Manila rows (calendar) + " + regions.length + " regional rows (sheet), from " + today + ":");
+  console.log("Refetched " + manila.length + " Manila rows (calendar) + " + regions.length + " regional rows (sheet) + " + Object.keys(links).length + " film links (Google Site), from " + today + ":");
   manila.forEach(r => console.log("  Manila | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
+  skipped.forEach(r => console.log("  Skipped| " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film + " (no exact detail page)"));
   regions.forEach(r => console.log("  " + r.location.padEnd(6) + " | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
+  Object.keys(links).sort().forEach(key => console.log("  Link   | " + key + " -> " + links[key]));
 })();
