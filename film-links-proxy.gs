@@ -63,7 +63,13 @@ function doGet(e) {
   if (!json) {
     var links = buildLinks_();
     var schedule = buildSchedule_().filter(function (row) {
-      return !!links[normalize_(row.film)];
+      var key = normalize_(row.film);
+      var url = matchLink_(links, key);
+      if (!url) return false;
+      // Alias under the calendar's spelling so the page's link lookup
+      // (which uses the calendar title) also resolves.
+      links[key] = url;
+      return true;
     });
     json = JSON.stringify({
       schedule: schedule,
@@ -87,7 +93,21 @@ function buildSchedule_() {
     var row = eventToRow_(b);
     if (row) rows.push(row);
   });
+  // The ICS feed is not chronological -- sort by date then time.
+  rows.sort(function (a, b) {
+    return a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1
+      : timeKey_(a.time) - timeKey_(b.time);
+  });
   return rows;
+}
+
+// "5:00 PM" -> minutes since midnight.
+function timeKey_(t) {
+  var m = /(\d+):(\d+)\s*(AM|PM)?/i.exec(t || "");
+  if (!m) return 0;
+  var h = (+m[1]) % 12;
+  if ((m[3] || "").toUpperCase() === "PM") h += 12;
+  return h * 60 + (+m[2]);
 }
 
 function eventToRow_(block) {
@@ -174,6 +194,42 @@ function buildLinks_() {
   });
   if (links["afan short film set"]) links["afan shorts"] = links["afan short film set"];
   return links;
+}
+
+// Calendar event titles and site page slugs drift apart (e.g. the calendar
+// says "Iti Mapupukaw", the site slug is "iti-mapukpukaw"). Exact match
+// first; otherwise pick the closest link key within a small edit distance
+// (scaled to title length so short titles never mis-match).
+function matchLink_(links, key) {
+  if (links[key]) return links[key];
+  var a = key.replace(/[^a-z0-9]/g, "");
+  var maxDist = a.length >= 14 ? 2 : (a.length >= 8 ? 1 : 0);
+  if (!maxDist) return "";
+  var bestUrl = "", bestDist = maxDist + 1;
+  for (var k in links) {
+    var d = editDist_(a, k.replace(/[^a-z0-9]/g, ""), maxDist);
+    if (d < bestDist) { bestDist = d; bestUrl = links[k]; }
+  }
+  return bestUrl;
+}
+
+// Levenshtein distance, capped at max+1 for early exit.
+function editDist_(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  var prev = [], cur = [];
+  for (var j = 0; j <= b.length; j++) prev[j] = j;
+  for (var i = 1; i <= a.length; i++) {
+    cur[0] = i;
+    var rowMin = i;
+    for (var j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > max) return max + 1;
+    prev = cur.slice();
+  }
+  return prev[b.length];
 }
 
 function addPathsToLinks_(links, html) {

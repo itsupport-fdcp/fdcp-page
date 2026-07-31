@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOCKUP — Cinematheque ticket cards</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
+  :root {
+    --bg: #F8F8F8;
+    --paper: #FFFFFF;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --purple: #580076;
+    --magenta: #E200A9;
+    --amber: #CC8500;
+    --gold: #FFCC00;
+    --grad-main: linear-gradient(135deg, #580076 0%, #E200A9 100%);
+    --grad-alt:  linear-gradient(135deg, #CC8500 0%, #FFCC00 100%);
+    --stub-tint: #F5F2FF;
+    --stub-tint-alt: #FFF8E6;
+    --notch: 10px;      /* radius of the punched notch */
+    --stub-w: 112px;    /* where the perforation sits */
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: 'Poppins', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 0 0 5rem;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 1rem; }
+
+  /* ---------- hero (same as live page) ---------- */
+  .hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 6;
+    min-height: 280px;
+    overflow: hidden;
+    border-radius: 0 0 12px 12px;
+    margin-bottom: 2.5rem;
+    background: #222;
+  }
+  .hero img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: opacity .5s ease;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.65) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 2rem clamp(1.25rem, 5vw, 3rem);
+    color: #fff;
+  }
+  .hero-eyebrow {
+    letter-spacing: .15em;
+    font-size: .85rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+  .hero-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.75rem);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    margin-bottom: .5rem;
+  }
+  .hero-sub {
+    font-size: clamp(.95rem, 1.4vw, 1.1rem);
+    color: rgba(255,255,255,.85);
+    max-width: 620px;
+  }
+  @media (max-width: 640px) { .hero { aspect-ratio: 16 / 9; } }
+
+  /* ---------- section heading ---------- */
+  .sec-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 1.4rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .sec-title::after {
+    content: "";
+    display: block;
+    width: 56px; height: 4px;
+    margin: 0.6rem auto 0;
+    background: var(--grad-main);
+    border-radius: 2px;
+  }
+
+  /* ---------- ticket-booth location windows ---------- */
+  .booths {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-bottom: 3.5rem;
+  }
+  .booth {
+    --grad: var(--grad-main);
+    font-family: 'Poppins', sans-serif;
+    width: 148px;
+    padding: 2rem 0.75rem 1.15rem;
+    background: var(--paper);
+    border: 1px solid #dcdce2;
+    border-radius: 120px 120px 14px 14px;   /* box-office arch */
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(26,26,26,.05);
+    transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s, border-color .3s;
+  }
+  .booth[data-alt] { --grad: var(--grad-alt); }
+  .booth:hover { transform: translateY(-4px); box-shadow: 0 12px 26px rgba(88,0,118,.14); }
+  .booth-label {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+  .booth-name {
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    transition: color .3s;
+  }
+  .booth:hover .booth-name { color: var(--purple); }
+  .booth[data-alt]:hover .booth-name { color: var(--amber); }
+  /* box-office counter slot */
+  .booth::after {
+    content: "";
+    display: block;
+    width: 30px; height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    margin: 0.65rem auto 0;
+    transition: background .3s, width .3s;
+  }
+  .booth.is-active {
+    background: var(--grad);
+    border-color: transparent;
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(88,0,118,.28);
+  }
+  .booth[data-alt].is-active { box-shadow: 0 14px 30px rgba(204,133,0,.28); }
+  .booth.is-active .booth-label { color: rgba(255,255,255,.8); }
+  .booth.is-active .booth-name { color: #fff; }
+  .booth[data-alt].is-active .booth-name { color: #2a1a00; }
+  .booth[data-alt].is-active .booth-label { color: rgba(42,26,0,.65); }
+  .booth.is-active::after { background: rgba(255,255,255,.55); width: 42px; }
+  .booth[data-alt].is-active::after { background: rgba(42,26,0,.35); }
+
+  /* ---------- list header ---------- */
+  .list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .list-head h3 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 1.5rem;
+  }
+  .list-count { font-size: 0.85rem; color: var(--muted); }
+
+  /* ---------- ticket card ---------- */
+  .tickets { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  /* wrapper carries the shadow so it hugs the notch cut-outs */
+  .tk-wrap {
+    filter: drop-shadow(0 2px 5px rgba(26,26,26,.08));
+    transition: filter .25s, transform .25s cubic-bezier(.22,.61,.36,1);
+  }
+  .tk-wrap:hover {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 12px 18px rgba(88,0,118,.16));
+  }
+  .tk-wrap[data-alt]:hover { filter: drop-shadow(0 12px 18px rgba(204,133,0,.18)); }
+
+  .tk {
+    display: grid;
+    grid-template-columns: var(--stub-w) 1fr auto auto;
+    align-items: center;
+    background: var(--paper);
+    border-radius: 12px;
+    min-height: 108px;
+    /* punch the two notches where the perforation meets the edges */
+    -webkit-mask-image:
+      radial-gradient(circle var(--notch) at var(--stub-w) 0,    transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle var(--notch) at var(--stub-w) 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      radial-gradient(circle var(--notch) at var(--stub-w) 0,    transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle var(--notch) at var(--stub-w) 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    mask-composite: intersect;
+  }
+
+  /* date stub */
+  .tk-stub {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    background: var(--stub-tint);
+    border-radius: 12px 0 0 12px;
+    /* perforation */
+    border-right: 1.5px dashed rgba(88,0,118,.45);
+    padding: 0.75rem 0.5rem;
+  }
+  .tk-wrap[data-alt] .tk-stub {
+    background: var(--stub-tint-alt);
+    border-right-color: rgba(204,133,0,.4);
+  }
+  .tk-month {
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .tk-wrap[data-alt] .tk-month { color: var(--amber); }
+  .tk-day {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  .tk-year { font-size: 0.66rem; letter-spacing: 0.14em; color: var(--muted); }
+  .tk-dow  { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+
+  /* body */
+  .tk-body { padding: 1rem 1.25rem; min-width: 0; }
+  .tk-program {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--magenta);
+    margin-bottom: 0.15rem;
+  }
+  .tk-wrap[data-alt] .tk-program { color: var(--amber); }
+  .tk-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1.15;
+  }
+  .tk-meta { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+  .tk-meta strong { color: var(--text); font-weight: 600; }
+
+  /* CTA zone */
+  .tk-cta { padding: 0 1.4rem 0 0.5rem; }
+  .tk-btn {
+    display: inline-block;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    background: var(--grad-main);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform .2s, filter .2s;
+  }
+  .tk-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+  .tk-wrap[data-alt] .tk-btn { background: var(--grad-alt); color: #2a1a00; }
+  .tk-walkin {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--amber);
+    color: var(--amber);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* "ADMIT ONE" ghost text on the right edge, vertical */
+  .tk-admit {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    writing-mode: vertical-rl;
+    font-size: 0.55rem;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgba(88,0,118,.18);
+    font-weight: 600;
+    padding: 0.6rem 0.45rem 0.6rem 0;
+    user-select: none;
+  }
+  .tk-wrap[data-alt] .tk-admit { color: rgba(204,133,0,.25); }
+
+  /* entrance */
+  @keyframes tkIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .tk-wrap { animation: tkIn .5s cubic-bezier(.22,.61,.36,1) backwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tk-wrap, .booth, .tk-btn { animation: none !important; transition: none !important; }
+  }
+
+  /* ---------- tablet ---------- */
+  @media (max-width: 900px) {
+    .tk-admit { display: none; }
+    .tk-title { font-size: 1.15rem; }
+  }
+
+  /* ---------- phone: simpler ticket, bigger touch targets ---------- */
+  @media (max-width: 640px) {
+    :root { --stub-w: 84px; --notch: 8px; }
+    .booths { gap: 0.6rem; margin-bottom: 2.5rem; }
+    .booth {
+      width: calc(50% - 0.3rem);
+      min-width: 0;
+      padding: 1.35rem 0.5rem 0.9rem;
+      border-radius: 80px 80px 12px 12px;
+    }
+    .booth-name { font-size: 1.1rem; }
+    .booth-label { font-size: 0.55rem; }
+    .tk { grid-template-columns: var(--stub-w) 1fr; grid-template-rows: auto auto; min-height: 0; }
+    .tk-stub { padding: 0.7rem 0.4rem; grid-row: 1 / 3; }  /* perforation runs full height */
+    .tk-year, .tk-dow { display: none; }   /* simpler stub: month + day only */
+    .tk-day { font-size: 1.55rem; }
+    .tk-body { padding: 0.85rem 1rem 0.35rem; }
+    .tk-title { font-size: 1.05rem; }
+    .tk-meta { font-size: 0.8rem; }
+    .tk-cta { grid-column: 2; justify-self: start; padding: 0 1rem 0.9rem; }
+    .tk-btn { padding: 0.6rem 1.3rem; }     /* >=44px touch target with line-height */
+    .tk-wrap:hover { transform: none; }     /* no hover lift on touch */
+  }
+</style>
+</head>
+<body>
+<div class="hero">
+  <img id="heroImg" src="https://fdcp.ph/sites/default/files/2026-05/cinema.webp" alt="Cinematheque Manila">
+  <div class="hero-overlay">
+    <div class="hero-eyebrow">FDCP Exhibition</div>
+    <h1 class="hero-title" id="heroTitle">Cinematheque Manila</h1>
+    <p class="hero-sub">Experience the best of Philippine and world cinema at FDCP&rsquo;s Cinematheque Centers. Select a location below to view its current film schedule.</p>
+  </div>
+</div>
+<div class="wrap">
+  <h2 class="sec-title">Choose a Cinematheque</h2>
+
+  <div class="booths" id="booths">
+    <button class="booth is-active" data-loc="Manila">
+      <span class="booth-label">Cinematheque</span>
+      <span class="booth-name">Manila</span>
+    </button>
+    <button class="booth" data-loc="Negros" data-alt>
+      <span class="booth-label">Cinematheque</span>
+      <span class="booth-name">Negros</span>
+    </button>
+    <button class="booth" data-loc="Iloilo">
+      <span class="booth-label">Cinematheque</span>
+      <span class="booth-name">Iloilo</span>
+    </button>
+    <button class="booth" data-loc="Davao" data-alt>
+      <span class="booth-label">Cinematheque</span>
+      <span class="booth-name">Davao</span>
+    </button>
+  </div>
+
+  <div class="list-head">
+    <h3 id="listTitle">Now Showing in Manila</h3>
+    <span class="list-count" id="listCount"></span>
+  </div>
+
+  <div class="tickets" id="tickets"></div>
+</div>
+
+<script>
+// Real August rows (subset) — Manila from the live calendar, one Negros sample.
+const ROWS = [
+  { dateISO:"2026-08-04", day:"Tuesday",  location:"Manila", time:"1:00 PM", film:"Bambanti",                      program:"Cinematheque Director Series" },
+  { dateISO:"2026-08-04", day:"Tuesday",  location:"Manila", time:"3:45 PM", film:"Paglipay",                      program:"Cinematheque Director Series" },
+  { dateISO:"2026-08-10", day:"Monday",   location:"Manila", time:"2:30 PM", film:"The Only Child in the Butchery", program:"AFAN Boot Camp Film Screenings" },
+  { dateISO:"2026-08-11", day:"Tuesday",  location:"Manila", time:"3:30 PM", film:"AFAN Shorts",                   program:"AFAN Boot Camp Film Screenings" },
+  { dateISO:"2026-08-12", day:"Wednesday",location:"Manila", time:"2:00 PM", film:"Horizon",                       program:"AFAN x Mongolian Cinema Days" },
+  { dateISO:"2026-08-19", day:"Wednesday",location:"Manila", time:"2:30 PM", film:"CREATION Shorts Set A",         program:"CREATION" },
+  { dateISO:"2026-08-27", day:"Thursday", location:"Manila", time:"4:30 PM", film:"Iti Mapupukaw",                 program:"CREATION" },
+  { dateISO:"2026-08-07", day:"Friday",   location:"Negros", time:"5:00 PM", film:"Un/Happy For You",              program:"Pelikula ng Bayan" },
+  { dateISO:"2026-08-14", day:"Friday",   location:"Negros", time:"5:00 PM", film:"Green Bones",                   program:"Pelikula ng Bayan" },
+  { dateISO:"2026-08-08", day:"Saturday", location:"Iloilo", time:"3:00 PM", film:"Firefly",                       program:"Pelikula ng Bayan" },
+  { dateISO:"2026-08-15", day:"Saturday", location:"Davao",  time:"3:00 PM", film:"Lumpia With a Vengeance",       program:"Pelikula ng Bayan" }
+];
+const ALT = new Set(["Negros","Davao"]);
+const MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+function render(loc) {
+  const list = ROWS.filter(r => r.location === loc)
+    .sort((a,b) => a.dateISO < b.dateISO ? -1 : 1);
+  document.getElementById("listTitle").textContent = "Now Showing in " + loc;
+  document.getElementById("listCount").textContent =
+    list.length + " screening" + (list.length === 1 ? "" : "s");
+  const alt = ALT.has(loc);
+  document.getElementById("tickets").innerHTML = list.map((r, i) => {
+    const d = new Date(r.dateISO + "T00:00:00");
+    const cta = loc === "Manila"
+      ? '<a class="tk-btn" href="#">View Details</a>'
+      : '<span class="tk-walkin">Walk-in Only</span>';
+    return '<div class="tk-wrap"' + (alt ? ' data-alt' : '') +
+      ' style="animation-delay:' + (i * 55) + 'ms">' +
+      '<div class="tk">' +
+        '<div class="tk-stub">' +
+          '<span class="tk-month">' + MON[d.getMonth()] + '</span>' +
+          '<span class="tk-day">' + d.getDate() + '</span>' +
+          '<span class="tk-year">' + d.getFullYear() + '</span>' +
+          '<span class="tk-dow">' + r.day.slice(0,3) + '</span>' +
+        '</div>' +
+        '<div class="tk-body">' +
+          '<div class="tk-program">' + (r.program || "&nbsp;") + '</div>' +
+          '<h4 class="tk-title">' + r.film + '</h4>' +
+          '<div class="tk-meta"><strong>' + r.time + '</strong> · Free · ' + r.day + '</div>' +
+        '</div>' +
+        '<div class="tk-cta">' + cta + '</div>' +
+        '<div class="tk-admit">Admit One · FDCP</div>' +
+      '</div></div>';
+  }).join("");
+}
+
+const LOC_IMAGES = { Manila: "cinema", Negros: "negros", Iloilo: "iloilo", Davao: "davao" };
+function setHero(loc) {
+  const img = document.getElementById("heroImg");
+  img.style.opacity = "0";
+  setTimeout(() => {
+    img.src = "https://fdcp.ph/sites/default/files/2026-05/" + LOC_IMAGES[loc] + ".webp";
+    img.alt = "Cinematheque " + loc;
+    document.getElementById("heroTitle").textContent = "Cinematheque " + loc;
+    img.style.opacity = "1";
+  }, 200);
+}
+document.getElementById("booths").addEventListener("click", e => {
+  const b = e.target.closest(".booth");
+  if (!b) return;
+  document.querySelectorAll(".booth").forEach(x => x.classList.toggle("is-active", x === b));
+  setHero(b.dataset.loc);
+  render(b.dataset.loc);
+});
+render("Manila");
+</script>
+</body>
+</html>

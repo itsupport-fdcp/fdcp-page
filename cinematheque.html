@@ -1,5 +1,5 @@
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
   :root {
     --bg: #F8F8F8;
     --card-bg: #ffffff;
@@ -12,6 +12,10 @@
     --magenta: #E200A9;
     --amber: #CC8500;
     --gold: #FFCC00;
+    --stub-tint: #F5F2FF;
+    --stub-tint-alt: #FFF8E6;
+    --notch: 10px;      /* radius of the ticket's punched notch */
+    --stub-w: 112px;    /* where the perforation sits */
   }
   * { box-sizing: border-box; }
   .fdcp-cinematheque {
@@ -38,7 +42,7 @@
   }
   .cc-back {
     position: absolute;
-    top: 1.5rem;
+    top: 4.5rem;   /* clears the fixed theme header, which overlaps the hero top on mobile */
     left: 1.25rem;
     z-index: 3;
     display: inline-flex;
@@ -80,7 +84,7 @@
     text-transform: uppercase;
   }
   .cc-hero__title {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Oswald', 'Poppins', sans-serif;
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3.75rem);
     line-height: 1;
@@ -98,9 +102,10 @@
   /* LOCATION SELECTOR */
   .cc-section-title {
     text-align: center;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Oswald', 'Poppins', sans-serif;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     font-size: 1.5rem;
     margin: 0 0 1.75rem;
     color: var(--text);
@@ -121,66 +126,72 @@
     justify-content: center;
     margin-bottom: 3rem;
   }
+  /* Box-office ticket-booth windows */
   .cc-loc-card {
     --grad: var(--grad-main);
-    position: relative;
-    width: 200px;
-    padding: 1.75rem 1.25rem;
+    font-family: 'Poppins', sans-serif;
+    width: 148px;
+    padding: 2rem 0.75rem 1.15rem;
     background: #fff;
-    border-radius: 14px;
+    border: 1px solid #dcdce2;
+    border-radius: 120px 120px 14px 14px;   /* box-office arch */
     cursor: pointer;
     text-align: center;
-    transition: transform 0.3s cubic-bezier(.22,.61,.36,1), box-shadow 0.3s, color 0.3s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    overflow: hidden;
-    isolation: isolate;
-    border: 2px solid transparent;
-    background-image:
-      linear-gradient(#fff, #fff),
-      var(--grad);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(26,26,26,0.05);
+    transition: transform 0.3s cubic-bezier(.22,.61,.36,1), box-shadow 0.3s, border-color 0.3s;
   }
-  .cc-loc-card { --grad: var(--grad-alt); --grad-active: var(--grad-main); }
-
+  .cc-loc-card[data-loc="Negros"], .cc-loc-card[data-loc="Davao"] { --grad: var(--grad-alt); }
+  .cc-loc-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(88,0,118,0.14);
+  }
   .cc-loc-card__label {
-    font-family: 'Poppins', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.7rem;
     color: var(--muted);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.2rem;
   }
   .cc-loc-card__name {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1.6rem;
+    font-family: 'Oswald', 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    background: var(--grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: -webkit-text-fill-color 0.3s, color 0.3s;
+    color: var(--text);
+    transition: color 0.3s;
   }
-  .cc-loc-card:hover {
-    transform: scale(1.06);
-    box-shadow: 0 14px 28px rgba(204,133,0,0.22);
+  .cc-loc-card:hover .cc-loc-card__name { color: var(--purple); }
+  .cc-loc-card[data-loc="Negros"]:hover .cc-loc-card__name,
+  .cc-loc-card[data-loc="Davao"]:hover .cc-loc-card__name { color: var(--amber); }
+  /* box-office counter slot */
+  .cc-loc-card::after {
+    content: "";
+    display: block;
+    width: 30px; height: 3px;
+    border-radius: 2px;
+    background: #e5e7eb;
+    margin: 0.65rem auto 0;
+    transition: background 0.3s, width 0.3s;
   }
   .cc-loc-card.is-active {
-    background-image: var(--grad-active), var(--grad-active);
+    background: var(--grad);
     border-color: transparent;
-    transform: scale(1.04);
-    box-shadow: 0 14px 28px rgba(88,0,118,0.28);
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(88,0,118,0.28);
   }
-  .cc-loc-card.is-active .cc-loc-card__name {
-    -webkit-text-fill-color: #fff;
-    color: #fff;
-    background: none;
-  }
-  .cc-loc-card.is-active .cc-loc-card__label {
-    color: rgba(255,255,255,0.85);
-  }
+  .cc-loc-card[data-loc="Negros"].is-active,
+  .cc-loc-card[data-loc="Davao"].is-active { box-shadow: 0 14px 30px rgba(204,133,0,0.28); }
+  .cc-loc-card.is-active .cc-loc-card__label { color: rgba(255,255,255,0.8); }
+  .cc-loc-card.is-active .cc-loc-card__name { color: #fff; }
+  .cc-loc-card[data-loc="Negros"].is-active .cc-loc-card__name,
+  .cc-loc-card[data-loc="Davao"].is-active .cc-loc-card__name { color: #2a1a00; }
+  .cc-loc-card[data-loc="Negros"].is-active .cc-loc-card__label,
+  .cc-loc-card[data-loc="Davao"].is-active .cc-loc-card__label { color: rgba(42,26,0,0.65); }
+  .cc-loc-card.is-active::after { background: rgba(255,255,255,0.55); width: 42px; }
+  .cc-loc-card[data-loc="Negros"].is-active::after,
+  .cc-loc-card[data-loc="Davao"].is-active::after { background: rgba(42,26,0,0.35); }
 
   /* FILM LIST */
   .cc-films-wrap {
@@ -197,10 +208,11 @@
     flex-wrap: wrap;
   }
   .cc-films-header h3 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Oswald', 'Poppins', sans-serif;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     margin: 0;
   }
   .cc-films-count {
@@ -224,7 +236,7 @@
     border-bottom-color: var(--magenta);
   }
   .cc-calendar-link::after {
-    content: "→";
+    content: "\2192";  /* right arrow, escaped so it survives any charset */
     font-size: 1rem;
     line-height: 1;
   }
@@ -234,119 +246,159 @@
     gap: 1rem;
     margin-bottom: 3rem;
   }
-  .cc-film-card {
+  /* Admit-one ticket cards. The wrapper carries drop-shadow (a box-shadow
+     would be clipped away by the notch mask on the inner element). */
+  .cc-tk-wrap {
+    filter: drop-shadow(0 2px 5px rgba(26,26,26,0.08));
+    transition: filter 0.25s, transform 0.25s cubic-bezier(.22,.61,.36,1);
+    animation: ccTkIn 0.5s cubic-bezier(.22,.61,.36,1) backwards;
+  }
+  @keyframes ccTkIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .cc-tk-wrap:hover {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 12px 18px rgba(88,0,118,0.16));
+  }
+  .cc-tk-wrap[data-program-color="alt"]:hover {
+    filter: drop-shadow(0 12px 18px rgba(204,133,0,0.18));
+  }
+  .cc-tk {
     display: grid;
-    grid-template-columns: 110px 1fr auto;
-    gap: 1.25rem;
+    grid-template-columns: var(--stub-w) 1fr auto auto;
     align-items: center;
     background: var(--card-bg);
     border-radius: 12px;
-    padding: 1.1rem 1.4rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border-left: 5px solid transparent;
-    border-image: var(--grad-main) 1;
-    transition: transform 0.25s, box-shadow 0.25s;
-    position: relative;
-  }
-  .cc-film-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.10);
-  }
-  .cc-film-card[data-program-color="alt"] {
-    border-image: var(--grad-alt) 1;
+    min-height: 108px;
+    /* punch the two notches where the perforation meets the edges;
+       if a filter strips the mask, the card is simply un-notched */
+    -webkit-mask-image:
+      radial-gradient(circle var(--notch) at var(--stub-w) 0,    transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle var(--notch) at var(--stub-w) 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      radial-gradient(circle var(--notch) at var(--stub-w) 0,    transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle var(--notch) at var(--stub-w) 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    mask-composite: intersect;
   }
 
-  .cc-date {
-    background: linear-gradient(135deg, #b89bc4 0%, #d9a8c8 100%);
-    color: #3a1a45;
-    border-radius: 10px;
-    padding: 0.55rem 0.5rem;
+  /* date stub + perforation */
+  .cc-tk-stub {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    background: var(--stub-tint);
+    border-radius: 12px 0 0 12px;
+    border-right: 1.5px dashed rgba(88,0,118,0.45);
+    padding: 0.75rem 0.5rem;
     text-align: center;
-    font-family: 'Poppins', sans-serif;
-    line-height: 1.1;
-    min-width: 90px;
   }
-  .cc-film-card[data-program-color="alt"] .cc-date {
-    background: linear-gradient(135deg, #d9bf7a 0%, #e8d290 100%);
-    color: #4a3500;
+  .cc-tk-wrap[data-program-color="alt"] .cc-tk-stub {
+    background: var(--stub-tint-alt);
+    border-right-color: rgba(204,133,0,0.4);
   }
-  .cc-date__month {
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
+  .cc-tk-month {
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
-    opacity: 0.9;
-  }
-  .cc-date__day {
-    font-size: 1.7rem;
-    font-weight: 700;
-    line-height: 1;
-    margin: 0.15rem 0;
-  }
-  .cc-date__year {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    opacity: 0.85;
-  }
-
-  .cc-info__program {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
     color: var(--purple);
     font-weight: 600;
-    margin-bottom: 0.25rem;
   }
-  .cc-film-card[data-program-color="alt"] .cc-info__program { color: var(--amber); }
-  .cc-info__title {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.2rem;
+  .cc-tk-wrap[data-program-color="alt"] .cc-tk-month { color: var(--amber); }
+  .cc-tk-day {
+    font-family: 'Oswald', 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  .cc-tk-year { font-size: 0.66rem; letter-spacing: 0.14em; color: var(--muted); }
+  .cc-tk-dow  { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+
+  .cc-tk-body { padding: 1rem 1.25rem; min-width: 0; }
+  .cc-info__program {
+    font-size: 0.68rem;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin: 0 0 0.3rem;
+    letter-spacing: 0.16em;
+    color: var(--magenta);
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+  .cc-tk-wrap[data-program-color="alt"] .cc-info__program { color: var(--amber); }
+  .cc-info__title {
+    font-family: 'Oswald', 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+    margin: 0;
     color: var(--text);
   }
   .cc-info__meta {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--muted);
+    margin-top: 0.25rem;
   }
   .cc-info__meta strong { color: var(--text); font-weight: 600; }
 
+  .cc-tk-cta { padding: 0 1.4rem 0 0.5rem; }
   .cc-cta {
     display: inline-block;
-    padding: 0.55rem 1.1rem;
+    padding: 0.55rem 1.2rem;
     border-radius: 999px;
     background: var(--grad-main);
     color: #fff;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-decoration: none;
     border: none;
     cursor: pointer;
     transition: transform 0.2s, filter 0.2s;
     white-space: nowrap;
   }
-  .cc-film-card[data-program-color="alt"] .cc-cta {
+  .cc-tk-wrap[data-program-color="alt"] .cc-cta {
     background: var(--grad-alt);
     color: #2a1a00;
   }
-  .cc-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .cc-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
 
   .cc-walkin {
     display: inline-block;
-    padding: 0.45rem 0.9rem;
+    padding: 0.45rem 1rem;
     border-radius: 999px;
     background: transparent;
     color: var(--amber);
     border: 1.5px solid var(--amber);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     white-space: nowrap;
   }
+
+  /* faint vertical "ADMIT ONE" on the ticket's right edge */
+  .cc-tk-admit {
+    justify-self: end;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    writing-mode: vertical-rl;
+    font-size: 0.55rem;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgba(88,0,118,0.18);
+    font-weight: 600;
+    padding: 0.6rem 0.45rem 0.6rem 0;
+    user-select: none;
+  }
+  .cc-tk-wrap[data-program-color="alt"] .cc-tk-admit { color: rgba(204,133,0,0.25); }
 
   .cc-pagination {
     display: flex;
@@ -394,19 +446,44 @@
   }
 
   /* RESPONSIVE */
+  /* tablet */
+  @media (max-width: 900px) {
+    .cc-tk-admit { display: none; }
+    .cc-info__title { font-size: 1.15rem; }
+  }
+  /* phone: simpler ticket, bigger touch targets */
   @media (max-width: 720px) {
+    .fdcp-cinematheque { --stub-w: 84px; --notch: 8px; }
     .cc-hero { aspect-ratio: 16 / 9; }
-    .cc-loc-card { width: 45%; min-width: 140px; padding: 1.25rem 0.75rem; }
-    .cc-loc-card__name { font-size: 1.3rem; }
-    .cc-film-card {
-      grid-template-columns: 80px 1fr;
-      gap: 0.9rem;
-      padding: 0.9rem 1rem;
+    .cc-locations { gap: 0.6rem; }
+    .cc-loc-card {
+      width: calc(50% - 0.5rem);
+      min-width: 0;
+      padding: 1.35rem 0.5rem 0.9rem;
+      border-radius: 80px 80px 12px 12px;
     }
-    .cc-cta { grid-column: 1 / -1; justify-self: start; margin-top: 0.4rem; }
-    .cc-date { min-width: 70px; padding: 0.4rem; }
-    .cc-date__day { font-size: 1.4rem; }
+    .cc-loc-card__name { font-size: 1.1rem; }
+    .cc-loc-card__label { font-size: 0.55rem; }
+    .cc-tk {
+      grid-template-columns: var(--stub-w) 1fr;
+      grid-template-rows: auto auto;
+      min-height: 0;
+    }
+    .cc-tk-stub { padding: 0.7rem 0.4rem; grid-row: 1 / 3; }  /* perforation runs full height */
+    .cc-tk-year, .cc-tk-dow { display: none; }               /* simpler stub: month + day only */
+    .cc-tk-day { font-size: 1.55rem; }
+    .cc-tk-body { padding: 0.85rem 1rem 0.35rem; }
     .cc-info__title { font-size: 1.05rem; }
+    .cc-info__meta { font-size: 0.8rem; }
+    .cc-tk-cta { grid-column: 2; justify-self: start; padding: 0 1rem 0.9rem; }
+    .cc-cta { padding: 0.6rem 1.3rem; }
+    .cc-tk-wrap:hover { transform: none; }                   /* no hover lift on touch */
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc-tk-wrap, .cc-loc-card, .cc-cta, .cc-hero__img {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 </style>
 
@@ -459,7 +536,7 @@
 </div>
 
 <script>
-const CC_SCHEDULE = [{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"1:00 PM","film":"Bambanti","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"3:45 PM","film":"Paglipay","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"2:30 PM","film":"The Only Child in the Butchery","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"4:45 PM","film":"Breaking the Cycle","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"1:30 PM","film":"Cleaners","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"3:30 PM","film":"AFAN Shorts","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"5:15 PM","film":"Blooming","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Horizon","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"4:45 PM","film":"Public Enemy","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"2:30 PM","film":"Disorder","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"4:45 PM","film":"Foggy Hilltop","program":"AFAN x Mongolian Cinema Days","admission":"Free"}];
+const CC_SCHEDULE = [{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"1:00 PM","film":"Bambanti","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"3:45 PM","film":"Paglipay","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"2:30 PM","film":"The Only Child in the Butchery","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"4:45 PM","film":"Breaking the Cycle","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"1:30 PM","film":"Cleaners","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"3:30 PM","film":"AFAN Shorts","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"5:15 PM","film":"Blooming","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Horizon","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"4:45 PM","film":"Public Enemy","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"2:30 PM","film":"Disorder","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"4:45 PM","film":"Foggy Hilltop","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 19, 2026","dateISO":"2026-08-19","day":"Wednesday","location":"Manila","time":"2:30 PM","film":"CREATION Shorts Set A","program":"","admission":"Free"},{"date":"August 19, 2026","dateISO":"2026-08-19","day":"Wednesday","location":"Manila","time":"4:30 PM","film":"Autobiography","program":"","admission":"Free"},{"date":"August 20, 2026","dateISO":"2026-08-20","day":"Thursday","location":"Manila","time":"2:30 PM","film":"The Gospel of the Beast","program":"","admission":"Free"},{"date":"August 20, 2026","dateISO":"2026-08-20","day":"Thursday","location":"Manila","time":"4:45 PM","film":"An Errand","program":"","admission":"Free"},{"date":"August 27, 2026","dateISO":"2026-08-27","day":"Thursday","location":"Manila","time":"2:30 PM","film":"CREATION Shorts Set B","program":"","admission":"Free"},{"date":"August 27, 2026","dateISO":"2026-08-27","day":"Thursday","location":"Manila","time":"4:30 PM","film":"Iti Mapupukaw","program":"","admission":"Free"},{"date":"August 28, 2026","dateISO":"2026-08-28","day":"Friday","location":"Manila","time":"2:30 PM","film":"Elsewhere at Night","program":"","admission":"Free"},{"date":"August 28, 2026","dateISO":"2026-08-28","day":"Friday","location":"Manila","time":"4:30 PM","film":"Huling Palabas","program":"","admission":"Free"}];
 
 // --- DATE WINDOW ---
 // Show all screenings from TODAY onwards -- no upper cutoff.
@@ -552,7 +629,7 @@ const SITES_BASE = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila";
 // Calendar .ics feed) AND the film-detail links (scraped from the Google Site).
 // See film-links-proxy.gs for the script + setup. Until it's set, the page
 // uses the baked schedule + static link map below.
-const CINE_DATA_PROXY = "";
+const CINE_DATA_PROXY = "https://script.google.com/macros/s/AKfycbyZWifVzuokGZAi7BGwLl5_6cQ0N3hszmKCElaUXhzXsqkK0yMS-grfKplOc9v0gzgu/exec";
 
 // Fetches { schedule, links } from the proxy. Updates _siteFilmLinks in place
 // and returns the live Manila schedule rows (or null on any failure).
@@ -606,15 +683,24 @@ var _siteFilmLinks = {
   // BEGIN AUTO-REFETCHED FILM LINKS
   "afan short film set": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
   "afan shorts": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
+  "an errand": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/an-errand?authuser=0",
+  "autobiography": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/autobiography?authuser=0",
   "bambanti": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/bambanti?authuser=0",
   "blooming": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/blooming?authuser=0",
   "breaking the cycle": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/breaking-the-cycle?authuser=0",
   "cleaners": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/cleaners?authuser=0",
+  "creation shorts set a": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/creation-shorts-set-a?authuser=0",
+  "creation shorts set b": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/creation-shorts-set-b?authuser=0",
   "disorder": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/disorder?authuser=0",
+  "elsewhere at night": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/elsewhere-at-night?authuser=0",
   "foggy hilltop": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/foggy-hilltop?authuser=0",
   "horizon": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/horizon?authuser=0",
+  "huling palabas": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/huling-palabas?authuser=0",
+  "iti mapukpukaw": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/iti-mapukpukaw?authuser=0",
+  "iti mapupukaw": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/iti-mapukpukaw?authuser=0",
   "paglipay": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/paglipay?authuser=0",
   "public enemy": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/public-enemy?authuser=0",
+  "the gospel of the beast": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/the-gospel-of-the-beast?authuser=0",
   "the only child in the butchery": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/the-only-child-in-the-butchery?authuser=0"
   // END AUTO-REFETCHED FILM LINKS
 };
@@ -685,7 +771,7 @@ function loadSheetRegions() {
         var tds = trs[i].getElementsByTagName("td");
         if (tds.length < 8) continue;
         var cell = function (j) {
-          return (tds[j].textContent || "").replace(/ /g, " ").replace(/\s+/g, " ").trim();
+          return (tds[j].textContent || "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
         };
         var loc = cell(3), film = cell(5);
         if (!loc || loc.toLowerCase() === "manila" || !film) continue;
@@ -742,27 +828,32 @@ function makeEl(tag, className, text) {
   return el;
 }
 
-function buildCard(r, altLoc) {
-  var card = makeEl("div", "cc-film-card");
-  card.setAttribute("data-program-color", altLoc);
+function buildCard(r, altLoc, idx) {
+  var wrap = makeEl("div", "cc-tk-wrap");
+  wrap.setAttribute("data-program-color", altLoc);
+  wrap.style.animationDelay = ((idx || 0) * 55) + "ms";  // staggered entrance
+  var card = makeEl("div", "cc-tk");
+  wrap.appendChild(card);
 
-  var date = makeEl("div", "cc-date");
-  date.appendChild(makeEl("div", "cc-date__month", monthAbbr(r.dateISO)));
-  date.appendChild(makeEl("div", "cc-date__day", dayNum(r.dateISO)));
-  date.appendChild(makeEl("div", "cc-date__year", yearNum(r.dateISO)));
-  card.appendChild(date);
+  var stub = makeEl("div", "cc-tk-stub");
+  stub.appendChild(makeEl("div", "cc-tk-month", monthAbbr(r.dateISO)));
+  stub.appendChild(makeEl("div", "cc-tk-day", dayNum(r.dateISO)));
+  stub.appendChild(makeEl("div", "cc-tk-year", yearNum(r.dateISO)));
+  stub.appendChild(makeEl("div", "cc-tk-dow", (r.day || "").slice(0, 3)));
+  card.appendChild(stub);
 
-  var info = makeEl("div", "cc-info");
+  var info = makeEl("div", "cc-tk-body");
   info.appendChild(makeEl("div", "cc-info__program", r.program));
   info.appendChild(makeEl("h4", "cc-info__title", r.film));
 
   var meta = makeEl("div", "cc-info__meta");
   var timeStrong = makeEl("strong", null, r.time);
   meta.appendChild(timeStrong);
-  meta.appendChild(document.createTextNode("  ·  " + r.admission + "  ·  " + r.day));
+  meta.appendChild(document.createTextNode("  \u00B7  " + r.admission + "  \u00B7  " + r.day));
   info.appendChild(meta);
   card.appendChild(info);
 
+  var ctaZone = makeEl("div", "cc-tk-cta");
   if (r.location === "Manila") {
     var detailUrl = getFilmDetailUrl(r.film);
     if (detailUrl) {
@@ -770,13 +861,15 @@ function buildCard(r, altLoc) {
       link.href = detailUrl;
       link.target = "_blank";
       link.rel = "noopener";
-      card.appendChild(link);
+      ctaZone.appendChild(link);
     }
   } else {
-    card.appendChild(makeEl("span", "cc-walkin", "Walk-in Only"));
+    ctaZone.appendChild(makeEl("span", "cc-walkin", "Walk-in Only"));
   }
+  card.appendChild(ctaZone);
+  card.appendChild(makeEl("div", "cc-tk-admit", "Admit One \u00B7 FDCP"));
 
-  return card;
+  return wrap;
 }
 
 function findOne(id, cls) {
@@ -799,11 +892,11 @@ function renderPagination(totalPages, location) {
     return b;
   }
 
-  pager.appendChild(pageBtn("‹ Prev", ccCurrentPage - 1, { disabled: ccCurrentPage === 1 }));
+  pager.appendChild(pageBtn("\u2039 Prev", ccCurrentPage - 1, { disabled: ccCurrentPage === 1 }));
   for (var p = 1; p <= totalPages; p++) {
     pager.appendChild(pageBtn(String(p), p, { active: p === ccCurrentPage }));
   }
-  pager.appendChild(pageBtn("Next ›", ccCurrentPage + 1, { disabled: ccCurrentPage === totalPages }));
+  pager.appendChild(pageBtn("Next \u203A", ccCurrentPage + 1, { disabled: ccCurrentPage === totalPages }));
 }
 
 function gotoPage(page, location) {
@@ -820,6 +913,11 @@ function renderFilms(location) {
     return r.location === location &&
       r.dateISO >= todayPH &&
       (r.location !== "Manila" || !!getFilmDetailUrl(r.film));
+  });
+  // Sort here (not per-source): the proxy returns Manila rows in raw
+  // calendar order, so the merged list must be ordered at render time.
+  list.sort(function (a, b) {
+    return a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : ccTimeKey(a.time) - ccTimeKey(b.time);
   });
   var heading = findOne("ccFilmsHeading", "cc-films-heading");
   var count = findOne("ccFilmsCount", "cc-films-count");
@@ -857,7 +955,7 @@ function renderFilms(location) {
 
   var altLoc = ALT_PROGRAMS.has(location) ? "alt" : "main";
   for (var i = 0; i < pageItems.length; i++) {
-    container.appendChild(buildCard(pageItems[i], altLoc));
+    container.appendChild(buildCard(pageItems[i], altLoc, i));
   }
   renderPagination(totalPages, location);
 }

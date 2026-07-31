@@ -107,6 +107,33 @@ function regionRow(c, today) {
     time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) || "Free" };
 }
 
+// Levenshtein distance, capped: bails early when lengths differ by > 2.
+function editDist(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 99;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return dp[a.length][b.length];
+}
+
+// Auto-heal small calendar-vs-site spelling drifts (e.g. calendar "Iti
+// Mapupukaw" vs site slug "iti-mapukpukaw"): a film with no exact link that
+// is within edit distance 2 of exactly ONE link key gets aliased to it. The
+// alias is baked into the links map, so the page's lookup resolves too.
+function healLinkTypos(rows, links) {
+  rows.forEach(r => {
+    const key = normalize(r.film);
+    if (links[key] || key.length < 6) return;
+    const near = Object.keys(links).filter(k => editDist(key, k) <= 2);
+    if (near.length === 1) {
+      links[key] = links[near[0]];
+      console.log('  Healed | "' + key + '" -> "' + near[0] + '" (spelling drift)');
+    }
+  });
+}
+
 function siteFilmLinks(html) {
   const links = {};
   const re = /\/fdcp\.gov\.ph\/cinemathequemanila\/programs\/([a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*)/g;
@@ -140,6 +167,7 @@ function renderFilmLinks(links) {
   const links = siteFilmLinks(screeningsHtml);
   if (!Object.keys(links).length) throw new Error("No film-detail links found on the Google Sites Screenings page");
   const manilaAll = ics.split("BEGIN:VEVENT").slice(1).map(row).filter(Boolean).filter(r => r.dateISO >= today).sort(byDateTime);
+  healLinkTypos(manilaAll, links);
   const manila = manilaAll.filter(r => !!links[normalize(r.film)]);
   const skipped = manilaAll.filter(r => !links[normalize(r.film)]);
   const regions = csvRows(csv).map(c => regionRow(c, today)).filter(Boolean).sort(byDateTime);
