@@ -1,12 +1,13 @@
 // Refetch the full cinematheque schedule and rewrite CC_SCHEDULE in
-// cinematheque.html. Run:  node refetch-manila.js
+// pages/cinematheque.html. Run:  node scripts/refetch-manila.js  (any cwd)
 //   - Manila: from the live public Google Calendar (.ics)
 //   - Negros / Iloilo / Davao: from the schedule Google Sheet (CSV). The page
 //     also re-fetches this sheet live on every visit (loadSheetRegions), so
 //     the baked regional rows are just the instant-paint fallback.
 //   - Manila detail links: from the live Google Sites Screenings page.
 // ponytail: manual refetch until the Apps Script proxy is deployed.
-const fs = require("fs"), https = require("https");
+const fs = require("fs"), https = require("https"), path = require("path");
+const CINEMATHEQUE = path.join(__dirname, "..", "pages", "cinematheque.html");
 
 const CAL = "c_297715d58563f4dc6de17c9db206013d959c7d422b00f1a65fd73329bd9579d2@group.calendar.google.com";
 const ICS = "https://calendar.google.com/calendar/ical/" + encodeURIComponent(CAL) + "/public/basic.ics";
@@ -172,12 +173,12 @@ function renderFilmLinks(links) {
   const skipped = manilaAll.filter(r => !links[normalize(r.film)]);
   const regions = csvRows(csv).map(c => regionRow(c, today)).filter(Boolean).sort(byDateTime);
 
-  let html = fs.readFileSync("cinematheque.html", "utf8");
+  let html = fs.readFileSync(CINEMATHEQUE, "utf8");
   html = html.replace(/const CC_SCHEDULE = \[[\s\S]*?\];/, "const CC_SCHEDULE = " + JSON.stringify(regions.concat(manila)) + ";");
   const linkBlock = /  \/\/ BEGIN AUTO-REFETCHED FILM LINKS[\s\S]*?  \/\/ END AUTO-REFETCHED FILM LINKS/;
   if (!linkBlock.test(html)) throw new Error("Auto-refetched film-link block not found in cinematheque.html");
   html = html.replace(linkBlock, renderFilmLinks(links));
-  fs.writeFileSync("cinematheque.html", html, "utf8");
+  fs.writeFileSync(CINEMATHEQUE, html, "utf8");
 
   console.log("Refetched " + manila.length + " Manila rows (calendar) + " + regions.length + " regional rows (sheet) + " + Object.keys(links).length + " film links (Google Site), from " + today + ":");
   manila.forEach(r => console.log("  Manila | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film));
