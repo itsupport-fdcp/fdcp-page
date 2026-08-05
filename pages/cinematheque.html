@@ -769,8 +769,9 @@ function loadSheetRegions() {
       var out = [];
       for (var i = 0; i < trs.length; i++) {
         var tds = trs[i].getElementsByTagName("td");
-        if (tds.length < 8) continue;
+        if (tds.length < 6) continue; // need DATE..FILM; TIME/PROGRAM/ADMISSION optional
         var cell = function (j) {
+          if (!tds[j]) return "";
           return (tds[j].textContent || "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
         };
         var loc = cell(3), film = cell(5);
@@ -787,7 +788,7 @@ function loadSheetRegions() {
           time: cell(4),
           film: film,
           program: cell(6),
-          admission: cell(7) || "Free"
+          admission: cell(7) // ponytail: blank stays blank -- card omits the field
         });
       }
       out.sort(function (a, b) {
@@ -847,9 +848,10 @@ function buildCard(r, altLoc, idx) {
   info.appendChild(makeEl("h4", "cc-info__title", r.film));
 
   var meta = makeEl("div", "cc-info__meta");
-  var timeStrong = makeEl("strong", null, r.time);
-  meta.appendChild(timeStrong);
-  meta.appendChild(document.createTextNode("  \u00B7  " + r.admission + "  \u00B7  " + r.day));
+  // ponytail: skip blank fields (sheet rows may have no TIME/ADMISSION)
+  if (r.time) meta.appendChild(makeEl("strong", null, r.time));
+  var rest = [r.admission, r.day].filter(Boolean).join("  \u00B7  ");
+  if (rest) meta.appendChild(document.createTextNode((r.time ? "  \u00B7  " : "") + rest));
   info.appendChild(meta);
   card.appendChild(info);
 
