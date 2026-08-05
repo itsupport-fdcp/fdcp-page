@@ -593,24 +593,59 @@ function _heroBases() {
   }
   return bases;
 }
-// Point a hero <img> at a location image. Each candidate URL is preloaded and
-// the visible src only swaps once one actually loads -- if EVERY candidate
-// 404s, the image that is already showing (e.g. the hardcoded fallback src in
-// the markup) stays put instead of being replaced by a broken URL, which used
-// to leave the hero black. The token guards rapid location switches so a slow
-// older probe can't overwrite a newer location's image.
-function setHeroImage(img, loc) {
+// Resolve a location's hero URL by preloading each candidate folder in turn.
+// If EVERY candidate 404s the callback gets "" and the image already showing
+// (e.g. the hardcoded src in the markup) stays put, instead of being replaced
+// by a broken URL -- which used to leave the hero black.
+//
+// Probing is the expensive part: the newest month folders are usually not
+// uploaded yet, so a cold resolve burns several sequential 404 round-trips.
+// Both caches below exist to pay that cost once, not once per click.
+var _heroUrlCache = {};  // loc -> resolved URL
+var _heroBaseHit = "";   // ponytail: a folder that worked once works for the rest
+function resolveHeroUrl(loc, cb) {
+  if (_heroUrlCache[loc]) return cb(_heroUrlCache[loc]); // sync -> instant swap
   var file = (LOC_IMAGES[loc] || loc.toLowerCase()) + ".webp";
   var bases = _heroBases();
-  var token = (img._ccHeroToken = (img._ccHeroToken || 0) + 1);
+  if (_heroBaseHit) {
+    bases = [_heroBaseHit].concat(bases.filter(function (b) { return b !== _heroBaseHit; }));
+  }
   var i = 0;
   (function tryNext() {
-    if (i >= bases.length) return; // all candidates 404 -> keep current image
+    if (i >= bases.length) return cb(""); // all candidates 404 -> keep current image
     var probe = new Image();
-    probe.onload = function () { if (img._ccHeroToken === token) img.src = probe.src; };
+    probe.onload = function () {
+      _heroBaseHit = bases[i];
+      _heroUrlCache[loc] = probe.src;
+      cb(probe.src);
+    };
     probe.onerror = function () { i++; tryNext(); };
     probe.src = bases[i] + file;
   })();
+}
+
+// Swap the hero to `loc`. Fades back in only once the new image has actually
+// loaded -- never on a timer, which is what made the swap look broken while a
+// cold probe worked through its 404s. Once cached the callback runs
+// synchronously, so repeat switches are instant with no fade at all.
+// The token guards rapid clicks: a slow older probe can't overwrite a newer
+// location's image.
+function setHeroImage(img, loc) {
+  var token = (img._ccHeroToken = (img._ccHeroToken || 0) + 1);
+  if (!_heroUrlCache[loc]) img.style.opacity = "0"; // only fade when we must wait
+  resolveHeroUrl(loc, function (url) {
+    if (img._ccHeroToken !== token) return; // superseded by a newer click
+    if (url) img.src = url;
+    img.alt = "Cinematheque " + loc;
+    img.style.opacity = "1";
+  });
+}
+
+// Probe the non-default locations up front so the first click is already warm.
+function prewarmHeroes() {
+  for (var loc in LOC_IMAGES) {
+    if (loc !== "Manila") resolveHeroUrl(loc, function () {});
+  }
 }
 // ---
 
@@ -970,14 +1005,7 @@ function selectLocation(loc) {
     else cards[i].classList.remove("is-active");
   }
   var img = findOne("ccHeroImg", "cc-hero__img");
-  if (img) {
-    img.style.opacity = "0";
-    setTimeout(function () {
-      setHeroImage(img, loc);
-      img.alt = "Cinematheque " + loc;
-      img.style.opacity = "1";
-    }, 200);
-  }
+  if (img) setHeroImage(img, loc); // handles its own fade + alt text
   var title = findOne("ccHeroTitle", "cc-hero__title");
   if (title) title.textContent = "Cinematheque " + loc;
   ccCurrentPage = 1;
@@ -994,6 +1022,7 @@ function ccInit() {
   }
   var heroImg = findOne("ccHeroImg", "cc-hero__img");
   if (heroImg) setHeroImage(heroImg, "Manila");
+  prewarmHeroes();
   renderFilms("Manila"); // instant paint from baked sheet
 
   function rerender() {
