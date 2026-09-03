@@ -1,105 +1,260 @@
 /**
- * FDCP Cinematheque — live data proxy (schedule + film links)
+ * FDCP Cinematheque — live Manila schedule proxy (Ticket Tailor)
  * ------------------------------------------------------------------
- * Runs on Google's servers (where no-CORS / no-API-key restrictions
- * don't apply) and returns everything the cinematheque page needs:
+ * Returns the live Manila schedule for pages/cinematheque.html:
  *
  *   {
  *     "schedule": [ { date, dateISO, day, location, time, film,
- *                     program, admission }, ... ],   // Manila, live
- *     "links":    { "macho dancer": "https://.../macho-dancer", ... }
+ *                     program, admission, link }, ... ],
+ *     "links": {},          // legacy field, kept so older pages don't break
+ *     "source": "api" | "scrape" | "cache",
+ *     "debug":  { ... }     // present only when a live pull failed
  *   }
  *
- *   - schedule  comes from the SAME public Google Calendar that powers
- *               the Cinematheque Manila Google Site (its public .ics
- *               feed — no API key, no billing).
- *   - links     are scraped from the Google Site /programs pages so the
- *               "View Details" buttons deep-link to the exact film page.
+ * The page has NO baked fallback any more -- whatever this returns is what
+ * visitors see -- so this script is deliberately defensive:
+ *   - it serves a LAST-GOOD copy (up to 6h old) when a live pull fails,
+ *     so one blocked fetch never blanks the page;
+ *   - it never caches a failure;
+ *   - when it does come back empty it says why, in `debug`.
  *
- * SETUP (one time, ~5 minutes):
- *   1. Go to https://script.google.com (any FDCP Google account).
- *   2. New project -> delete the default code -> paste this file.
- *   3. Deploy -> New deployment -> type "Web app"
- *        - Execute as: Me
- *        - Who has access: Anyone
- *   4. Copy the web app URL (https://script.google.com/macros/s/.../exec)
- *      and paste it into CINE_DATA_PROXY in cinematheque.html.
+ * TWO WAYS TO GET THE DATA
+ *   1. Official API (set TT_API_KEY below). REQUIRED in practice: Ticket
+ *      Tailor fronts its public pages with a Cloudflare bot challenge that
+ *      Google's server IPs fail ("Just a moment..." / HTTP 403 -- verified
+ *      2026-09-03), so scraping from Apps Script does not work.
+ *   2. Scraping the public listing page (no key). Kept as a fallback only.
+ * With a key set it tries the API first and falls back to scraping.
  *
- * After that it is fully automatic: every time the page loads it pulls
- * the current schedule and film links. When the team updates the Google
- * Calendar or publishes a new film page, it shows up on the next load
- * (results are cached 10 min to stay fast). To force an instant refresh,
- * open the web app URL with ?nocache=1 once.
+ * GETTING AN API KEY: Ticket Tailor dashboard -> Settings -> API keys ->
+ * create one, paste it into TT_API_KEY. It stays on Google's servers and is
+ * never exposed to the browser.
+ *
+ * DEPLOYING AN UPDATE (URL stays the same):
+ *   Deploy -> Manage deployments -> pencil icon -> Version: New version -> Deploy
+ *   ("New deployment" instead mints a DIFFERENT /exec URL -- don't use it.)
+ * Then check: <exec-url>?nocache=1
  */
 
-var SITE = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila";
-var CAL_ID = "c_297715d58563f4dc6de17c9db206013d959c7d422b00f1a65fd73329bd9579d2@group.calendar.google.com";
-var ICS_URL = "https://calendar.google.com/calendar/ical/"
-  + encodeURIComponent(CAL_ID) + "/public/basic.ics";
+// ---- CONFIG -------------------------------------------------------------
+var TT_API_KEY = "sk_17657_205812_bd170fbdb947919800caabdf7c83e9e7";   // optional; blank = scrape the public listing page
+var TT_BASE  = "https://www.tickettailor.com";
+var TT_LIST  = TT_BASE + "/events/fdcpexhibition";
+var TT_API_HOST = "https://api.tickettailor.com";
+var TT_API_MAX_PAGES = 5;   // 100/page; follows links.next until null
+
+// Published occurrences from the start of today (PH time) onward. Without the
+// start_at filter the API returns the box office's whole history oldest-first
+// (verified: page 1 was July 2025), so current shows might never be reached.
+function apiUrl_() {
+  var nowPH = new Date(Date.now() + 8 * 3600 * 1000);
+  var todayPH = Date.UTC(nowPH.getUTCFullYear(), nowPH.getUTCMonth(), nowPH.getUTCDate()) / 1000 - 8 * 3600;
+  return TT_API_HOST + "/v1/events?limit=100&status=published&start_at.gte=" + todayPH;
+}
+var CACHE_OK_SECS   = 600;    // fresh copy
+var CACHE_LAST_SECS = 21600;  // last-good copy (6h, CacheService max)
+// -------------------------------------------------------------------------
 
 var MONTHS = ["January","February","March","April","May","June",
   "July","August","September","October","November","December"];
 var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-var PAID_PROGRAMS = {
-  "fdcp presents: a curation of world cinema": "Php 150.00",
-  "pelikula ng bayan": "Php 150.00"
-};
-var PROGRAM_BY_FILM = {
-  "the only child in the butchery": "AFAN Boot Camp Film Screenings",
-  "breaking the cycle": "AFAN Boot Camp Film Screenings",
-  "cleaners": "AFAN Boot Camp Film Screenings",
-  "afan shorts": "AFAN Boot Camp Film Screenings",
-  "blooming": "AFAN Boot Camp Film Screenings",
-  "horizon": "AFAN x Mongolian Cinema Days",
-  "public enemy": "AFAN x Mongolian Cinema Days",
-  "disorder": "AFAN x Mongolian Cinema Days",
-  "foggy hilltop": "AFAN x Mongolian Cinema Days"
-};
 
 function doGet(e) {
   var noCache = e && e.parameter && e.parameter.nocache;
   var cache = CacheService.getScriptCache();
-  var json = noCache ? null : cache.get("cineData");
-  if (!json) {
-    var links = buildLinks_();
-    var schedule = buildSchedule_().filter(function (row) {
-      var key = normalize_(row.film);
-      var url = matchLink_(links, key);
-      if (!url) return false;
-      // Alias under the calendar's spelling so the page's link lookup
-      // (which uses the calendar title) also resolves.
-      links[key] = url;
-      return true;
-    });
-    json = JSON.stringify({
-      schedule: schedule,
-      links: links
-    });
-    cache.put("cineData", json, 600); // 10 min
+
+  if (!noCache) {
+    var fresh = cache.get("cineData");
+    if (fresh) return json_(fresh);
   }
-  return ContentService.createTextOutput(json)
+
+  var result = buildSchedule_();
+
+  if (result.schedule.length) {
+    var payload = JSON.stringify({
+      schedule: result.schedule, links: {}, source: result.source
+    });
+    cache.put("cineData", payload, CACHE_OK_SECS);
+    cache.put("cineLast", payload, CACHE_LAST_SECS);
+    return json_(payload);
+  }
+
+  // Live pull failed. Serve the last good copy rather than blanking the page.
+  var last = cache.get("cineLast");
+  if (last) {
+    var revived = JSON.parse(last);
+    revived.source = "cache";
+    revived.debug = result.debug;
+    return json_(JSON.stringify(revived));
+  }
+  return json_(JSON.stringify({ schedule: [], links: {}, debug: result.debug }));
+}
+
+function json_(s) {
+  return ContentService.createTextOutput(s)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/* ---------------- SCHEDULE (Manila, from public ICS) ---------------- */
+/* ---------------------------- SCHEDULE ---------------------------------- */
 
+// Returns { schedule, source, debug }. Never throws.
 function buildSchedule_() {
-  var ics = fetch_(ICS_URL);
-  if (!ics) return [];
-  ics = ics.replace(/\r\n/g, "\n").replace(/\n /g, ""); // unfold long lines
-  var blocks = ics.split("BEGIN:VEVENT").slice(1);
-  var rows = [];
-  blocks.forEach(function (b) {
-    var row = eventToRow_(b);
-    if (row) rows.push(row);
-  });
-  // The ICS feed is not chronological -- sort by date then time.
+  var tried = [];
+
+  if (TT_API_KEY) {
+    var headers = {
+      // Ticket Tailor uses HTTP Basic with the key as the username, blank password.
+      "Authorization": "Basic " + Utilities.base64Encode(TT_API_KEY + ":"),
+      "Accept": "application/json"
+    };
+    var rows = [], next = apiUrl_(), pages = 0, api = null;
+    // Cursor pagination: links.next is relative to /v1 and looks like
+    // "/events/?starting_after=ev_123&..." (verified live), null on the last page.
+    while (next && pages < TT_API_MAX_PAGES) {
+      api = fetchOnce_(next, headers);
+      pages++;
+      tried.push({ how: "api", page: pages, code: api.code, err: api.err });
+      if (api.code !== 200) break;
+      var parsed = parseApi_(api.body);
+      rows = rows.concat(parsed.rows);
+      next = parsed.next ? apiAbs_(parsed.next) : null;
+    }
+    if (rows.length) return { schedule: sort_(rows), source: "api", debug: null };
+  }
+
+  var page = fetchOnce_(TT_LIST, browserHeaders_());
+  tried.push({ how: "scrape", code: page.code, err: page.err });
+  if (page.code === 200 && page.body.indexOf("event__link") !== -1) {
+    var scraped = parseListing_(page.body);
+    if (scraped.length) return { schedule: sort_(scraped), source: "scrape", debug: null };
+    tried[tried.length - 1].note = "page fetched but no rows parsed (markup changed?)";
+  }
+
+  return {
+    schedule: [],
+    source: "none",
+    debug: {
+      tried: tried,
+      apiKeySet: !!TT_API_KEY,
+      snippet: (page.body || "").replace(/\s+/g, " ").slice(0, 300)
+    }
+  };
+}
+
+function sort_(rows) {
   rows.sort(function (a, b) {
     return a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1
       : timeKey_(a.time) - timeKey_(b.time);
   });
   return rows;
 }
+
+// Shared row shape. Titles read "Program: Film"; split on the LAST ": " so
+// "Pelikula: Ginintuang Ikalawa: Insiang" keeps the two-part program name.
+function row_(title, y, mo, d, time, link) {
+  var ci = title.lastIndexOf(": ");
+  return {
+    date: MONTHS[mo] + " " + pad_(d) + ", " + y,
+    dateISO: y + "-" + pad_(mo + 1) + "-" + pad_(d),
+    day: DAYS[new Date(Date.UTC(y, mo, d)).getUTCDay()],
+    location: "Manila",
+    time: time,
+    film: ci > 0 ? title.slice(ci + 2) : title,
+    program: ci > 0 ? title.slice(0, ci) : "",
+    admission: "",   // prices live on the Ticket Tailor page; card omits blank
+    link: link
+  };
+}
+
+/* ------------------------- SOURCE: official API -------------------------- */
+
+// /v1/events returns one object per occurrence (verified against a live
+// FDCP response, 2026-09-03):
+//   { object:"event", id:"ev_6248792", event_series_id:"es_1747724",
+//     name:"Pelikulaya: Flee", status:"published",
+//     url:"https://www.tickettailor.com/events/fdcpexhibition/1747724",
+//     start:{ date:"2025-07-03", time:"13:00", iso:"...+08:00", unix:1751518800 } }
+// Returns { rows, next } where next is links.next (relative path) or null.
+function parseApi_(body) {
+  var json;
+  try { json = JSON.parse(body) || {}; } catch (err) { return { rows: [], next: null }; }
+  var data = json.data || [];
+  var todayUnix = Math.floor(Date.now() / 1000) - 24 * 3600; // keep today's shows
+  var out = [];
+  for (var i = 0; i < data.length; i++) {
+    var ev = data[i] || {};
+    var start = ev.start || {};
+    var iso = String(start.date || "");            // "YYYY-MM-DD"
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || !ev.name) continue;
+    if (start.unix && start.unix < todayUnix) continue;   // past occurrence
+    // The API includes events the public listing deliberately omits
+    // (verified live: a private invite-only screening). Mirror the listing.
+    if (String(ev.private) === "true" || String(ev.hidden) === "true") continue;
+    var series = String(ev.event_series_id || ev.id || "").replace(/^[a-z]+_/, "");
+    // ev.url is the series page without a date (verified live:
+    // ".../events/fdcpexhibition/1747724"). Pin it to this occurrence so a
+    // multi-date series opens on the right day, matching the public listing.
+    var base = ev.url || (TT_LIST + "/" + series);
+    var link = base.indexOf("?") === -1 ? base + "?date=" + iso : base;
+    out.push(row_(
+      String(ev.name).replace(/\s+/g, " ").trim(),
+      +iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10),
+      to12h_(start.time),
+      link
+    ));
+  }
+  return { rows: out, next: (json.links && json.links.next) || null };
+}
+
+// links.next comes back as "/events/?..." (relative to /v1) -- occasionally
+// documented as "/v1/events?...". Accept both, and a full URL.
+function apiAbs_(next) {
+  if (/^https?:\/\//.test(next)) return next;
+  if (next.indexOf("/v1/") === 0) return TT_API_HOST + next;
+  return TT_API_HOST + "/v1" + (next.charAt(0) === "/" ? "" : "/") + next;
+}
+
+// "16:00" -> "4:00 PM"
+function to12h_(hhmm) {
+  var m = /^(\d{1,2}):(\d{2})/.exec(hhmm || "");
+  if (!m) return "";
+  var h = +m[1];
+  return (h % 12 || 12) + ":" + m[2] + " " + (h >= 12 ? "PM" : "AM");
+}
+
+/* ------------------------- SOURCE: listing scrape ------------------------ */
+
+// One <li> per occurrence: the event__link anchor holds the detail URL
+// (?date=YYYY-MM-DD) and the title; the meta chunk before
+// event-meta__location holds the start time.
+function parseListing_(html) {
+  var u = unescapeEntities_(html);
+  var re = /href="(\/events\/[a-z0-9_-]+\/\d+\?date=(\d{4})-(\d{2})-(\d{2}))" class="event__link">([^<]+)<\/a>([\s\S]*?)event-meta__location/g;
+  var out = [], m;
+  while ((m = re.exec(u)) !== null) {
+    var t = /(\d{1,2}:\d{2}\s*[AP]M)/.exec(m[6]);
+    out.push(row_(
+      m[5].replace(/\s+/g, " ").trim(),
+      +m[2], +m[3] - 1, +m[4],
+      t ? t[1].replace(/\s+/, " ") : "",
+      TT_BASE + m[1]
+    ));
+  }
+  return out;
+}
+
+// The listing entity-escapes attribute values (&#x2F; etc.).
+function unescapeEntities_(s) {
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); })
+    .replace(/&#(\d+);/g, function (m, d) { return String.fromCharCode(+d); })
+    .replace(/&quot;/g, '"').replace(/&#039;/g, "'")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+
+/* ------------------------------- shared --------------------------------- */
+
+function pad_(n) { return String(n).length < 2 ? "0" + n : "" + n; }
 
 // "5:00 PM" -> minutes since midnight.
 function timeKey_(t) {
@@ -110,167 +265,31 @@ function timeKey_(t) {
   return h * 60 + (+m[2]);
 }
 
-function eventToRow_(block) {
-  var summary = field_(block, "SUMMARY");
-  var dt = field_(block, "DTSTART");
-  if (!summary || !dt) return null;
-  summary = unescapeIcs_(summary);
-  if (/^cinematheque director series:/i.test(summary)) return null;
-  if (/closed for private|private event/i.test(summary)) return null;
-
-  var y, mo, d, h = 0, mi = 0, timed = false, dow;
-  if (/^\d{8}T/.test(dt)) {
-    y = +dt.slice(0, 4); mo = +dt.slice(4, 6) - 1; d = +dt.slice(6, 8);
-    h = +dt.slice(9, 11); mi = +dt.slice(11, 13);
-    var ms = Date.UTC(y, mo, d, h, mi) + 8 * 3600 * 1000; // UTC -> PH
-    var pd = new Date(ms);
-    y = pd.getUTCFullYear(); mo = pd.getUTCMonth(); d = pd.getUTCDate();
-    h = pd.getUTCHours(); mi = pd.getUTCMinutes(); dow = pd.getUTCDay();
-    timed = true;
-  } else {
-    y = +dt.slice(0, 4); mo = +dt.slice(4, 6) - 1; d = +dt.slice(6, 8);
-    dow = new Date(Date.UTC(y, mo, d)).getUTCDay();
-  }
-
-  var iso = y + "-" + pad_(mo + 1) + "-" + pad_(d);
-  var time = "";
-  if (timed) {
-    var ap = h >= 12 ? "PM" : "AM";
-    time = (h % 12 || 12) + ":" + pad_(mi) + " " + ap;
-  }
-  var program = programFromDesc_(field_(block, "DESCRIPTION"), summary);
-  var admission = PAID_PROGRAMS[program.toLowerCase()] || "Free";
+// Ticket Tailor 403s bare requests (verified: no User-Agent -> 403,
+// browser User-Agent -> 200), so look like a real navigation.
+function browserHeaders_() {
   return {
-    date: MONTHS[mo] + " " + pad_(d) + ", " + y,
-    dateISO: iso, day: DAYS[dow], location: "Manila",
-    time: time, film: summary, program: program, admission: admission
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none"
   };
 }
 
-// DESCRIPTION is "<b>Director</b><br>Program<br><br>Synopsis" -> 2nd line.
-function programFromDesc_(desc, film) {
-  var known = PROGRAM_BY_FILM[normalize_(film)];
-  if (known) return known;
-  if (/^cinematheque director series:/i.test(film || "")) {
-    return "Cinematheque Director Series";
-  }
-  if (!desc) return "";
-  // Split on <br> FIRST so the separators survive, THEN strip tags.
-  var parts = unescapeIcs_(desc)
-    .split(/<br\s*\/?>/i)
-    .map(function (s) { return s.replace(/<[^>]+>/g, "").trim(); })
-    .filter(function (s) { return s; });
-  if (parts.length < 2) return "";
-  // Shorts/special format leads with the film title (no director line) and
-  // the 2nd line is a film list, not a program -> default to Pelikulaya.
-  if (film && parts[0].toLowerCase().indexOf(film.toLowerCase().slice(0, 12)) === 0) return "Pelikulaya";
-  return parts[1];
-}
-
-function field_(block, name) {
-  var m = block.match(new RegExp("\\n" + name + "[^:\\n]*:(.*)"));
-  return m ? m[1] : "";
-}
-
-// ICS escapes: \, \; \n \\
-function unescapeIcs_(s) {
-  return s.replace(/\\n/gi, " ").replace(/\\,/g, ",")
-          .replace(/\\;/g, ";").replace(/\\\\/g, "\\").trim();
-}
-
-/* ---------------- FILM LINKS (scraped from Google Site) -------------- */
-
-function buildLinks_() {
-  var links = {};
-  // The Screenings page is the source of truth for currently published film
-  // cards, including programs that are not yet listed on the Programs index.
-  addPathsToLinks_(links, fetch_(SITE + "/screenings?authuser=0"));
-
-  // Keep crawling program pages as well so older links remain available.
-  var indexHtml = fetch_(SITE + "/programs?authuser=0");
-  extractPaths_(indexHtml, 1).forEach(function (folder) {
-    var progHtml = fetch_(SITE + "/programs/" + folder + "?authuser=0");
-    addPathsToLinks_(links, progHtml);
-  });
-  if (links["afan short film set"]) links["afan shorts"] = links["afan short film set"];
-  return links;
-}
-
-// Calendar event titles and site page slugs drift apart (e.g. the calendar
-// says "Iti Mapupukaw", the site slug is "iti-mapukpukaw"). Exact match
-// first; otherwise pick the closest link key within a small edit distance
-// (scaled to title length so short titles never mis-match).
-function matchLink_(links, key) {
-  if (links[key]) return links[key];
-  var a = key.replace(/[^a-z0-9]/g, "");
-  var maxDist = a.length >= 14 ? 2 : (a.length >= 8 ? 1 : 0);
-  if (!maxDist) return "";
-  var bestUrl = "", bestDist = maxDist + 1;
-  for (var k in links) {
-    var d = editDist_(a, k.replace(/[^a-z0-9]/g, ""), maxDist);
-    if (d < bestDist) { bestDist = d; bestUrl = links[k]; }
-  }
-  return bestUrl;
-}
-
-// Levenshtein distance, capped at max+1 for early exit.
-function editDist_(a, b, max) {
-  if (Math.abs(a.length - b.length) > max) return max + 1;
-  var prev = [], cur = [];
-  for (var j = 0; j <= b.length; j++) prev[j] = j;
-  for (var i = 1; i <= a.length; i++) {
-    cur[0] = i;
-    var rowMin = i;
-    for (var j = 1; j <= b.length; j++) {
-      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
-        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-      if (cur[j] < rowMin) rowMin = cur[j];
-    }
-    if (rowMin > max) return max + 1;
-    prev = cur.slice();
-  }
-  return prev[b.length];
-}
-
-function addPathsToLinks_(links, html) {
-  extractPaths_(html, 2).forEach(function (path) {
-    var slug = path.split("/")[1];
-    var key = slug.replace(/-/g, " ").replace(/\s+/g, " ").trim();
-    links[key] = SITE + "/programs/" + path + "?authuser=0";
-  });
-}
-
-function extractPaths_(html, depth) {
-  var re = /\/fdcp\.gov\.ph\/cinemathequemanila\/programs\/([a-z0-9][a-z0-9-]*(?:\/[a-z0-9][a-z0-9-]*)*)/g;
-  var seen = {}, out = [], m;
-  while ((m = re.exec(html)) !== null) {
-    var p = m[1];
-    if (p.split("/").length === depth && !seen[p]) {
-      seen[p] = true;
-      out.push(p);
-    }
-  }
-  return out;
-}
-
-/* ---------------- shared ---------------- */
-
-function pad_(n) { return String(n).length < 2 ? "0" + n : "" + n; }
-function normalize_(s) {
-  return (s || "").toLowerCase()
-    .replace(/[^a-z0-9'": ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function fetch_(url) {
+// Single attempt. Returns { code, err, body } and never throws, so a failure
+// can be reported instead of vanishing into an empty schedule.
+function fetchOnce_(url, headers) {
   try {
     var res = UrlFetchApp.fetch(url, {
       muteHttpExceptions: true,
-      followRedirects: true
+      followRedirects: true,
+      headers: headers
     });
-    return res.getResponseCode() === 200 ? res.getContentText() : "";
-  } catch (e) {
-    return "";
+    return { code: res.getResponseCode(), err: "", body: res.getContentText() };
+  } catch (err) {
+    return { code: -1, err: String(err), body: "" };
   }
 }

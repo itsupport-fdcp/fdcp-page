@@ -140,6 +140,8 @@
     position: relative;
     box-shadow: 0 2px 6px rgba(26,26,26,0.05);
     transition: transform 0.3s cubic-bezier(.22,.61,.36,1), box-shadow 0.3s, border-color 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .cc-loc-card[data-loc="Negros"], .cc-loc-card[data-loc="Davao"] { --grad: var(--grad-alt); }
   .cc-loc-card:hover {
@@ -536,12 +538,15 @@
 </div>
 
 <script>
-const CC_SCHEDULE = [{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"1:00 PM","film":"Bambanti","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 04, 2026","dateISO":"2026-08-04","day":"Tuesday","location":"Manila","time":"3:45 PM","film":"Paglipay","program":"Cinematheque Director Series","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"2:30 PM","film":"The Only Child in the Butchery","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 10, 2026","dateISO":"2026-08-10","day":"Monday","location":"Manila","time":"4:45 PM","film":"Breaking the Cycle","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"1:30 PM","film":"Cleaners","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"3:30 PM","film":"AFAN Shorts","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 11, 2026","dateISO":"2026-08-11","day":"Tuesday","location":"Manila","time":"5:15 PM","film":"Blooming","program":"AFAN Boot Camp Film Screenings","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Horizon","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 12, 2026","dateISO":"2026-08-12","day":"Wednesday","location":"Manila","time":"4:45 PM","film":"Public Enemy","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"2:30 PM","film":"Disorder","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 13, 2026","dateISO":"2026-08-13","day":"Thursday","location":"Manila","time":"4:45 PM","film":"Foggy Hilltop","program":"AFAN x Mongolian Cinema Days","admission":"Free"},{"date":"August 19, 2026","dateISO":"2026-08-19","day":"Wednesday","location":"Manila","time":"2:30 PM","film":"CREATION Shorts Set A","program":"","admission":"Free"},{"date":"August 19, 2026","dateISO":"2026-08-19","day":"Wednesday","location":"Manila","time":"4:30 PM","film":"Autobiography","program":"","admission":"Free"},{"date":"August 20, 2026","dateISO":"2026-08-20","day":"Thursday","location":"Manila","time":"2:30 PM","film":"The Gospel of the Beast","program":"","admission":"Free"},{"date":"August 20, 2026","dateISO":"2026-08-20","day":"Thursday","location":"Manila","time":"4:45 PM","film":"An Errand","program":"","admission":"Free"},{"date":"August 27, 2026","dateISO":"2026-08-27","day":"Thursday","location":"Manila","time":"2:30 PM","film":"CREATION Shorts Set B","program":"","admission":"Free"},{"date":"August 27, 2026","dateISO":"2026-08-27","day":"Thursday","location":"Manila","time":"4:30 PM","film":"Iti Mapupukaw","program":"","admission":"Free"},{"date":"August 28, 2026","dateISO":"2026-08-28","day":"Friday","location":"Manila","time":"2:30 PM","film":"Elsewhere at Night","program":"","admission":"Free"},{"date":"August 28, 2026","dateISO":"2026-08-28","day":"Friday","location":"Manila","time":"4:30 PM","film":"Huling Palabas","program":"","admission":"Free"}];
+// No baked schedule: every row is fetched live -- Manila from CINE_DATA_PROXY
+// (Ticket Tailor API via the Apps Script proxy), regions from REGIONS_SHEET_URL.
+// Nothing renders until a fetch lands; a failed fetch shows an explicit error.
+const CC_SCHEDULE = [];
 
 // --- DATE WINDOW ---
 // Show all screenings from TODAY onwards -- no upper cutoff.
-// The live Google Calendar (when the API key is set) is the source of truth
-// for what's scheduled; the baked CC_SCHEDULE is the fallback.
+// The live Ticket Tailor listing (via CINE_DATA_PROXY) is the source of truth
+// for Manila; the baked CC_SCHEDULE is the fallback.
 
 function _getPHDate() {
   return new Date(Date.now() + (new Date().getTimezoneOffset() + 480) * 60000);
@@ -649,124 +654,42 @@ function prewarmHeroes() {
 }
 // ---
 
-// --- PER-FILM DETAIL PAGES (Manila) ---
-// Maps normalised film title -> Google Site URL.
-// The static map below is the instant fallback; when FILM_LINKS_PROXY is set,
-// the live map is fetched from a Google Apps Script that scrapes the Google
-// Site server-side (the Site sends no CORS headers, so the browser cannot
-// scrape it directly). See film-links-proxy.gs for the script + setup steps.
-// Once the proxy is deployed, new programs/films published on the Google Site
-// appear here automatically -- no code edits needed.
-const SITES_BASE = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila";
-
-// Paste the Apps Script web app URL here (https://script.google.com/macros/s/.../exec)
-// One proxy returns BOTH the live Manila schedule (from the public Google
-// Calendar .ics feed) AND the film-detail links (scraped from the Google Site).
-// See film-links-proxy.gs for the script + setup. Until it's set, the page
-// uses the baked schedule + static link map below.
+// --- LIVE MANILA SCHEDULE (Ticket Tailor, via the Apps Script proxy) ---
+// Ticket Tailor sends no CORS headers, so the browser cannot scrape it
+// directly; CINE_DATA_PROXY is an Apps Script web app that does it
+// server-side. Each row it returns carries its own `link` to that event's
+// Ticket Tailor page -- that is the "View Details" target. There is no
+// static link map and no baked schedule: if the proxy fails, Manila shows
+// an explicit error rather than stale films.
+// See film-links-proxy.gs for the script + redeploy steps.
 const CINE_DATA_PROXY = "https://script.google.com/macros/s/AKfycbyZWifVzuokGZAi7BGwLl5_6cQ0N3hszmKCElaUXhzXsqkK0yMS-grfKplOc9v0gzgu/exec";
 
-// Fetches { schedule, links } from the proxy. Updates _siteFilmLinks in place
-// and returns the live Manila schedule rows (or null on any failure).
+// Resolves to the live Manila rows, or null on any failure (network error,
+// bad JSON, or a response with no usable rows).
+// A blocked or cold Apps Script run can hang for 30-40s. Nobody waits that
+// long staring at "Loading screenings...", so give up early and show the
+// error + Ticket Tailor link instead. A warm proxy answers in about 1s.
+var PROXY_TIMEOUT_MS = 8000;
+
 function loadLiveData() {
   if (!CINE_DATA_PROXY) return Promise.resolve(null);
-  return fetch(CINE_DATA_PROXY)
+  var ctl = typeof AbortController === "function" ? new AbortController() : null;
+  var timer = setTimeout(function () { if (ctl) ctl.abort(); }, PROXY_TIMEOUT_MS);
+  return fetch(CINE_DATA_PROXY, ctl ? { signal: ctl.signal } : undefined)
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (data) {
-      data = data || {};
-      var links = data.links || {};
-      for (var k in links) {
-        if (typeof links[k] === "string" && links[k].indexOf(SITES_BASE) === 0) {
-          _siteFilmLinks[k] = links[k];
-        }
-      }
-      var sched = data.schedule;
-      return (sched && sched.length) ? sched : null;
+      // A row without a `link` cannot render a working "View Details" CTA,
+      // and signals an out-of-date proxy deployment -- drop it.
+      var sched = ((data && data.schedule) || []).filter(function (r) { return r && r.link; });
+      return sched.length ? sched : null;
     })
-    .catch(function () { return null; }); // any failure -> keep baked data
+    .catch(function () { return null; })
+    .then(function (rows) { clearTimeout(timer); return rows; });
 }
-
-var _siteFilmLinks = {
-  // Pelikulaya
-  "amoeba":                           SITES_BASE + "/programs/pelikulaya/amoeba?authuser=0",
-  "a useful ghost":                   SITES_BASE + "/programs/pelikulaya/a-useful-ghost?authuser=0",
-  "blue film":                        SITES_BASE + "/programs/pelikulaya/blue-film?authuser=0",
-  "the chronology of water":          SITES_BASE + "/programs/pelikulaya/the-chronology-of-water?authuser=0",
-  "dreamboi":                         SITES_BASE + "/programs/pelikulaya/dreamboi?authuser=0",
-  "girl boy bakla tomboy":            SITES_BASE + "/programs/pelikulaya/girl-boy-bakla-tomboy?authuser=0",
-  "muy lejos":                        SITES_BASE + "/programs/pelikulaya/muy-lejos?authuser=0",
-  "the mysterious gaze of the flamingo": SITES_BASE + "/programs/pelikulaya/the-mysterious-gaze-of-the-flamingo?authuser=0",
-  "petrang kabayo":                   SITES_BASE + "/programs/pelikulaya/petrang-kabayo?authuser=0",
-  "some nights i feel like walking":  SITES_BASE + "/programs/pelikulaya/some-nights-i-feel-like-walking?authuser=0",
-  "tomboy":                           SITES_BASE + "/programs/pelikulaya/tomboy?authuser=0",
-  "macho dancer":                     SITES_BASE + "/programs/pelikulaya/macho-dancer?authuser=0",
-  "mysterious skin":                  SITES_BASE + "/programs/pelikulaya/mysterious-skin?authuser=0",
-  "pelikulaya shorts set a":          SITES_BASE + "/programs/pelikulaya/pelikulaya-shorts-set-a?authuser=0",
-  "pelikulaya shorts set b":          SITES_BASE + "/programs/pelikulaya/pelikulaya-shorts-set-b?authuser=0",
-  // Cinematheque Director Series: Lawrence Fajardo
-  "amok":                             SITES_BASE + "/programs/cds-lawrence-fajardo/amok?authuser=0",
-  "imbisibol":                        SITES_BASE + "/programs/cds-lawrence-fajardo/imbisibol?authuser=0",
-  // Cinematheque Director Series: Sigrid Bernardo
-  "ang huling cha cha ni anita":       SITES_BASE + "/programs/cds-sigrid-bernardo/ang-huling-cha-cha-ni-anita?authuser=0",
-  "kita kita":                        SITES_BASE + "/programs/cds-sigrid-bernardo/kita-kita?authuser=0",
-  // Cinematheque Director Series: Zig Dulay
-  "bambanti":                         SITES_BASE + "/programs/cds-zig-dulay/bambanti?authuser=0",
-  "paglipay":                         SITES_BASE + "/programs/cds-zig-dulay/paglipay?authuser=0",
-  // Reel to Real: Pelikula at Panayam
-  "ginauhaw ako ginagutom ako":       SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/ginauhaw-ako-ginagutom-ako?authuser=0",
-  "pagdating sa dulo":                SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/pagdating-sa-dulo?authuser=0",
-  // BEGIN AUTO-REFETCHED FILM LINKS
-  "afan short film set": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
-  "afan shorts": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/afan-short-film-set?authuser=0",
-  "an errand": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/an-errand?authuser=0",
-  "autobiography": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/autobiography?authuser=0",
-  "bambanti": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/bambanti?authuser=0",
-  "blooming": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/blooming?authuser=0",
-  "breaking the cycle": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/breaking-the-cycle?authuser=0",
-  "cleaners": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/cleaners?authuser=0",
-  "creation shorts set a": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/creation-shorts-set-a?authuser=0",
-  "creation shorts set b": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/creation-shorts-set-b?authuser=0",
-  "disorder": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/disorder?authuser=0",
-  "elsewhere at night": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/elsewhere-at-night?authuser=0",
-  "foggy hilltop": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/foggy-hilltop?authuser=0",
-  "horizon": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/horizon?authuser=0",
-  "huling palabas": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/huling-palabas?authuser=0",
-  "iti mapukpukaw": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/iti-mapukpukaw?authuser=0",
-  "iti mapupukaw": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/iti-mapukpukaw?authuser=0",
-  "paglipay": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-zig-dulay/paglipay?authuser=0",
-  "public enemy": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-x-mongolian-cinema-days/public-enemy?authuser=0",
-  "the gospel of the beast": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/the-gospel-of-the-beast?authuser=0",
-  "the only child in the butchery": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/afan-film-screening/the-only-child-in-the-butchery?authuser=0"
-  // END AUTO-REFETCHED FILM LINKS
-};
-
-function normalizeFilmTitle(s) {
-  return (s || "")
-    .toLowerCase()
-    .replace(/\s*\+\s*(talkback session|film talk).*$/i, "")
-    .replace(/['']/g, "'")
-    .replace(/[""]/g, '"')
-    .replace(/[^a-z0-9'": ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/[.:]+$/, "");
-}
-
-function getFilmDetailUrl(filmTitle) {
-  var key = normalizeFilmTitle(filmTitle);
-  if (_siteFilmLinks[key]) return _siteFilmLinks[key];
-  // Fuzzy: strip subtitle after colon
-  var keyShort = key.split(":")[0].trim();
-  for (var k in _siteFilmLinks) {
-    if (k.split(":")[0].trim() === keyShort) return _siteFilmLinks[k];
-  }
-  return "";
-}
-
 
 //"SEE FULL CALENDAR" LINKS (per location)
 const CALENDAR_URLS = {
-  "Manila": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/more/calendar?authuser=0",
+  "Manila": "https://www.tickettailor.com/events/fdcpexhibition",
   "Negros": "",
   "Iloilo": "",
   "Davao":  ""
@@ -836,14 +759,18 @@ function loadSheetRegions() {
 
 
 // --- LIVE MANILA SCHEDULE ---
-// Manila screenings come LIVE from the SAME public Google Calendar that powers
-// the Cinematheque Manila Google Site, fetched through CINE_DATA_PROXY (the
-// Apps Script above). The baked CC_SCHEDULE is used only until the proxy
-// responds, or if it can't be reached. See loadLiveData().
+// Manila screenings come LIVE from the public Ticket Tailor listing page,
+// fetched through CINE_DATA_PROXY (the Apps Script above -- Ticket Tailor
+// sends no CORS headers, so the browser can't fetch it directly). The baked
+// CC_SCHEDULE is used only until the proxy responds, or if it can't be
+// reached. See loadLiveData().
 
 // Working schedule the renderer reads. Starts as the baked sheet; Manila is
 // swapped for live rows once the proxy responds.
 var CC_MERGED = CC_SCHEDULE.slice();
+// "loading" until the relevant fetch settles, then "ok" or "failed". With no
+// baked rows an empty list is ambiguous, so the empty state reads this.
+var CC_FEED = { Manila: "loading", regions: "loading" };
 
 const ALT_PROGRAMS = new Set(["Negros", "Davao"]);
 const PAGE_SIZE = 10;
@@ -892,7 +819,7 @@ function buildCard(r, altLoc, idx) {
 
   var ctaZone = makeEl("div", "cc-tk-cta");
   if (r.location === "Manila") {
-    var detailUrl = getFilmDetailUrl(r.film);
+    var detailUrl = r.link;
     if (detailUrl) {
       var link = makeEl("a", "cc-cta", "View Details");
       link.href = detailUrl;
@@ -949,7 +876,7 @@ function renderFilms(location) {
   var list = CC_MERGED.filter(function (r) {
     return r.location === location &&
       r.dateISO >= todayPH &&
-      (r.location !== "Manila" || !!getFilmDetailUrl(r.film));
+      (r.location !== "Manila" || !!r.link);
   });
   // Sort here (not per-source): the proxy returns Manila rows in raw
   // calendar order, so the merged list must be ordered at render time.
@@ -984,8 +911,22 @@ function renderFilms(location) {
   while (container.firstChild) container.removeChild(container.firstChild);
 
   if (!list.length) {
-    container.appendChild(makeEl("div", "cc-empty",
-      "No upcoming screenings for this Cinematheque yet. Check back soon."));
+    var state = location === "Manila" ? CC_FEED.Manila : CC_FEED.regions;
+    var msg = state === "loading"
+      ? "Loading screenings..."
+      : state === "failed"
+        ? "We can't load the schedule right now. Please try again shortly."
+        : "No upcoming screenings for this Cinematheque yet. Check back soon.";
+    var empty = makeEl("div", "cc-empty", msg);
+    if (state === "failed" && location === "Manila" && CALENDAR_URLS.Manila) {
+      empty.appendChild(document.createElement("br"));
+      var ttLink = makeEl("a", "cc-calendar-link", "See full calendar");
+      ttLink.href = CALENDAR_URLS.Manila;
+      ttLink.target = "_blank";
+      ttLink.rel = "noopener";
+      empty.appendChild(ttLink);
+    }
+    container.appendChild(empty);
     renderPagination(0, location);
     return;
   }
@@ -1037,6 +978,7 @@ function ccInit() {
   // compose in either resolution order: one swaps only Manila rows, the
   // other swaps only non-Manila rows.
   loadLiveData().then(function (rows) {
+    CC_FEED.Manila = rows ? "ok" : "failed";
     if (rows) {
       CC_MERGED = CC_MERGED.filter(function (r) { return r.location !== "Manila"; }).concat(rows);
     }
@@ -1045,10 +987,11 @@ function ccInit() {
 
   // Pull the regional (non-Manila) schedule live from the Google Sheet.
   loadSheetRegions().then(function (rows) {
+    CC_FEED.regions = rows ? "ok" : "failed";
     if (rows && rows.length) {
       CC_MERGED = CC_MERGED.filter(function (r) { return r.location === "Manila"; }).concat(rows);
-      rerender();
     }
+    rerender();
   });
 }
 
