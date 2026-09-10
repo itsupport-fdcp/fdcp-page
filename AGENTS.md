@@ -283,9 +283,9 @@ block at the top of each page's `<script>`:
     Also controls the hero-image folder: `/sites/default/files/<MONTH_FILTER>/`.
   - `LOC_IMAGES` — maps each location to a `.webp` filename (without
     extension) inside the month folder.
-  - Card CTA precedence: the sheet's REGISTER LINK column (any location) →
-    the Manila `_siteFilmLinks` Google Site page → "Walk-in Only". Both link
-    cases render a **Register** button; `ccSafeUrl()` allows `http(s)` only.
+  - Card CTA: the sheet's REGISTER LINK column (I) is the only source, for
+    every location — a row with one renders a **Register** button, a row
+    without one renders "Walk-in Only". `ccSafeUrl()` allows `http(s)` only.
   - `CALENDAR_URLS` — per-location full-calendar link (set `""` to hide).
   - `ALT_PROGRAMS` — locations rendered with the amber/gold gradient
     instead of purple/magenta.

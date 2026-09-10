@@ -654,76 +654,6 @@ function prewarmHeroes() {
 }
 // ---
 
-// --- PER-FILM DETAIL PAGES (Manila) ---
-// Maps normalised film title -> Google Site URL. Refreshed by
-// `node scripts/refetch-manila.js`, which scrapes the Google Sites Screenings
-// page (the Site sends no CORS headers, so the browser cannot scrape it).
-// Only some Manila films have a Site page; the rest render "Walk-in Only".
-const SITES_BASE = "https://sites.google.com/fdcp.gov.ph/cinemathequemanila";
-
-var _siteFilmLinks = {
-  // Pelikulaya
-  "amoeba":                           SITES_BASE + "/programs/pelikulaya/amoeba?authuser=0",
-  "a useful ghost":                   SITES_BASE + "/programs/pelikulaya/a-useful-ghost?authuser=0",
-  "blue film":                        SITES_BASE + "/programs/pelikulaya/blue-film?authuser=0",
-  "the chronology of water":          SITES_BASE + "/programs/pelikulaya/the-chronology-of-water?authuser=0",
-  "dreamboi":                         SITES_BASE + "/programs/pelikulaya/dreamboi?authuser=0",
-  "girl boy bakla tomboy":            SITES_BASE + "/programs/pelikulaya/girl-boy-bakla-tomboy?authuser=0",
-  "muy lejos":                        SITES_BASE + "/programs/pelikulaya/muy-lejos?authuser=0",
-  "the mysterious gaze of the flamingo": SITES_BASE + "/programs/pelikulaya/the-mysterious-gaze-of-the-flamingo?authuser=0",
-  "petrang kabayo":                   SITES_BASE + "/programs/pelikulaya/petrang-kabayo?authuser=0",
-  "some nights i feel like walking":  SITES_BASE + "/programs/pelikulaya/some-nights-i-feel-like-walking?authuser=0",
-  "tomboy":                           SITES_BASE + "/programs/pelikulaya/tomboy?authuser=0",
-  "macho dancer":                     SITES_BASE + "/programs/pelikulaya/macho-dancer?authuser=0",
-  "mysterious skin":                  SITES_BASE + "/programs/pelikulaya/mysterious-skin?authuser=0",
-  "pelikulaya shorts set a":          SITES_BASE + "/programs/pelikulaya/pelikulaya-shorts-set-a?authuser=0",
-  "pelikulaya shorts set b":          SITES_BASE + "/programs/pelikulaya/pelikulaya-shorts-set-b?authuser=0",
-  // Cinematheque Director Series: Lawrence Fajardo
-  "amok":                             SITES_BASE + "/programs/cds-lawrence-fajardo/amok?authuser=0",
-  "imbisibol":                        SITES_BASE + "/programs/cds-lawrence-fajardo/imbisibol?authuser=0",
-  // Cinematheque Director Series: Sigrid Bernardo
-  "ang huling cha cha ni anita":       SITES_BASE + "/programs/cds-sigrid-bernardo/ang-huling-cha-cha-ni-anita?authuser=0",
-  "kita kita":                        SITES_BASE + "/programs/cds-sigrid-bernardo/kita-kita?authuser=0",
-  // Cinematheque Director Series: Zig Dulay
-  "bambanti":                         SITES_BASE + "/programs/cds-zig-dulay/bambanti?authuser=0",
-  "paglipay":                         SITES_BASE + "/programs/cds-zig-dulay/paglipay?authuser=0",
-  // Reel to Real: Pelikula at Panayam
-  "ginauhaw ako ginagutom ako":       SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/ginauhaw-ako-ginagutom-ako?authuser=0",
-  "pagdating sa dulo":                SITES_BASE + "/programs/reel-to-real-pelikula-at-panayam/pagdating-sa-dulo?authuser=0",
-  // BEGIN AUTO-REFETCHED FILM LINKS
-  "creation shorts set b": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/creation-shorts-set-b?authuser=0",
-  "elsewhere at night": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/elsewhere-at-night?authuser=0",
-  "huling palabas": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/huling-palabas?authuser=0",
-  "iti mapukpukaw": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/creation/iti-mapukpukaw?authuser=0",
-  "kubrador": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-jeffrey-jeturian/kubrador?authuser=0",
-  "tuhog": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/programs/cds-jeffrey-jeturian/tuhog?authuser=0"
-  // END AUTO-REFETCHED FILM LINKS
-};
-
-function normalizeFilmTitle(s) {
-  return (s || "")
-    .toLowerCase()
-    .replace(/\s*\+\s*(talkback session|film talk).*$/i, "")
-    .replace(/['']/g, "'")
-    .replace(/[""]/g, '"')
-    .replace(/[^a-z0-9'": ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/[.:]+$/, "");
-}
-
-function getFilmDetailUrl(filmTitle) {
-  var key = normalizeFilmTitle(filmTitle);
-  if (_siteFilmLinks[key]) return _siteFilmLinks[key];
-  // Fuzzy: strip subtitle after colon
-  var keyShort = key.split(":")[0].trim();
-  for (var k in _siteFilmLinks) {
-    if (k.split(":")[0].trim() === keyShort) return _siteFilmLinks[k];
-  }
-  return "";
-}
-
-
 //"SEE FULL CALENDAR" LINKS (per location)
 const CALENDAR_URLS = {
   "Manila": "https://sites.google.com/fdcp.gov.ph/cinemathequemanila/more/calendar?authuser=0",
@@ -863,11 +793,11 @@ function buildCard(r, altLoc, idx) {
   info.appendChild(meta);
   card.appendChild(info);
 
-  // CTA precedence: the sheet's REGISTER LINK (any location) beats the Manila
-  // Google Site page; a row with neither is walk-in. Re-validated here because
-  // baked rows reach this the same way live ones do.
+  // The sheet's REGISTER LINK is the only CTA source, for every location --
+  // a row without one is walk-in. Validated here rather than only at parse
+  // time, so baked rows go through the same check as live ones.
   var ctaZone = makeEl("div", "cc-tk-cta");
-  var ctaUrl = ccSafeUrl(r.link) || (r.location === "Manila" ? getFilmDetailUrl(r.film) : "");
+  var ctaUrl = ccSafeUrl(r.link);
   if (ctaUrl) {
     var link = makeEl("a", "cc-cta", "Register");
     link.href = ctaUrl;
