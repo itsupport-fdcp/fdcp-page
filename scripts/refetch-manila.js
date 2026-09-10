@@ -59,9 +59,14 @@ function sheetRow(c, today) {
   if (isNaN(d)) return null; // header row / blank date
   const iso = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   if (iso < today) return null;
-  return { date: MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear(), dateISO: iso,
+  const row = { date: MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear(), dateISO: iso,
     day: DAYS[d.getDay()], location: loc[0].toUpperCase() + loc.slice(1).toLowerCase(),
     time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) }; // blank stays blank -- the card omits it
+  // REGISTER LINK (column I). Only http(s) is baked in -- the page validates
+  // again before it becomes an href, but no reason to carry junk this far.
+  const link = clean(c[8]);
+  if (/^https?:\/\//i.test(link)) row.link = link;
+  return row;
 }
 
 // Levenshtein distance, capped: bails early when lengths differ by > 2.
@@ -138,6 +143,8 @@ function renderFilmLinks(links) {
 
   console.log("Refetched " + rows.length + " schedule rows (sheet) + " + Object.keys(links).length + " Manila film links (Google Site), from " + today + ":");
   rows.forEach(r => console.log("  " + r.location.padEnd(6) + " | " + r.dateISO + " " + r.time.padStart(8) + " | " + r.film +
-    (r.location === "Manila" && !links[normalize(r.film)] ? "  (no detail page -> Walk-in Only)" : "")));
+    (r.link ? "  (Register -> sheet link)"
+      : r.location === "Manila" && links[normalize(r.film)] ? "  (Register -> Google Site page)"
+      : "  (Walk-in Only)")));
   Object.keys(links).sort().forEach(key => console.log("  Link   | " + key + " -> " + links[key]));
 })();
