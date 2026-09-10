@@ -28,7 +28,7 @@
  * After that it is fully automatic: every time the page loads it pulls
  * the current schedule and film links. When the team updates the Google
  * Calendar or publishes a new film page, it shows up on the next load
- * (results are cached 10 min to stay fast). To force an instant refresh,
+ * (results are cached 10 seconds). To force an instant refresh,
  * open the web app URL with ?nocache=1 once.
  */
 
@@ -44,24 +44,13 @@ var PAID_PROGRAMS = {
   "fdcp presents: a curation of world cinema": "Php 150.00",
   "pelikula ng bayan": "Php 150.00"
 };
-var PROGRAM_BY_FILM = {
-  "the only child in the butchery": "AFAN Boot Camp Film Screenings",
-  "breaking the cycle": "AFAN Boot Camp Film Screenings",
-  "cleaners": "AFAN Boot Camp Film Screenings",
-  "afan shorts": "AFAN Boot Camp Film Screenings",
-  "blooming": "AFAN Boot Camp Film Screenings",
-  "horizon": "AFAN x Mongolian Cinema Days",
-  "public enemy": "AFAN x Mongolian Cinema Days",
-  "disorder": "AFAN x Mongolian Cinema Days",
-  "foggy hilltop": "AFAN x Mongolian Cinema Days"
-};
-
 function doGet(e) {
   var noCache = e && e.parameter && e.parameter.nocache;
   var cache = CacheService.getScriptCache();
   var json = noCache ? null : cache.get("cineData");
   if (!json) {
     var links = buildLinks_();
+    var folderTitles = {}; // program-folder slug -> site page title, fetched once each
     var schedule = buildSchedule_().filter(function (row) {
       var key = normalize_(row.film);
       var url = matchLink_(links, key);
@@ -69,13 +58,26 @@ function doGet(e) {
       // Alias under the calendar's spelling so the page's link lookup
       // (which uses the calendar title) also resolves.
       links[key] = url;
+      // No program line in the calendar description -> derive it from the
+      // Site's own structure: the film page lives under its program page
+      // (e.g. /programs/creation/an-errand), whose title is the program name.
+      if (!row.program) {
+        var folder = (url.split("/programs/")[1] || "").split("/")[0];
+        if (folder) {
+          if (!(folder in folderTitles)) {
+            folderTitles[folder] = pageTitle_(SITE + "/programs/" + folder + "?authuser=0");
+          }
+          row.program = folderTitles[folder] || "";
+          row.admission = PAID_PROGRAMS[row.program.toLowerCase()] || row.admission;
+        }
+      }
       return true;
     });
     json = JSON.stringify({
       schedule: schedule,
       links: links
     });
-    cache.put("cineData", json, 600); // 10 min
+    cache.put("cineData", json, 10); // seconds
   }
   return ContentService.createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
@@ -148,12 +150,9 @@ function eventToRow_(block) {
 }
 
 // DESCRIPTION is "<b>Director</b><br>Program<br><br>Synopsis" -> 2nd line.
+// Returns "" when the description has no usable program line; doGet then
+// derives the program from the film's page location on the Google Site.
 function programFromDesc_(desc, film) {
-  var known = PROGRAM_BY_FILM[normalize_(film)];
-  if (known) return known;
-  if (/^cinematheque director series:/i.test(film || "")) {
-    return "Cinematheque Director Series";
-  }
   if (!desc) return "";
   // Split on <br> FIRST so the separators survive, THEN strip tags.
   var parts = unescapeIcs_(desc)
@@ -162,8 +161,8 @@ function programFromDesc_(desc, film) {
     .filter(function (s) { return s; });
   if (parts.length < 2) return "";
   // Shorts/special format leads with the film title (no director line) and
-  // the 2nd line is a film list, not a program -> default to Pelikulaya.
-  if (film && parts[0].toLowerCase().indexOf(film.toLowerCase().slice(0, 12)) === 0) return "Pelikulaya";
+  // the 2nd line is a film list, not a program -> let the Site decide.
+  if (film && parts[0].toLowerCase().indexOf(film.toLowerCase().slice(0, 12)) === 0) return "";
   return parts[1];
 }
 
@@ -254,6 +253,12 @@ function extractPaths_(html, depth) {
 }
 
 /* ---------------- shared ---------------- */
+
+// <title> of a Site page, e.g. the program name on a program folder page.
+function pageTitle_(url) {
+  var m = fetch_(url).match(/<title>([^<]*)<\/title>/i);
+  return m ? m[1].trim() : "";
+}
 
 function pad_(n) { return String(n).length < 2 ? "0" + n : "" + n; }
 function normalize_(s) {

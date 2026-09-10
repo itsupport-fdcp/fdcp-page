@@ -283,8 +283,9 @@ block at the top of each page's `<script>`:
     Also controls the hero-image folder: `/sites/default/files/<MONTH_FILTER>/`.
   - `LOC_IMAGES` — maps each location to a `.webp` filename (without
     extension) inside the month folder.
-  - `MANILA_DETAILS_URL` — link target for Manila "View Details" CTA. Other
-    locations render a "Walk-in Only" badge instead.
+  - `_siteFilmLinks` — normalised film title → Google Site page. A Manila row
+    whose film is in the map gets a "View Details" CTA; every other row
+    (all regions, and Manila films with no Site page) shows "Walk-in Only".
   - `CALENDAR_URLS` — per-location full-calendar link (set `""` to hide).
   - `ALT_PROGRAMS` — locations rendered with the amber/gold gradient
     instead of purple/magenta.
