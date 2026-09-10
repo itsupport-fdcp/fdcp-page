@@ -140,6 +140,8 @@
     position: relative;
     box-shadow: 0 2px 6px rgba(26,26,26,0.05);
     transition: transform 0.3s cubic-bezier(.22,.61,.36,1), box-shadow 0.3s, border-color 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .cc-loc-card[data-loc="Negros"], .cc-loc-card[data-loc="Davao"] { --grad: var(--grad-alt); }
   .cc-loc-card:hover {
@@ -536,12 +538,15 @@
 </div>
 
 <script>
+// Baked snapshot of the schedule Google Sheet -- the instant paint, replaced
+// as soon as the live sheet fetch lands (see loadSheetSchedule). Refreshed by
+// `node scripts/refetch-manila.js`. A failed fetch shows an explicit error.
 const CC_SCHEDULE = [{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Davao","time":"1:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Iloilo","time":"1:00 PM","film":"Bantayan Film Festival 2016-2017","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Manila","time":"1:30 PM","film":"Kubrador","program":"Cinematheque Director Series","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Davao","time":"3:30 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Iloilo","time":"3:30 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Manila","time":"4:00 PM","film":"Tuhog","program":"Cinematheque Director Series","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Iloilo","time":"6:00 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 10, 2026","dateISO":"2026-09-10","day":"Thursday","location":"Negros","time":"6:00 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Iloilo","time":"1:00 PM","film":"Bantayan Film Festival 2018-2019","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Davao","time":"2:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Manila","time":"3:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Negros","time":"3:00 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Iloilo","time":"3:30 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Manila","time":"6:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 11, 2026","dateISO":"2026-09-11","day":"Friday","location":"Negros","time":"6:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Davao","time":"1:00 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Iloilo","time":"1:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Manila","time":"2:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Negros","time":"3:00 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Davao","time":"3:30 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Iloilo","time":"3:30 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Manila","time":"5:15 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 12, 2026","dateISO":"2026-09-12","day":"Saturday","location":"Negros","time":"6:00 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 14, 2026","dateISO":"2026-09-14","day":"Monday","location":"Davao","time":"1:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 14, 2026","dateISO":"2026-09-14","day":"Monday","location":"Davao","time":"3:30 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 15, 2026","dateISO":"2026-09-15","day":"Tuesday","location":"Davao","time":"1:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 15, 2026","dateISO":"2026-09-15","day":"Tuesday","location":"Manila","time":"2:00 PM","film":"Tinimbang Ka Ngunit Kulang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 15, 2026","dateISO":"2026-09-15","day":"Tuesday","location":"Manila","time":"5:00 PM","film":"Tinimbang Ka Ngunit Kulang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 16, 2026","dateISO":"2026-09-16","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 16, 2026","dateISO":"2026-09-16","day":"Wednesday","location":"Iloilo","time":"3:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 16, 2026","dateISO":"2026-09-16","day":"Wednesday","location":"Manila","time":"4:45 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 16, 2026","dateISO":"2026-09-16","day":"Wednesday","location":"Iloilo","time":"5:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 17, 2026","dateISO":"2026-09-17","day":"Thursday","location":"Iloilo","time":"1:00 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 17, 2026","dateISO":"2026-09-17","day":"Thursday","location":"Iloilo","time":"3:00 PM","film":"Bantayan Film Festival 2020-2021","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 17, 2026","dateISO":"2026-09-17","day":"Thursday","location":"Manila","time":"5:00 PM","film":"Kodomo-tachi: Children of the War","program":"Philippine Premiere","admission":"Free"},{"date":"September 17, 2026","dateISO":"2026-09-17","day":"Thursday","location":"Iloilo","time":"5:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 17, 2026","dateISO":"2026-09-17","day":"Thursday","location":"Negros","time":"6:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Davao","time":"1:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Iloilo","time":"1:00 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Manila","time":"2:00 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Davao","time":"3:00 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Iloilo","time":"3:00 PM","film":"Bantayan Film Festival 2022-2023","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Negros","time":"3:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Manila","time":"4:45 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Davao","time":"5:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Iloilo","time":"5:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 18, 2026","dateISO":"2026-09-18","day":"Friday","location":"Negros","time":"6:00 PM","film":"Minsa'y Isang Gamu-gamo","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 19, 2026","dateISO":"2026-09-19","day":"Saturday","location":"Iloilo","time":"1:00 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 19, 2026","dateISO":"2026-09-19","day":"Saturday","location":"Iloilo","time":"3:00 PM","film":"Bantayan Film Festival 2024-2025","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 19, 2026","dateISO":"2026-09-19","day":"Saturday","location":"Negros","time":"3:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 19, 2026","dateISO":"2026-09-19","day":"Saturday","location":"Negros","time":"6:00 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 21, 2026","dateISO":"2026-09-21","day":"Monday","location":"Davao","time":"1:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 21, 2026","dateISO":"2026-09-21","day":"Monday","location":"Davao","time":"3:00 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 21, 2026","dateISO":"2026-09-21","day":"Monday","location":"Davao","time":"5:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 22, 2026","dateISO":"2026-09-22","day":"Tuesday","location":"Davao","time":"1:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 22, 2026","dateISO":"2026-09-22","day":"Tuesday","location":"Manila","time":"2:00 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 22, 2026","dateISO":"2026-09-22","day":"Tuesday","location":"Davao","time":"3:00 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 22, 2026","dateISO":"2026-09-22","day":"Tuesday","location":"Manila","time":"4:30 PM","film":"Nunal sa Tubig","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 22, 2026","dateISO":"2026-09-22","day":"Tuesday","location":"Davao","time":"5:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Manila","time":"2:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Davao","time":"3:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Negros","time":"3:00 PM","film":"PFIM Shorts Set B","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Manila","time":"4:30 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Iloilo","time":"5:00 PM","film":"Bantayan Film Festival 2026","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 23, 2026","dateISO":"2026-09-23","day":"Wednesday","location":"Negros","time":"6:00 PM","film":"PFIM Shorts Set A","program":"PFIM Short Film Competition Screenings","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Iloilo","time":"1:00 PM","film":"Tatlong Taong Walang Diyos","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Manila","time":"2:00 PM","film":"Ibong Adarna","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Iloilo","time":"3:30 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Manila","time":"5:00 PM","film":"Zamboanga","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Iloilo","time":"5:30 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 24, 2026","dateISO":"2026-09-24","day":"Thursday","location":"Negros","time":"6:00 PM","film":"Cinematheque Spotlight Iloilo","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Iloilo","time":"1:00 PM","film":"Ganito Kami Noon... Paano Kayo Ngayon?","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Manila","time":"1:30 PM","film":"Tunay na Ina","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Iloilo","time":"3:30 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Manila","time":"3:45 PM","film":"Giliw Ko","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Iloilo","time":"5:30 PM","film":"Pakiusap","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Manila","time":"6:00 PM","film":"Pakiusap","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 25, 2026","dateISO":"2026-09-25","day":"Friday","location":"Negros","time":"6:00 PM","film":"Cinematheque Spotlight Iloilo","program":"Pelikula ng Bayan: Cinematheque Spotlight","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Iloilo","time":"1:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Manila","time":"1:30 PM","film":"Insiang","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Iloilo","time":"3:00 PM","film":"Tunay na Ina","program":"SineUna: Cinematic Action Before the War","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Negros","time":"3:00 PM","film":"Sine Kabataan Shorts Set A","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Manila","time":"4:00 PM","film":"Itim","program":"Pelikula: Ginintuang Ikalawa","admission":"Free"},{"date":"September 26, 2026","dateISO":"2026-09-26","day":"Saturday","location":"Negros","time":"6:00 PM","film":"Sine Kabataan Shorts Set B","program":"Sine Kabataan Screenings","admission":"Free"},{"date":"September 28, 2026","dateISO":"2026-09-28","day":"Monday","location":"Davao","time":"1:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 28, 2026","dateISO":"2026-09-28","day":"Monday","location":"Manila","time":"1:30 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 28, 2026","dateISO":"2026-09-28","day":"Monday","location":"Manila","time":"3:45 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 28, 2026","dateISO":"2026-09-28","day":"Monday","location":"Davao","time":"5:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 29, 2026","dateISO":"2026-09-29","day":"Tuesday","location":"Negros","time":"6:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 30, 2026","dateISO":"2026-09-30","day":"Wednesday","location":"Iloilo","time":"3:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 30, 2026","dateISO":"2026-09-30","day":"Wednesday","location":"Iloilo","time":"5:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"},{"date":"September 30, 2026","dateISO":"2026-09-30","day":"Wednesday","location":"Negros","time":"6:00 PM","film":"Films for Peace Shorts","program":"Films for Peace Short FIlm Competition Screenings","admission":"Free"}];
 
 // --- DATE WINDOW ---
 // Show all screenings from TODAY onwards -- no upper cutoff.
-// The live Google Calendar (when the API key is set) is the source of truth
-// for what's scheduled; the baked CC_SCHEDULE is the fallback.
+// The schedule Google Sheet is the source of truth for all four locations;
+// the baked CC_SCHEDULE is the fallback.
 
 function _getPHDate() {
   return new Date(Date.now() + (new Date().getTimezoneOffset() + 480) * 60000);
@@ -593,24 +598,59 @@ function _heroBases() {
   }
   return bases;
 }
-// Point a hero <img> at a location image. Each candidate URL is preloaded and
-// the visible src only swaps once one actually loads -- if EVERY candidate
-// 404s, the image that is already showing (e.g. the hardcoded fallback src in
-// the markup) stays put instead of being replaced by a broken URL, which used
-// to leave the hero black. The token guards rapid location switches so a slow
-// older probe can't overwrite a newer location's image.
-function setHeroImage(img, loc) {
+// Resolve a location's hero URL by preloading each candidate folder in turn.
+// If EVERY candidate 404s the callback gets "" and the image already showing
+// (e.g. the hardcoded src in the markup) stays put, instead of being replaced
+// by a broken URL -- which used to leave the hero black.
+//
+// Probing is the expensive part: the newest month folders are usually not
+// uploaded yet, so a cold resolve burns several sequential 404 round-trips.
+// Both caches below exist to pay that cost once, not once per click.
+var _heroUrlCache = {};  // loc -> resolved URL
+var _heroBaseHit = "";   // ponytail: a folder that worked once works for the rest
+function resolveHeroUrl(loc, cb) {
+  if (_heroUrlCache[loc]) return cb(_heroUrlCache[loc]); // sync -> instant swap
   var file = (LOC_IMAGES[loc] || loc.toLowerCase()) + ".webp";
   var bases = _heroBases();
-  var token = (img._ccHeroToken = (img._ccHeroToken || 0) + 1);
+  if (_heroBaseHit) {
+    bases = [_heroBaseHit].concat(bases.filter(function (b) { return b !== _heroBaseHit; }));
+  }
   var i = 0;
   (function tryNext() {
-    if (i >= bases.length) return; // all candidates 404 -> keep current image
+    if (i >= bases.length) return cb(""); // all candidates 404 -> keep current image
     var probe = new Image();
-    probe.onload = function () { if (img._ccHeroToken === token) img.src = probe.src; };
+    probe.onload = function () {
+      _heroBaseHit = bases[i];
+      _heroUrlCache[loc] = probe.src;
+      cb(probe.src);
+    };
     probe.onerror = function () { i++; tryNext(); };
     probe.src = bases[i] + file;
   })();
+}
+
+// Swap the hero to `loc`. Fades back in only once the new image has actually
+// loaded -- never on a timer, which is what made the swap look broken while a
+// cold probe worked through its 404s. Once cached the callback runs
+// synchronously, so repeat switches are instant with no fade at all.
+// The token guards rapid clicks: a slow older probe can't overwrite a newer
+// location's image.
+function setHeroImage(img, loc) {
+  var token = (img._ccHeroToken = (img._ccHeroToken || 0) + 1);
+  if (!_heroUrlCache[loc]) img.style.opacity = "0"; // only fade when we must wait
+  resolveHeroUrl(loc, function (url) {
+    if (img._ccHeroToken !== token) return; // superseded by a newer click
+    if (url) img.src = url;
+    img.alt = "Cinematheque " + loc;
+    img.style.opacity = "1";
+  });
+}
+
+// Probe the non-default locations up front so the first click is already warm.
+function prewarmHeroes() {
+  for (var loc in LOC_IMAGES) {
+    if (loc !== "Manila") resolveHeroUrl(loc, function () {});
+  }
 }
 // ---
 
@@ -724,8 +764,9 @@ function loadSheetSchedule() {
       var out = [];
       for (var i = 0; i < trs.length; i++) {
         var tds = trs[i].getElementsByTagName("td");
-        if (tds.length < 8) continue;
+        if (tds.length < 6) continue; // need DATE..FILM; TIME/PROGRAM/ADMISSION optional
         var cell = function (j) {
+          if (!tds[j]) return "";
           return (tds[j].textContent || "").replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
         };
         var loc = cell(3), film = cell(5);
@@ -742,7 +783,7 @@ function loadSheetSchedule() {
           time: cell(4),
           film: film,
           program: cell(6),
-          admission: cell(7) || "Free"
+          admission: cell(7) // ponytail: blank stays blank -- card omits the field
         });
       }
       out.sort(function (a, b) {
@@ -757,6 +798,9 @@ function loadSheetSchedule() {
 // Working schedule the renderer reads. Starts as the baked snapshot, then is
 // replaced wholesale once the live sheet responds. See loadSheetSchedule().
 var CC_MERGED = CC_SCHEDULE.slice();
+// "loading" until the relevant fetch settles, then "ok" or "failed". With no
+// baked rows an empty list is ambiguous, so the empty state reads this.
+var CC_FEED = "loading"; // "loading" | "ok" | "failed" -- the sheet fetch
 
 const ALT_PROGRAMS = new Set(["Negros", "Davao"]);
 const PAGE_SIZE = 10;
@@ -796,9 +840,10 @@ function buildCard(r, altLoc, idx) {
   info.appendChild(makeEl("h4", "cc-info__title", r.film));
 
   var meta = makeEl("div", "cc-info__meta");
-  var timeStrong = makeEl("strong", null, r.time);
-  meta.appendChild(timeStrong);
-  meta.appendChild(document.createTextNode("  \u00B7  " + r.admission + "  \u00B7  " + r.day));
+  // ponytail: skip blank fields (sheet rows may have no TIME/ADMISSION)
+  if (r.time) meta.appendChild(makeEl("strong", null, r.time));
+  var rest = [r.admission, r.day].filter(Boolean).join("  \u00B7  ");
+  if (rest) meta.appendChild(document.createTextNode((r.time ? "  \u00B7  " : "") + rest));
   info.appendChild(meta);
   card.appendChild(info);
 
@@ -892,8 +937,22 @@ function renderFilms(location) {
   while (container.firstChild) container.removeChild(container.firstChild);
 
   if (!list.length) {
-    container.appendChild(makeEl("div", "cc-empty",
-      "No upcoming screenings for this Cinematheque yet. Check back soon."));
+    var state = CC_FEED;
+    var msg = state === "loading"
+      ? "Loading screenings..."
+      : state === "failed"
+        ? "We can't load the schedule right now. Please try again shortly."
+        : "No upcoming screenings for this Cinematheque yet. Check back soon.";
+    var empty = makeEl("div", "cc-empty", msg);
+    if (state === "failed" && location === "Manila" && CALENDAR_URLS.Manila) {
+      empty.appendChild(document.createElement("br"));
+      var ttLink = makeEl("a", "cc-calendar-link", "See full calendar");
+      ttLink.href = CALENDAR_URLS.Manila;
+      ttLink.target = "_blank";
+      ttLink.rel = "noopener";
+      empty.appendChild(ttLink);
+    }
+    container.appendChild(empty);
     renderPagination(0, location);
     return;
   }
@@ -913,14 +972,7 @@ function selectLocation(loc) {
     else cards[i].classList.remove("is-active");
   }
   var img = findOne("ccHeroImg", "cc-hero__img");
-  if (img) {
-    img.style.opacity = "0";
-    setTimeout(function () {
-      setHeroImage(img, loc);
-      img.alt = "Cinematheque " + loc;
-      img.style.opacity = "1";
-    }, 200);
-  }
+  if (img) setHeroImage(img, loc); // handles its own fade + alt text
   var title = findOne("ccHeroTitle", "cc-hero__title");
   if (title) title.textContent = "Cinematheque " + loc;
   ccCurrentPage = 1;
@@ -937,17 +989,17 @@ function ccInit() {
   }
   var heroImg = findOne("ccHeroImg", "cc-hero__img");
   if (heroImg) setHeroImage(heroImg, "Manila");
+  prewarmHeroes();
   renderFilms("Manila"); // instant paint from baked sheet
 
   // Pull the whole schedule (all four locations) live from the Google Sheet,
   // then re-render. On any failure the baked CC_SCHEDULE stays on screen.
   loadSheetSchedule().then(function (rows) {
-    if (rows && rows.length) {
-      CC_MERGED = rows;
-      ccCurrentPage = 1;
-      var active = document.querySelector(".cc-loc-card.is-active");
-      renderFilms(active ? active.getAttribute("data-loc") : "Manila");
-    }
+    CC_FEED = (rows && rows.length) ? "ok" : "failed";
+    if (rows && rows.length) CC_MERGED = rows;
+    ccCurrentPage = 1;
+    var active = document.querySelector(".cc-loc-card.is-active");
+    renderFilms(active ? active.getAttribute("data-loc") : "Manila");
   });
 }
 

@@ -14,8 +14,10 @@ const SCREENINGS = SITE + "/screenings?authuser=0";
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
+// A browser-ish UA keeps the Google Site scrape on the normal HTML path.
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
 function get(url) {
-  return new Promise((res, rej) => https.get(url, r => {
+  return new Promise((res, rej) => https.get(url, { headers: { "User-Agent": UA } }, r => {
     if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) return get(r.headers.location).then(res, rej);
     let d = ""; r.on("data", c => d += c); r.on("end", () => res(d));
   }).on("error", rej));
@@ -59,7 +61,7 @@ function sheetRow(c, today) {
   if (iso < today) return null;
   return { date: MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear(), dateISO: iso,
     day: DAYS[d.getDay()], location: loc[0].toUpperCase() + loc.slice(1).toLowerCase(),
-    time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) || "Free" };
+    time: clean(c[4]), film, program: clean(c[6]), admission: clean(c[7]) }; // blank stays blank -- the card omits it
 }
 
 // Levenshtein distance, capped: bails early when lengths differ by > 2.
