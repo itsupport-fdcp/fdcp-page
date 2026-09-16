@@ -2499,6 +2499,13 @@
     // Live feed from the "FDCP STORIES" tab of the same spreadsheet that drives
     // the events feed. Same SWR pattern as the events loader, with a separate
     // cache key so the two feeds don't trample each other.
+    // Drive API key (Drive API enabled, HTTP-referrer-restricted to fdcp.gov.ph).
+    // Drive-hosted story reels only get a Drive-made frame-0 thumbnail (black on
+    // fade-in reels); with a key the card streams the file via the Drive API and
+    // shows the frame at 2s instead. Drive's own download URL can't be used: it
+    // 403s any request carrying Sec-Fetch-Site: cross-site, i.e. every <video>
+    // on another origin. Empty = keep the frame-0 thumbnail.
+    var DRIVE_API_KEY      = "";
     var STORIES_SHEET_SRC  = "https://docs.google.com/spreadsheets/d/15RKI11nZfI2fPtjDS_Hi1aAhJyKPO9bz7Dtb5cDrCW0/gviz/tq?tqx=out:html&sheet=FDCP%20STORIES";
     var STORIES_CACHE_KEY  = "fdcp.stories.v2";
     var lastStoriesFetchAt = 0;
@@ -2614,6 +2621,8 @@
                 type:  "iframe",
                 src:   "https://drive.google.com/file/d/" + driveFile[1] + "/preview",
                 thumb: "https://drive.google.com/thumbnail?id=" + driveFile[1] + "&sz=w1600",
+                // Byte stream for the 2s card cover frame (see DRIVE_API_KEY).
+                stream: DRIVE_API_KEY ? "https://www.googleapis.com/drive/v3/files/" + driveFile[1] + "?alt=media&key=" + DRIVE_API_KEY : "",
                 caption: caption
               };
             }
@@ -2640,7 +2649,7 @@
           var cover = "";
           var coverVideo = "";   // S3/native video used as the card cover (first frame)
           for (var i = 0; i < assets.length; i++) {
-            if (assets[i].thumb) { cover = assets[i].thumb; break; }
+            if (assets[i].thumb) { cover = assets[i].thumb; coverVideo = assets[i].stream || ""; break; }
           }
           // No image thumbnail anywhere (e.g. story is a single S3 .mp4).
           // Fall back to the first native (progressive) video so the card can
@@ -2766,6 +2775,7 @@
         var coverEl;
         if (s.coverVideo) {
           coverEl = '<video class="fdcp-story-cover" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata" disablepictureinpicture'
+            + (s.cover ? ' poster="' + escapeAttr(s.cover) + '"' : '')   // Drive thumb until the 2s frame decodes; stays if the file is an image
             + ' style="' + coverFill + '"></video>';
         } else if (!s.cover && s.hlsCover) {
           coverEl = '<span class="fdcp-story-cover" data-hls-cover="' + escapeAttr(s.hlsCover) + '"'
@@ -3030,6 +3040,7 @@
           +          'border:0;color:#fff;width:100%;text-align:left;font-family:inherit;">'
           +   (s.coverVideo
               ? '<video class="fdcp-focus-story-thumb" src="' + escapeAttr(s.coverVideo) + '#t=2" muted playsinline preload="metadata" disablepictureinpicture'
+                + (s.cover ? ' poster="' + escapeAttr(s.cover) + '"' : '')
                 + ' style="width:56px;height:56px;border-radius:9999px;object-fit:cover;flex-shrink:0;'
                 + 'background:#1a1a1a;border:2px solid ' + ring + ';display:block;"></video>'
               : (!s.cover && s.hlsCover
