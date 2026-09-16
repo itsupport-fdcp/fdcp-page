@@ -1,7 +1,11 @@
-# Publishes staging/ to GitHub Pages. Only that folder is served, so the rest of
-# the repo (source pages, scripts, the saved Drupal dump) stays off the site.
+# Pages serves the gh-pages branch ("Deploy from a branch" in Settings), so this
+# publishes staging/ to that branch's root whenever staging/ changes on main.
+#
+# It does NOT use actions/deploy-pages: that path needs the Pages source set to
+# "GitHub Actions" and a token allowed to create the Pages site, which this repo
+# refused. Pushing a branch only needs contents:write, so it just works.
 # Site URL: https://itsupport-fdcp.github.io/fdcp-page/
-name: Deploy staging to Pages
+name: Publish staging to gh-pages
 
 on:
   push:
@@ -12,30 +16,27 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Let a running deploy finish; queue at most one behind it.
 concurrency:
-  group: pages
+  group: gh-pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      # enablement creates the Pages site on first run, so nobody has to switch
-      # the source by hand in Settings > Pages.
-      - uses: actions/configure-pages@v5
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: staging
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          fetch-depth: 0
+
+      - name: Push staging/ to gh-pages root
+        run: |
+          set -euo pipefail
+          git config user.name  "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          # Rebuild the branch from the current staging/ tree. force-push keeps
+          # gh-pages a snapshot of staging/ rather than accumulating history.
+          git branch -D gh-pages 2>/dev/null || true
+          git subtree split --prefix staging -b gh-pages
+          git push --force origin gh-pages

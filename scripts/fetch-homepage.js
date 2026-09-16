@@ -91,13 +91,17 @@ function rewriteHtml(html) {
   });
   // Hero: swap the static desktop banner still for the S3 teaser video. Matched
   // structurally (first img in the desc-only banner-wrap) so it survives the
-  // editors swapping the banner image. The still stays on as the poster, which
-  // is also the fallback where WebM will not play.
+  // editors swapping the banner image.
+  //
+  // Deliberately no poster. The teaser fades up from pure black (frames 0 to
+  // 0.5s measure brightness 0), so the old banner still was a bright landscape
+  // that cut hard to black the instant playback began. A black background
+  // matches the video's own opening frame, making the swap invisible.
   let heroSwapped = false;
   html = html.replace(/(<div class="desc-only">\s*<div class="banner-wrap">\s*)<img[^>]*?src="([^"]+)"[^>]*>/,
-    (m, pre, poster) => {
+    (m, pre) => {
       heroSwapped = true;
-      return `${pre}<video class="banner-video" autoplay muted loop playsinline poster="${poster}"><source src="${HERO_VIDEO}" type="video/webm"></video>`;
+      return `${pre}<video class="banner-video" autoplay muted loop playsinline preload="auto"><source src="${HERO_VIDEO}" type="video/webm"></video>`;
     });
   // The theme already styles .banner-video (width/object-fit/z-index), so we add
   // only what it lacks. Every selector below is scoped to #slide-banner: this
@@ -118,10 +122,41 @@ function rewriteHtml(html) {
   // 22MB file twice. Overriding that !important needs !important back.
   // brightness mirrors the theme's own rule on the img, keeping the caption legible.
   html = html.replace("</head>", `<style>
-#slide-banner .banner-wrap video{height:auto;aspect-ratio:2.5;filter:brightness(.5)}
+#slide-banner .banner-wrap video{height:auto;aspect-ratio:2.5;filter:brightness(.5);background:#000}
 @media(max-width:992px){#slide-banner .desc-only{display:block!important}#slide-banner .mob-only{display:none!important}#slide-banner .banner-wrap video{aspect-ratio:393/569}}
 </style>
 </head>`);
+  // Keep every video silent, for good.
+  //
+  // The muted attribute is only read when the element is parsed, so anything
+  // re-initialising a node can bring sound back. This also has to cover the ~25
+  // <video> elements the Curator.io feed injects long after load, which carry
+  // real audio tracks and are the likeliest source of stray sound. A
+  // MutationObserver arms each new one; the flag keeps re-arming cheap and stops
+  // the volumechange handler from re-triggering itself. Audio only - no element
+  // is moved, resized or restyled.
+  //
+  // NOTE: inject at the LAST </body>. The first one in this document sits inside
+  // a Curator comment ("...before the </body> tag"), and a script injected there
+  // is swallowed by the comment and never runs.
+  const muteGuard = `<script>
+(function(){
+function silence(v){if(!v.muted||v.volume!==0){v.muted=true;v.volume=0;}}
+function arm(v){if(v.__silenced)return;v.__silenced=1;silence(v);
+["loadedmetadata","loadeddata","canplay","play","playing","volumechange"].forEach(function(e){
+v.addEventListener(e,function(){silence(v);});});}
+function sweep(){var n=document.querySelectorAll("video,audio"),i=0;for(;i<n.length;i++)arm(n[i]);}
+var pending=0;
+function schedule(){if(pending)return;pending=1;requestAnimationFrame(function(){pending=0;sweep();});}
+sweep();
+new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener("visibilitychange",sweep);
+})();
+</script>
+`;
+  const endBody = html.lastIndexOf("</body>");
+  html = endBody === -1 ? html + muteGuard
+                        : html.slice(0, endBody) + muteGuard + html.slice(endBody);
   return { html, refs: [...refs], heroSwapped };
 }
 
