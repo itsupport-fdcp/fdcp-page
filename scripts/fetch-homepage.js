@@ -123,6 +123,12 @@ function rewriteHtml(html) {
   // brightness mirrors the theme's own rule on the img, keeping the caption legible.
   html = html.replace("</head>", `<style>
 #slide-banner .banner-wrap video{height:auto;aspect-ratio:2.5;filter:brightness(.5);background:#000}
+/* Break the caption over 3 centred lines instead of 2 wide ones. The theme sets
+   max-width:900px at the same specificity, so this has to match its selector and
+   rely on coming later in the cascade. Narrower = more lines; 540px is the width
+   at which this headline turns over to 3. Harmless on mobile, where the column
+   is already narrower than 540px. */
+#slide-banner .fix-content .banner-title{max-width:540px;margin-left:auto;margin-right:auto}
 @media(max-width:992px){#slide-banner .desc-only{display:block!important}#slide-banner .mob-only{display:none!important}#slide-banner .banner-wrap video{aspect-ratio:393/569}}
 </style>
 </head>`);
