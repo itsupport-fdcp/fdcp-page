@@ -103,6 +103,16 @@ function rewriteHtml(html) {
       heroSwapped = true;
       return `${pre}<video class="banner-video" autoplay muted loop playsinline preload="auto"><source src="${HERO_VIDEO}" type="video/webm"></video>`;
     });
+  // Set the hero caption over three lines with the connector "of" alone in the
+  // middle, rather than letting it wrap wherever the box happens to end:
+  //     Stay Tuned for the Announcement
+  //                  of
+  //       Cycle 2 Selected Projects
+  // Only the first " of " is split, so a headline with several reads normally,
+  // and a headline without one is left exactly as the editors wrote it.
+  html = html.replace(/(<div class="banner-title">)([^<]*)(<\/div>)/g,
+    (m, open, text, close) =>
+      open + text.replace(/ of (?=.* )/, "<br>of<br>") + close);
   // The theme already styles .banner-video (width/object-fit/z-index), so we add
   // only what it lacks. Every selector below is scoped to #slide-banner: this
   // touches the hero and nothing else on the page.
@@ -123,12 +133,8 @@ function rewriteHtml(html) {
   // brightness mirrors the theme's own rule on the img, keeping the caption legible.
   html = html.replace("</head>", `<style>
 #slide-banner .banner-wrap video{height:auto;aspect-ratio:2.5;filter:brightness(.5);background:#000}
-/* Break the caption over 3 centred lines instead of 2 wide ones. The theme sets
-   max-width:900px at the same specificity, so this has to match its selector and
-   rely on coming later in the cascade. Narrower = more lines; 540px is the width
-   at which this headline turns over to 3. Harmless on mobile, where the column
-   is already narrower than 540px. */
-#slide-banner .fix-content .banner-title{max-width:540px;margin-left:auto;margin-right:auto}
+/* The caption breaks over 3 lines via explicit <br> around "of" (see below), so
+   the width stays at the theme's 900px and the breaks alone decide the shape. */
 @media(max-width:992px){#slide-banner .desc-only{display:block!important}#slide-banner .mob-only{display:none!important}#slide-banner .banner-wrap video{aspect-ratio:393/569}}
 </style>
 </head>`);
