@@ -4,7 +4,8 @@
 # It does NOT use actions/deploy-pages: that path needs the Pages source set to
 # "GitHub Actions" and a token allowed to create the Pages site, which this repo
 # refused. Pushing a branch only needs contents:write, so it just works.
-# Site URL: https://itsupport-fdcp.github.io/fdcp-page/
+# Site URL: https://itsupport-fdcp.github.io/FPO-Homepage/ (the path is the repo
+# name, so it follows any rename automatically; nothing in the site hardcodes it).
 name: Publish staging to gh-pages
 
 on:
