@@ -1,11 +1,11 @@
-# Pages serves the gh-pages branch ("Deploy from a branch" in Settings), so this
-# publishes staging/ to that branch's root whenever staging/ changes on main.
+# Pages serves the whole gh-pages branch, so a folder in that branch becomes a
+# path on the site. staging/ is published into FPO-Home/, giving:
+#   https://itsupport-fdcp.github.io/fdcp-page/FPO-Home/
+# The repo keeps its name; only the folder inside the branch sets the subpath.
 #
-# It does NOT use actions/deploy-pages: that path needs the Pages source set to
-# "GitHub Actions" and a token allowed to create the Pages site, which this repo
-# refused. Pushing a branch only needs contents:write, so it just works.
-# Site URL: https://itsupport-fdcp.github.io/FPO-Homepage/ (the path is the repo
-# name, so it follows any rename automatically; nothing in the site hardcodes it).
+# Not actions/deploy-pages: that needs the Pages source set to "GitHub Actions"
+# and a token allowed to create the Pages site, which this repo refused. Pushing
+# a branch needs only contents:write, so it just works.
 name: Publish staging to gh-pages
 
 on:
@@ -28,16 +28,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Push staging/ to gh-pages root
+      - name: Publish staging/ into FPO-Home/ on gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          work="$(mktemp -d)"
+          mkdir -p "$work/FPO-Home"
+          cp -R staging/. "$work/FPO-Home/"
+
+          # Root redirect so the older /fdcp-page/ link keeps working instead of
+          # 404ing for anyone it was already shared with.
+          cat > "$work/index.html" <<'HTML'
+          <!doctype html><meta charset="utf-8">
+          <title>Film Philippines</title>
+          <meta http-equiv="refresh" content="0; url=FPO-Home/">
+          <link rel="canonical" href="FPO-Home/">
+          <meta name="robots" content="noindex, nofollow">
+          <p>Redirecting to <a href="FPO-Home/">FPO-Home/</a>.</p>
+          HTML
+
+          # Rebuilt from scratch each run, so gh-pages stays a clean snapshot of
+          # staging/ rather than accumulating deleted files.
+          cd "$work"
+          git init -q -b gh-pages
           git config user.name  "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          # Rebuild the branch from the current staging/ tree. force-push keeps
-          # gh-pages a snapshot of staging/ rather than accumulating history.
-          git branch -D gh-pages 2>/dev/null || true
-          git subtree split --prefix staging -b gh-pages
-          git push --force origin gh-pages
+          git add -A
+          git commit -q -m "Publish staging to FPO-Home"
+          git push --force --quiet \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
