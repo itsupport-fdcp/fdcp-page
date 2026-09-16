@@ -1,0 +1,77 @@
+/* .page-user #user-login {margin-top: 250px} */
+.not-logged-in.section-asean-co-production-fund-acof-apply-now #main-content,
+.not-logged-in.section-international-co-production-fund-icof-apply-now #main-content{padding:0}
+.step-boxs-item.last::before{position: absolute; width: 1px; height: 28%; text-align: center; font-size: 18px; background: #22519a; border-radius: 10px; display: flex; align-items: center; justify-content: center; top: 100%; left: 50%; content: "";}
+.step-boxs-item.last::after{content: ""; position: absolute; bottom: -29.5%; width: 10px; height: 10px; border-radius: 50%; background: #c83d3d;}
+.second-row .timeline-period-line::before{right:unset; left:0;margin-right:unset;margin-left: -6px}
+.not-logged-in.section-film-now .step-boxs-item.last::after{background: #22519a; bottom:-28.5%;}
+.page-node-801 #edit-combine{padding-left: 45px;}
+.page-node-799 #edit-combine{padding-left: 45px;}
+.page-node-792 #edit-combine{padding-left: 45px;}
+#edit-field-category-tid-wrapper label{ text-transform:uppercase; margin-top: 10px }
+#edit-field-location-type-value-wrapper label{ text-transform:uppercase; margin-top: 10px }
+#edit-field-taxonomy-service-category-tid-wrapper label { text-transform:uppercase; margin-top: 10px}
+.appended-search{position: absolute;top: 18px;left: 15px;color: #ffc100;margin-left: 10px;}
+.appended-arrow{padding: 5px;font-size: 10px;padding-bottom: 7px;margin-left: 3px;}
+#content-bottom-1col{	background: url(../images/film-white-bg.jpg) 0px 0px; background-size: cover; background-repeat: no-repeat; }
+#content-bottom-1col-2, #content-bottom-1col-4{	background: url(../images/yellow-bg.png) 0px 0px; background-size: cover; background-repeat: no-repeat; }
+#content-bottom-1col-3{	background: url(../images/film-white-bg.jpg) 0px 0px; background-size: cover; background-repeat: no-repeat; }
+#block-views-testimonials-block-1 .testimonial-title{ text-transform: uppercase; }
+.vidtest-col.details .author{ text-transform: uppercase; }
+.landing-card-section {background: url(../images/yellow-bg.png) 0 0 no-repeat;background-size: cover;padding: 85px 0;position: relative;z-index: 1;margin: 0px;}
+#block-block-19 .articles-wrapper{margin-bottom: 0px;}
+.service-popup-wrapper .service-section-heading{text-transform: uppercase;}
+.other-s-cta a{text-transform: uppercase;}
+/*.card-content-inner .card-content p{text-transform: uppercase;}*/ 
+.page-node-791 .other-s-cta a{	text-transform: uppercase;background-color: #ffc100;color: #151515;}
+.film-lower-image{ margin-top: 15px; }
+.films-popup-wrapper .film-subheading > div {  margin-right: 10px;  padding-right: 10px;}
+.films-popup-wrapper .film-subheading { flex-wrap: wrap;font-weight: 600; font-size:14px; }
+.films-popup-wrapper .film-subheading .title-wrapper{ margin-right: 3px; }
+.films-popup-wrapper .main-title.film-title { margin: 15px 0 0px; text-transform: capitalize;}
+.films-popup-wrapper .film-trailer { margin-top: 30px;  color: #a29f9f; font-size: 14px}
+.film-link{ margin-top:30px; }
+.film-link a{ color: #a29f9f; text-decoration: underline; }
+#footer-bottom .container{ width: 100%; padding: 0; }
+.share-wrapper{display: flex; flex-direction: column;position: absolute; right: 20px; align-items: center;top: 95px;}
+.share-wrapper .label{color: #fdc81a;margin-bottom: 15px;}
+.share-wrapper a{color: #fdc81a;text-decoration: none;}
+.share-wrapper a i{width: 25px; height: 25px; background: #fdc81a; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 50%;margin-bottom: 15px;}
+.node.node-locations .location-content-section{padding: 30px 85px;}
+.page-node-786 #content{margin-top: -330px;}
+#block-views-testimonials-block-1 .testimonial-content-inner{background: url('../images/film-white-bg5.jpg');background-size: cover;}
+.node-735 #contactus-wrapper .field-item img{max-height: 165px;width:auto;}
+.under-construction-back a{background: url(../images/black-left-arrow.png) center left no-repeat;color: #000000;text-transform: uppercase;font-weight: bold;font-size: 1.2rem;text-align: center;display: inline-block;/* padding-left: 35px; */background-size: 25px;padding: 10px;background-color: #ffc100;border-radius: 10px;}
+#block-views-testimonials-block .vidtest-col { width: 100%; }
+#block-views-testimonials-block .vidtest-col .details .quote { margin-bottom: 10px;}
+#block-views-testimonials-block .videos-and-testimonials .details p{ margin-top: 0px; margin-bottom: 0px; }
+#block-views-testimonials-block .videos-and-testimonials .details {padding: 40px 40px;}
+.location-tag{font-size: 12px; font-weight: 600;vertical-align: sub;}
+.location-tag img{width: 100%;max-width: 8px; vertical-align: revert; margin-top: 5px;}
+#contactus-wrapper .col-md-6 .contacts-details h4{ margin-top: 5px; }
+.contactus-content .row .field-items > div:nth-child(n+3) > div{margin-top: 30px;}
+.contacts-details .field-name-field-position .field-item { margin-top: 5px;}
+/* .contactus-content .row .field-items > div:nth-child(n+4) > div{margin-top: 75px;} */
+#contactus-wrapper .col-md-4 .contacts-details{	margin-left: 15px;   margin-top: 10px; max-height: 50px; margin-bottom: 10px;}
+#contactus-wrapper .col-md-4 .contacts-details h4{max-width: 260px; margin-top: 5px; margin-bottom:5px; font-weight: 800;} 
+.contacts-details .contacts-email{margin-top: 7px;color: #868686;}
+#direct-contact .col-md-4 .contacts-details { align-self: center; margin-left: 45px;   margin-top: 0px;    max-height: 100%;}
+.step-boxs-wrapper .step-boxs-item:nth-child(2) .timeline-period-line .application:before{background: #f94427;}
+.page-node-782 .landing-card-section .step-boxs-item{ color: rgb(45 43 43); z-index: 1; }
+.page-node-782 .step-boxs-wrapper .step-boxs-item:nth-child(2) .timeline-period-line:before{ background: #f94427; }
+.page-node-795 .videos-and-testimonials .details { padding: 20px 40px; }
+.page-node-791 .landing-card-section { background: url(../images/blue-bg.png) 0 0 no-repeat; background-size: cover; position: relative; z-index: 2; padding-bottom: 50px; }
+.page-node-791 .card-content-wrapper h2{ text-align: center; }
+.page-node-790 .sec-film-now.steps .image-wrapper { max-width: 100%; }
+.page-node-795 #content-bottom-wrapper .container {     width: 100%; padding: 0; }
+.page-node-846 .landing-card-section { background: url(../images/yellow-bg2.png) 0 0 no-repeat; background-size: cover; padding: 85px 0; position: relative; z-index: 1; margin: 0px;} 
+.page-node-727 .front #main-content { display: none; }
+.page-node-786 #main-content { margin-top: 40vh; }
+.page-node-794 .banner-content-wrapper { height: 60%; }
+.page-node-794 .landing-card-section { margin-top: -60vh; }
+.page-node-735 #contactus-wrapper .field-name-field-header-7{margin-bottom: 30px; font-family: 'URWForm-ExtraBold'; font-size: 20px;}
+.page-node-735 #contactus-wrapper .field-name-field-header-8{margin-bottom: 30px; padding-top: 30px; font-family: 'URWForm-ExtraBold'; font-size: 20px;}
+/* for the card application process */
+.step-boxs-wrapper.second-row{margin-top: 90px;justify-content: flex-end;}
+.sub-step-content{font-family: 'URWForm-Regular'; font-size: 14px;}
+@media (min-width: 992px){#direct-contact .col-md-4{width: 50%; display: flex;}}
